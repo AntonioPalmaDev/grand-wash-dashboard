@@ -14,7 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          taxa: number
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          taxa?: number
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          taxa?: number
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      configs: {
+        Row: {
+          id: string
+          taxa_maquina: number
+          taxa_pf: number
+          taxa_pj: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          taxa_maquina?: number
+          taxa_pf?: number
+          taxa_pj?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          taxa_maquina?: number
+          taxa_pf?: number
+          taxa_pj?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      operations: {
+        Row: {
+          client_id: string
+          created_at: string
+          custo_maquina: number
+          data: string
+          id: string
+          lucro_bruto: number
+          lucro_liquido: number
+          responsavel: string
+          status: string
+          taxa_percentual: number
+          user_id: string
+          valor_bruto: number
+          valor_cliente: number
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          custo_maquina: number
+          data?: string
+          id?: string
+          lucro_bruto: number
+          lucro_liquido: number
+          responsavel?: string
+          status?: string
+          taxa_percentual: number
+          user_id: string
+          valor_bruto: number
+          valor_cliente: number
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          custo_maquina?: number
+          data?: string
+          id?: string
+          lucro_bruto?: number
+          lucro_liquido?: number
+          responsavel?: string
+          status?: string
+          taxa_percentual?: number
+          user_id?: string
+          valor_bruto?: number
+          valor_cliente?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
