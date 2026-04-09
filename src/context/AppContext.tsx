@@ -88,7 +88,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const updateClient = useCallback(async (id: string, c: Partial<Client>) => {
-    const update: Record<string, unknown> = {};
+    const update: { nome?: string; tipo?: string; taxa?: number } = {};
     if (c.nome !== undefined) update.nome = c.nome;
     if (c.tipo !== undefined) update.tipo = c.tipo;
     if (c.taxa !== undefined) update.taxa = c.taxa;
