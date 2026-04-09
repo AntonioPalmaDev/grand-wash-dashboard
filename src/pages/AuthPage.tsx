@@ -36,7 +36,7 @@ export default function AuthPage() {
       <div className="glass-card rounded-xl p-8 w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold gradient-text">
-            <img src="/zerofoco3.png" alt="Zero Foco" className="h-25 w-25 inline-block mr-2" />
+            <img src="/zerofoco3.png" alt="Zero Foco" className="h-25 w-25 inline-block mr-2 rounded-full" />
             
           </h1>
           <p className="text-sm text-muted-foreground">
