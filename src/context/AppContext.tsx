@@ -1,18 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 import type { Client, Operation, AppConfig, DashboardStats, OperationStatus } from "@/types";
-
-function generateId() {
-  return crypto.randomUUID();
-}
-
-function loadFromStorage<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 const DEFAULT_CONFIG: AppConfig = { taxaPF: 30, taxaPJ: 25, taxaMaquina: 10 };
 
@@ -20,13 +9,14 @@ interface AppContextType {
   clients: Client[];
   operations: Operation[];
   config: AppConfig;
-  addClient: (c: Omit<Client, "id" | "createdAt">) => void;
-  updateClient: (id: string, c: Partial<Client>) => void;
-  deleteClient: (id: string) => void;
-  addOperation: (o: { clientId: string; valorBruto: number; responsavel: string }) => void;
-  updateOperationStatus: (id: string, status: OperationStatus) => void;
-  deleteOperation: (id: string) => void;
-  updateConfig: (c: AppConfig) => void;
+  loading: boolean;
+  addClient: (c: Omit<Client, "id" | "createdAt">) => Promise<void>;
+  updateClient: (id: string, c: Partial<Client>) => Promise<void>;
+  deleteClient: (id: string) => Promise<void>;
+  addOperation: (o: { clientId: string; valorBruto: number; responsavel: string }) => Promise<void>;
+  updateOperationStatus: (id: string, status: OperationStatus) => Promise<void>;
+  deleteOperation: (id: string) => Promise<void>;
+  updateConfig: (c: AppConfig) => Promise<void>;
   getStats: () => DashboardStats;
   getClientStats: (id: string) => { totalLavado: number; totalOps: number; lucroGerado: number; mediaPorOp: number; ultimaAtividade: string | null };
   getClientRate: (client: Client) => number;
@@ -35,33 +25,86 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [clients, setClients] = useState<Client[]>(() => loadFromStorage("lv_clients", []));
-  const [operations, setOperations] = useState<Operation[]>(() => loadFromStorage("lv_operations", []));
-  const [config, setConfig] = useState<AppConfig>(() => loadFromStorage("lv_config", DEFAULT_CONFIG));
+  const { user } = useAuth();
+  const [clients, setClients] = useState<Client[]>([]);
+  const [operations, setOperations] = useState<Operation[]>([]);
+  const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { localStorage.setItem("lv_clients", JSON.stringify(clients)); }, [clients]);
-  useEffect(() => { localStorage.setItem("lv_operations", JSON.stringify(operations)); }, [operations]);
-  useEffect(() => { localStorage.setItem("lv_config", JSON.stringify(config)); }, [config]);
+  // Fetch all data when user changes
+  useEffect(() => {
+    if (!user) {
+      setClients([]);
+      setOperations([]);
+      setConfig(DEFAULT_CONFIG);
+      setLoading(false);
+      return;
+    }
+
+    async function fetchAll() {
+      setLoading(true);
+      const [cRes, oRes, cfgRes] = await Promise.all([
+        supabase.from("clients").select("*").order("created_at", { ascending: false }),
+        supabase.from("operations").select("*").order("data", { ascending: false }),
+        supabase.from("configs").select("*").limit(1).single(),
+      ]);
+
+      if (cRes.data) {
+        setClients(cRes.data.map(r => ({
+          id: r.id, nome: r.nome, tipo: r.tipo as "PF" | "PJ", taxa: Number(r.taxa), createdAt: r.created_at,
+        })));
+      }
+      if (oRes.data) {
+        setOperations(oRes.data.map(r => ({
+          id: r.id, clientId: r.client_id, valorBruto: Number(r.valor_bruto),
+          taxaPercentual: Number(r.taxa_percentual), lucroBruto: Number(r.lucro_bruto),
+          custoMaquina: Number(r.custo_maquina), lucroLiquido: Number(r.lucro_liquido),
+          valorCliente: Number(r.valor_cliente), status: r.status as OperationStatus,
+          responsavel: r.responsavel, data: r.data, createdAt: r.created_at,
+        })));
+      }
+      if (cfgRes.data) {
+        setConfig({ taxaPF: Number(cfgRes.data.taxa_pf), taxaPJ: Number(cfgRes.data.taxa_pj), taxaMaquina: Number(cfgRes.data.taxa_maquina) });
+      } else {
+        // Create default config for new user
+        await supabase.from("configs").insert({ user_id: user.id, taxa_pf: 30, taxa_pj: 25, taxa_maquina: 10 });
+      }
+      setLoading(false);
+    }
+    fetchAll();
+  }, [user]);
 
   const getClientRate = useCallback((client: Client) => {
     if (client.taxa > 0) return client.taxa;
     return client.tipo === "PF" ? config.taxaPF : config.taxaPJ;
   }, [config]);
 
-  const addClient = useCallback((c: Omit<Client, "id" | "createdAt">) => {
-    setClients(prev => [...prev, { ...c, id: generateId(), createdAt: new Date().toISOString() }]);
-  }, []);
+  const addClient = useCallback(async (c: Omit<Client, "id" | "createdAt">) => {
+    if (!user) return;
+    const { data, error } = await supabase.from("clients").insert({ user_id: user.id, nome: c.nome, tipo: c.tipo, taxa: c.taxa }).select().single();
+    if (data && !error) {
+      setClients(prev => [{ id: data.id, nome: data.nome, tipo: data.tipo as "PF" | "PJ", taxa: Number(data.taxa), createdAt: data.created_at }, ...prev]);
+    }
+  }, [user]);
 
-  const updateClient = useCallback((id: string, c: Partial<Client>) => {
+  const updateClient = useCallback(async (id: string, c: Partial<Client>) => {
+    const update: { nome?: string; tipo?: string; taxa?: number } = {};
+    if (c.nome !== undefined) update.nome = c.nome;
+    if (c.tipo !== undefined) update.tipo = c.tipo;
+    if (c.taxa !== undefined) update.taxa = c.taxa;
+    await supabase.from("clients").update(update).eq("id", id);
     setClients(prev => prev.map(cl => cl.id === id ? { ...cl, ...c } : cl));
   }, []);
 
-  const deleteClient = useCallback((id: string) => {
+  const deleteClient = useCallback(async (id: string) => {
+    await supabase.from("operations").delete().eq("client_id", id);
+    await supabase.from("clients").delete().eq("id", id);
     setClients(prev => prev.filter(cl => cl.id !== id));
     setOperations(prev => prev.filter(op => op.clientId !== id));
   }, []);
 
-  const addOperation = useCallback((o: { clientId: string; valorBruto: number; responsavel: string }) => {
+  const addOperation = useCallback(async (o: { clientId: string; valorBruto: number; responsavel: string }) => {
+    if (!user) return;
     const client = clients.find(c => c.id === o.clientId);
     if (!client) return;
     const taxa = getClientRate(client);
@@ -70,32 +113,44 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const lucroLiquido = lucroBruto - custoMaquina;
     const valorCliente = o.valorBruto - lucroBruto;
 
-    const op: Operation = {
-      id: generateId(),
-      clientId: o.clientId,
-      valorBruto: o.valorBruto,
-      taxaPercentual: taxa,
-      lucroBruto,
-      custoMaquina,
-      lucroLiquido,
-      valorCliente,
-      status: "pendente",
-      responsavel: o.responsavel,
-      data: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-    };
-    setOperations(prev => [...prev, op]);
-  }, [clients, config, getClientRate]);
+    const { data, error } = await supabase.from("operations").insert({
+      user_id: user.id,
+      client_id: o.clientId,
+      valor_bruto: o.valorBruto,
+      taxa_percentual: taxa,
+      lucro_bruto: lucroBruto,
+      custo_maquina: custoMaquina,
+      lucro_liquido: lucroLiquido,
+      valor_cliente: valorCliente,
+      responsavel: o.responsavel || "Sistema",
+    }).select().single();
 
-  const updateOperationStatus = useCallback((id: string, status: OperationStatus) => {
+    if (data && !error) {
+      setOperations(prev => [{
+        id: data.id, clientId: data.client_id, valorBruto: Number(data.valor_bruto),
+        taxaPercentual: Number(data.taxa_percentual), lucroBruto: Number(data.lucro_bruto),
+        custoMaquina: Number(data.custo_maquina), lucroLiquido: Number(data.lucro_liquido),
+        valorCliente: Number(data.valor_cliente), status: data.status as OperationStatus,
+        responsavel: data.responsavel, data: data.data, createdAt: data.created_at,
+      }, ...prev]);
+    }
+  }, [user, clients, config, getClientRate]);
+
+  const updateOperationStatus = useCallback(async (id: string, status: OperationStatus) => {
+    await supabase.from("operations").update({ status }).eq("id", id);
     setOperations(prev => prev.map(op => op.id === id ? { ...op, status } : op));
   }, []);
 
-  const deleteOperation = useCallback((id: string) => {
+  const deleteOperation = useCallback(async (id: string) => {
+    await supabase.from("operations").delete().eq("id", id);
     setOperations(prev => prev.filter(op => op.id !== id));
   }, []);
 
-  const updateConfig = useCallback((c: AppConfig) => { setConfig(c); }, []);
+  const updateConfig = useCallback(async (c: AppConfig) => {
+    if (!user) return;
+    await supabase.from("configs").upsert({ user_id: user.id, taxa_pf: c.taxaPF, taxa_pj: c.taxaPJ, taxa_maquina: c.taxaMaquina });
+    setConfig(c);
+  }, [user]);
 
   const getStats = useCallback((): DashboardStats => {
     const completed = operations.filter(op => op.status === "concluido");
@@ -116,16 +171,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const lucroGerado = ops.reduce((s, op) => s + op.lucroLiquido, 0);
     const sorted = [...ops].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
     return {
-      totalLavado,
-      totalOps,
-      lucroGerado,
+      totalLavado, totalOps, lucroGerado,
       mediaPorOp: totalOps > 0 ? totalLavado / totalOps : 0,
       ultimaAtividade: sorted[0]?.data ?? null,
     };
   }, [operations]);
 
   return (
-    <AppContext.Provider value={{ clients, operations, config, addClient, updateClient, deleteClient, addOperation, updateOperationStatus, deleteOperation, updateConfig, getStats, getClientStats, getClientRate }}>
+    <AppContext.Provider value={{ clients, operations, config, loading, addClient, updateClient, deleteClient, addOperation, updateOperationStatus, deleteOperation, updateConfig, getStats, getClientStats, getClientRate }}>
       {children}
     </AppContext.Provider>
   );
