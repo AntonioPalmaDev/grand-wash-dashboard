@@ -34,7 +34,7 @@ export function AppSidebar() {
       <SidebarContent className="flex flex-col h-full">
         <div className="p-4">
           {!collapsed && (
-            <h1 className="text-lg font-bold gradient-text tracking-tight">💰 LavandeRIA</h1>
+            <h1 className="text-lg font-bold gradient-text tracking-tight">💰Zero Foco</h1>
           )}
           {collapsed && <span className="text-xl">💰</span>}
         </div>
