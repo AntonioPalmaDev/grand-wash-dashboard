@@ -35,7 +35,10 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="glass-card rounded-xl p-8 w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold gradient-text">💰 Zero Foco</h1>
+          <h1 className="text-3xl font-bold gradient-text">
+            <img src="/zerofoco3.png" alt="Zero Foco" className="h-25 w-25 inline-block mr-2" />
+            
+          </h1>
           <p className="text-sm text-muted-foreground">
             {isLogin ? "Acesse o painel de controle" : "Crie sua conta"}
           </p>

@@ -34,9 +34,12 @@ export function AppSidebar() {
       <SidebarContent className="flex flex-col h-full">
         <div className="p-4">
           {!collapsed && (
-            <h1 className="text-lg font-bold gradient-text tracking-tight">💰Zero Foco</h1>
+            <h1 className="text-lg font-bold gradient-text tracking-tight">
+              <img src="zerofoco4.png" alt="Zero Foco" className="h-10 w-10 inline-block mr-2" />
+              Zero Foco
+            </h1>
           )}
-          {collapsed && <span className="text-xl">💰</span>}
+         
         </div>
         <SidebarGroup className="flex-1">
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
