@@ -10,6 +10,7 @@ export interface Client {
 }
 
 export interface Operation {
+  tipo: string;
   id: string;
   clientId: string;
   valorBruto: number;
