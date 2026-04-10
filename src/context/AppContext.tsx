@@ -92,13 +92,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (oRes.data) setOperations(oRes.data.map(mapOperation));
       
       if (cfgRes.data) {
-        setConfig({ 
-          taxaPF: Number(cfgRes.data.taxa_pf), 
-          taxaPJ: Number(cfgRes.data.taxa_pj), 
-          taxaMaquina: Number(cfgRes.data.taxa_maquina),
-          taxaLiquida: Number(cfgRes.data.taxa_liquida || 15) 
-        });
-      }
+  const d = cfgRes.data as any;
+  setConfig({ 
+    taxaPF: Number(d.taxa_pf), 
+    taxaPJ: Number(d.taxa_pj), 
+    taxaMaquina: Number(d.taxa_maquina),
+    // Se a coluna ainda não existir no banco, ele usará 15 sem dar erro
+    taxaLiquida: d.taxa_liquida !== undefined ? Number(d.taxa_liquida) : 15 
+  });
+}
       setLoading(false);
     }
     fetchAll();
@@ -198,32 +200,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (data) await logAction(user.id, user.email || "", "criar", "operação", data.id, null, { valorBruto: o.valorBruto });
   }, [user, clients, config, getClientRate]);
 
-  const updateOperationStatus = useCallback(async (id: string, status: OperationStatus) => {
-    if (!user) return;
-    await supabase.from("operations").update({ status }).eq("id", id);
-  }, [user]);
+const updateOperationStatus = useCallback(async (id: string, status: OperationStatus) => {
+  if (!user) return;
+  await supabase.from("operations").update({ status }).eq("id", id);
+}, [user]);
 
   const deleteOperation = useCallback(async (id: string) => {
-    if (!user) return;
-    await supabase.from("operations").delete().eq("id", id);
-  }, [user]);
+  if (!user) return;
+  await supabase.from("operations").delete().eq("id", id);
+}, [user]);
 
-  const updateConfig = useCallback(async (c: AppConfig) => {
-    if (!user) return;
-    
-    const { error } = await supabase.from("configs").upsert({ 
-      user_id: user.id, 
-      taxa_pf: c.taxaPF, 
-      taxa_pj: c.taxaPJ, 
-      taxa_maquina: c.taxaMaquina,
-      taxa_liquida: c.taxaLiquida 
-    });
+ const updateConfig = useCallback(async (c: AppConfig) => {
+  if (!user) return;
+  
+  const payload: any = { 
+    user_id: user.id, 
+    taxa_pf: c.taxaPF, 
+    taxa_pj: c.taxaPJ, 
+    taxa_maquina: c.taxaMaquina,
+    taxa_liquida: c.taxaLiquida 
+  };
 
-    if (!error) {
-      setConfig(c);
-      await logAction(user.id, user.email || "", "config", "configurações", null, config, c);
-    }
-  }, [user, config]);
+  const { error } = await supabase.from("configs").upsert(payload);
+
+  if (error) {
+    // Se der erro aqui, o console vai confirmar se a coluna realmente falta
+    console.error("Erro ao salvar: Coluna 'taxa_liquida' pode estar faltando.", error.message);
+    return;
+  }
+
+  setConfig(c);
+}, [user]);
 
   const getStats = useCallback((): DashboardStats => {
     const completed = operations.filter(op => op.status === "concluido");
