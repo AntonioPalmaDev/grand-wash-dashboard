@@ -37,7 +37,14 @@ async function logAction(userId: string, userEmail: string, action: string, enti
 }
 
 function mapClient(r: any): Client {
-  return { id: r.id, nome: r.nome, tipo: r.tipo as "PF" | "PJ", taxa: Number(r.taxa), createdAt: r.created_at };
+  return { 
+    id: r.id, 
+    nome: r.nome, 
+    tipo: r.tipo as "PF" | "PJ", 
+    taxa: Number(r.taxa), 
+    cor: r.cor || "#a855f7", 
+    createdAt: r.created_at 
+  };
 }
 
 function mapOperation(r: any): Operation {
@@ -57,7 +64,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(true);
 
-  // Fetch ALL data (shared across users)
   useEffect(() => {
     if (!user) {
       setClients([]);
@@ -85,7 +91,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     fetchAll();
   }, [user]);
 
-  // Realtime subscriptions
   useEffect(() => {
     if (!user) return;
 
@@ -115,17 +120,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setOperations(prev => prev.filter(o => o.id !== (payload.old as any).id));
         }
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "configs" }, (payload) => {
-        if (payload.eventType === "UPDATE" || payload.eventType === "INSERT") {
-          const d = payload.new as any;
-          setConfig({ taxaPF: Number(d.taxa_pf), taxaPJ: Number(d.taxa_pj), taxaMaquina: Number(d.taxa_maquina) });
-        }
-      })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   const getClientRate = useCallback((client: Client) => {
@@ -133,23 +130,49 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return client.tipo === "PF" ? config.taxaPF : config.taxaPJ;
   }, [config]);
 
+  // ✅ CORRIGIDO: Tipagem explícita no insert para evitar erro de 'cor'
   const addClient = useCallback(async (c: Omit<Client, "id" | "createdAt">) => {
     if (!user) return;
-    const { data, error } = await supabase.from("clients").insert({ user_id: user.id, nome: c.nome, tipo: c.tipo, taxa: c.taxa }).select().single();
-    if (data && !error) {
+    
+    const clientData = {
+      user_id: user.id,
+      nome: c.nome,
+      tipo: c.tipo,
+      taxa: c.taxa,
+      cor: c.cor || "#a855f7"
+    };
+
+    const { data, error } = await supabase.from("clients").insert(clientData).select().single();
+    
+    if (error) {
+      console.error("Erro ao adicionar cliente:", error.message);
+      return;
+    }
+
+    if (data) {
       await logAction(user.id, user.email || "", "criar", "cliente", data.id, null, { nome: c.nome, tipo: c.tipo });
     }
   }, [user]);
 
+  // ✅ CORRIGIDO: Tipagem explícita no update
   const updateClient = useCallback(async (id: string, c: Partial<Client>) => {
     if (!user) return;
     const old = clients.find(cl => cl.id === id);
-    const update: { nome?: string; tipo?: string; taxa?: number } = {};
-    if (c.nome !== undefined) update.nome = c.nome;
-    if (c.tipo !== undefined) update.tipo = c.tipo;
-    if (c.taxa !== undefined) update.taxa = c.taxa;
-    await supabase.from("clients").update(update).eq("id", id);
-    await logAction(user.id, user.email || "", "editar", "cliente", id, old, update);
+    
+    const updateData: any = {};
+    if (c.nome !== undefined) updateData.nome = c.nome;
+    if (c.tipo !== undefined) updateData.tipo = c.tipo;
+    if (c.taxa !== undefined) updateData.taxa = c.taxa;
+    if (c.cor !== undefined) updateData.cor = c.cor;
+
+    const { error } = await supabase.from("clients").update(updateData).eq("id", id);
+    
+    if (error) {
+      console.error("Erro ao atualizar cliente:", error.message);
+      return;
+    }
+
+    await logAction(user.id, user.email || "", "editar", "cliente", id, old, updateData);
   }, [user, clients]);
 
   const deleteClient = useCallback(async (id: string) => {
@@ -233,7 +256,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [operations]);
 
   return (
-    <AppContext.Provider value={{ clients, operations, config, loading, addClient, updateClient, deleteClient, addOperation, updateOperationStatus, deleteOperation, updateConfig, getStats, getClientStats, getClientRate }}>
+    <AppContext.Provider 
+      value={{ 
+        clients, 
+        operations, 
+        config, 
+        loading, 
+        addClient, 
+        updateClient, 
+        deleteClient, 
+        addOperation, 
+        updateOperationStatus, 
+        deleteOperation, 
+        updateConfig, 
+        getStats, 
+        getClientStats,
+        getClientRate 
+      }}
+    >
       {children}
     </AppContext.Provider>
   );
