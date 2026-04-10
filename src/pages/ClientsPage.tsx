@@ -154,24 +154,69 @@ export default function ClientsPage() {
         })}
       </div>
 
-      <Dialog open={!!editingClient} onOpenChange={(o) => !o && setEditingClient(null)}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Editar Cliente</DialogTitle></DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div className="grid grid-cols-4 gap-4">
-              <div className="col-span-3">
-                <Label>Nome</Label>
-                <Input value={editNome} onChange={e => setEditNome(e.target.value)} />
-              </div>
-              <div className="col-span-1">
-                <Label>Cor</Label>
-                <Input type="color" value={editCor} onChange={e => setEditCor(e.target.value)} className="h-10 p-1" />
-              </div>
-            </div>
-            <Button onClick={handleUpdate} className="w-full">Atualizar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* MODAL DE EDIÇÃO */}
+<Dialog open={!!editingClient} onOpenChange={(o) => !o && setEditingClient(null)}>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Editar Cliente</DialogTitle>
+    </DialogHeader>
+    <div className="space-y-4 pt-4">
+      {/* NOME E COR */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="col-span-3">
+          <Label>Nome</Label>
+          <Input 
+            value={editNome} 
+            onChange={e => setEditNome(e.target.value)} 
+          />
+        </div>
+        <div className="col-span-1">
+          <Label>Cor</Label>
+          <Input 
+            type="color" 
+            value={editCor} 
+            onChange={e => setEditCor(e.target.value)} 
+            className="h-10 p-1 cursor-pointer" 
+          />
+        </div>
+      </div>
+
+      {/* TIPO (PF/PJ) */}
+      <div>
+        <Label>Tipo</Label>
+        <Select value={editTipo} onValueChange={v => setEditTipo(v as ClientType)}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="PF">Pessoa Física (PF)</SelectItem>
+            <SelectItem value="PJ">Empresa (PJ)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* TAXA */}
+      <div>
+        <Label>Taxa (%)</Label>
+        <Input 
+          type="number" 
+          value={editTaxa} 
+          onChange={e => setEditTaxa(e.target.value)} 
+          placeholder={`Padrão: ${editTipo === "PF" ? config.taxaPF : config.taxaPJ}%`} 
+        />
+      </div>
+
+      <div className="flex gap-3 pt-2">
+        <Button variant="outline" onClick={() => setEditingClient(null)} className="flex-1">
+          Cancelar
+        </Button>
+        <Button onClick={handleUpdate} className="flex-1">
+          Salvar Alterações
+        </Button>
+      </div>
+    </div>
+  </DialogContent>
+</Dialog>
     </div>
   );
 }

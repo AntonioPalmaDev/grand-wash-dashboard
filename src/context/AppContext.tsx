@@ -162,28 +162,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 }, [user]);
 
-  const updateClient = useCallback(async (id: string, c: Partial<Client>) => {
-    if (!user) return;
-    const old = clients.find(cl => cl.id === id);
+ const updateClient = useCallback(async (id: string, c: Partial<Client>) => {
+  if (!user) return;
+  
+  const old = clients.find(cl => cl.id === id);
+  
+  // Montamos o objeto de update garantindo a tipagem correta para o banco
+  const updatePayload: any = {};
+  
+  if (c.nome !== undefined) updatePayload.nome = c.nome;
+  if (c.tipo !== undefined) updatePayload.tipo = c.tipo; // "PF" ou "PJ"
+  if (c.taxa !== undefined) updatePayload.taxa = Number(c.taxa); // Garante que é número
+  if (c.cor !== undefined) updatePayload.cor = c.cor;
+
+  const { error } = await supabase
+    .from("clients")
+    .update(updatePayload)
+    .eq("id", id);
     
-    const updatePayload: any = {};
-    if (c.nome !== undefined) updatePayload.nome = c.nome;
-    if (c.tipo !== undefined) updatePayload.tipo = c.tipo;
-    if (c.taxa !== undefined) updatePayload.taxa = Number(c.taxa);
-    if (c.cor !== undefined) updatePayload.cor = c.cor;
+  if (error) {
+    console.error("Erro ao atualizar no Supabase:", error.message);
+   
+    return;
+  }
 
-    const { error } = await supabase
-      .from("clients")
-      .update(updatePayload)
-      .eq("id", id);
-      
-    if (error) {
-      console.error("Erro ao atualizar no Supabase:", error.message);
-      return;
-    }
-
-    await logAction(user.id, user.email || "", "editar", "cliente", id, old, updatePayload);
-  }, [user, clients]);
+  // Log de auditoria para rastrear o que mudou
+  await logAction(user.id, user.email || "", "editar", "cliente", id, old, updatePayload);
+}, [user, clients]);
 
   const deleteClient = useCallback(async (id: string) => {
     if (!user) return;
