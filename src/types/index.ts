@@ -30,8 +30,8 @@ export interface AppConfig {
   taxaPF: number;
   taxaPJ: number;
   taxaMaquina: number;
+  taxaLiquida: number; // ✅ Nova meta de margem em %
 }
-
 export interface DashboardStats {
   totalMovimentado: number;
   lucroBrutoTotal: number;
