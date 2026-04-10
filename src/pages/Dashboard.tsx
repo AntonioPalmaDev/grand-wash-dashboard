@@ -28,7 +28,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function Dashboard() {
   const { operations, clients } = useApp();
 
-  // Estado para os filtros e para o tipo de gráfico (Linha ou Barra)
+  // Estado para os filtros e para a visualização do gráfico
   const [chartView, setChartView] = useState<"line" | "bar">("line");
   const [filtros, setFiltros] = useState({
     periodo: "30d",
@@ -38,7 +38,7 @@ export default function Dashboard() {
     mes: "ALL",
   });
 
-  // 1. FILTRAGEM BASE DE OPERAÇÕES
+  // 1. FILTRAGEM COMPLETA (Sincroniza tudo: Cards, Gráficos e Ranking)
   const filteredOperations = useMemo(() => {
     let filtered = operations.filter(op => op.status === "concluido");
     const now = new Date();
@@ -69,7 +69,7 @@ export default function Dashboard() {
     return filtered;
   }, [operations, filtros, clients]);
 
-  // 2. CÁLCULO DINÂMICO DOS KPIs
+  // 2. KPIs DINÂMICOS
   const kpiStats = useMemo(() => ({
     totalMovimentado: filteredOperations.reduce((s, op) => s + op.valorBruto, 0),
     lucroBrutoTotal: filteredOperations.reduce((s, op) => s + op.lucroBruto, 0),
@@ -113,28 +113,12 @@ export default function Dashboard() {
       }));
   }, [filteredOperations, filtros, clients]);
 
-  // 4. RANKING DE CLIENTES
-  const topClients = useMemo(() => {
-    const byClient: Record<string, number> = {};
-    filteredOperations.forEach(op => {
-      byClient[op.clientId] = (byClient[op.clientId] || 0) + op.valorBruto;
-    });
-
-    return Object.entries(byClient)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 5)
-      .map(([id, total]) => ({
-        nome: clients.find(c => c.id === id)?.nome ?? "Desconhecido",
-        total,
-      }));
-  }, [filteredOperations, clients]);
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         
-        {/* Alternar entre Linha e Barra */}
+        {/* Alternador de visualização */}
         <Tabs value={chartView} onValueChange={(v) => setChartView(v as "line" | "bar")}>
           <TabsList className="bg-secondary">
             <TabsTrigger value="line" className="gap-2">
@@ -147,7 +131,7 @@ export default function Dashboard() {
         </Tabs>
       </div>
 
-      {/* FILTROS */}
+      {/* TODOS OS FILTROS RECUPERADOS */}
       <div className="flex flex-wrap gap-3 bg-secondary/10 p-4 rounded-xl border border-white/5">
         <select className="bg-secondary p-2 rounded text-sm outline-none" value={filtros.mes} onChange={(e) => setFiltros({ ...filtros, mes: e.target.value })}>
           <option value="ALL">Todos os meses</option>
@@ -157,23 +141,31 @@ export default function Dashboard() {
         </select>
 
         <select className="bg-secondary p-2 rounded text-sm outline-none" value={filtros.periodo} onChange={(e) => setFiltros({ ...filtros, periodo: e.target.value })}>
-          <option value="7d">Últimos 7 dias</option>
-          <option value="30d">Últimos 30 dias</option>
-          <option value="ALL">Todo o período</option>
+          <option value="7d">7 dias</option>
+          <option value="30d">30 dias</option>
+          <option value="ALL">Todo o tempo</option>
+        </select>
+
+        <select className="bg-secondary p-2 rounded text-sm outline-none" value={filtros.agrupamento} onChange={(e) => setFiltros({ ...filtros, agrupamento: e.target.value })}>
+          <option value="dia">Por dia</option>
+          <option value="mes">Por mês</option>
+          <option value="empresa">Por empresa</option>
         </select>
 
         <select className="bg-secondary p-2 rounded text-sm outline-none" value={filtros.tipo} onChange={(e) => setFiltros({ ...filtros, tipo: e.target.value })}>
-          <option value="ALL">Todos Tipos</option>
+          <option value="ALL">Todos (PF/PJ)</option>
           <option value="PJ">PJ</option>
           <option value="PF">PF</option>
         </select>
+
+        <select className="bg-secondary p-2 rounded text-sm outline-none max-w-[200px]" value={filtros.clienteId} onChange={(e) => setFiltros({ ...filtros, clienteId: e.target.value })}>
+          <option value="ALL">Todos os clientes</option>
+          {clients.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+        </select>
       </div>
 
-      {/* GRÁFICO DINÂMICO */}
+      {/* ÁREA DO GRÁFICO DINÂMICO */}
       <div className="glass-card rounded-2xl p-6 border border-white/5 bg-gradient-to-b from-white/5 to-transparent">
-        <h2 className="text-lg font-medium mb-6 text-white/80">
-          Fluxo de Movimentação ({filtros.agrupamento})
-        </h2>
         <div className="h-[350px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             {chartView === "line" ? (
@@ -185,25 +177,14 @@ export default function Dashboard() {
                   contentStyle={{ background: "#121212", border: "1px solid #333", borderRadius: "12px" }}
                   formatter={(v: number) => [formatCurrency(v), "Total"]}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="total" 
-                  stroke="hsl(270,70%,55%)" 
-                  strokeWidth={4} 
-                  dot={{ r: 4, fill: "hsl(270,70%,55%)", strokeWidth: 2, stroke: "#121212" }}
-                  animationDuration={1500}
-                />
+                <Line type="monotone" dataKey="total" stroke="hsl(270,70%,55%)" strokeWidth={4} dot={{ r: 4, fill: "hsl(270,70%,55%)", strokeWidth: 2, stroke: "#121212" }} animationDuration={1500} />
               </LineChart>
             ) : (
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(260,12%,18%)" vertical={false} />
                 <XAxis dataKey="label" stroke="#666" fontSize={12} tickLine={false} axisLine={false} dy={10} />
                 <YAxis tickFormatter={formatCompact} stroke="#666" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip 
-                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                  contentStyle={{ background: "#121212", border: "1px solid #333", borderRadius: "12px" }}
-                  formatter={(v: number) => [formatCurrency(v), "Total"]}
-                />
+                <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: "#121212", border: "1px solid #333", borderRadius: "12px" }} formatter={(v: number) => [formatCurrency(v), "Total"]} />
                 <Bar dataKey="total" fill="hsl(270,70%,55%)" radius={[4, 4, 0, 0]} />
               </BarChart>
             )}
@@ -211,7 +192,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPIs */}
+      {/* KPIs DINÂMICOS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <KpiCard title="Movimentado" value={formatCurrency(kpiStats.totalMovimentado)} icon={DollarSign} />
         <KpiCard title="Lucro Bruto" value={formatCurrency(kpiStats.lucroBrutoTotal)} icon={TrendingUp} variant="success" />
@@ -219,19 +200,6 @@ export default function Dashboard() {
         <KpiCard title="Lucro Líquido" value={formatCurrency(kpiStats.lucroLiquidoTotal)} icon={Wallet} variant="primary" />
         <KpiCard title="Repassado" value={formatCurrency(kpiStats.totalRepassado)} icon={ArrowUpRight} />
         <KpiCard title="Operações" value={String(kpiStats.totalOperacoes)} icon={BarChart3} />
-      </div>
-
-      {/* RANKING */}
-      <div className="glass-card rounded-lg p-5 border border-white/5 bg-white/5">
-        <h2 className="text-lg font-semibold mb-4 text-white/90">Top 5 Clientes</h2>
-        <div className="space-y-2">
-          {topClients.map((c, i) => (
-            <div key={i} className="flex justify-between items-center p-3 bg-white/5 rounded-md">
-              <span className="text-sm font-medium">{c.nome}</span>
-              <span className="text-sm font-mono text-primary-foreground bg-primary/20 px-2 py-1 rounded">{formatCurrency(c.total)}</span>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
