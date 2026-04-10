@@ -5,8 +5,8 @@ export interface Client {
   id: string;
   nome: string;
   tipo: ClientType;
-  taxa: number; // taxa personalizada ou 0 para usar o padrão do sistema
-  cor?: string; // ✅ Adicionado para suportar a identificação visual por cores
+  taxa: number;
+  cor?: string; // ✅ Essencial para o addClient e updateClient funcionarem
   createdAt: string;
 }
 

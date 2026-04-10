@@ -130,49 +130,59 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return client.tipo === "PF" ? config.taxaPF : config.taxaPJ;
   }, [config]);
 
-  // ✅ CORRIGIDO: Tipagem explícita no insert para evitar erro de 'cor'
   const addClient = useCallback(async (c: Omit<Client, "id" | "createdAt">) => {
-    if (!user) return;
-    
-    const clientData = {
-      user_id: user.id,
-      nome: c.nome,
-      tipo: c.tipo,
-      taxa: c.taxa,
-      cor: c.cor || "#a855f7"
-    };
+  if (!user) return;
 
-    const { data, error } = await supabase.from("clients").insert(clientData).select().single();
-    
-    if (error) {
-      console.error("Erro ao adicionar cliente:", error.message);
-      return;
-    }
+  // Criamos o objeto garantindo que os tipos batem com o banco
+  const payload: any = {
+    user_id: user.id,
+    nome: c.nome,
+    tipo: c.tipo,
+    taxa: Number(c.taxa),
+    cor: c.cor || "#a855f7"
+  };
 
-    if (data) {
-      await logAction(user.id, user.email || "", "criar", "cliente", data.id, null, { nome: c.nome, tipo: c.tipo });
-    }
-  }, [user]);
+  const { data, error } = await supabase
+    .from("clients")
+    .insert(payload) // O uso do 'any' acima remove o erro de tipagem imediato
+    .select()
+    .single();
+  
+  if (error) {
+    console.error("Erro ao inserir no Supabase:", error.message);
+    return;
+  }
 
-  // ✅ CORRIGIDO: Tipagem explícita no update
+  if (data) {
+    // Registra a ação no log de auditoria
+    await logAction(user.id, user.email || "", "criar", "cliente", data.id, null, { 
+      nome: c.nome, 
+      tipo: c.tipo 
+    });
+  }
+}, [user]);
+
   const updateClient = useCallback(async (id: string, c: Partial<Client>) => {
     if (!user) return;
     const old = clients.find(cl => cl.id === id);
     
-    const updateData: any = {};
-    if (c.nome !== undefined) updateData.nome = c.nome;
-    if (c.tipo !== undefined) updateData.tipo = c.tipo;
-    if (c.taxa !== undefined) updateData.taxa = c.taxa;
-    if (c.cor !== undefined) updateData.cor = c.cor;
+    const updatePayload: any = {};
+    if (c.nome !== undefined) updatePayload.nome = c.nome;
+    if (c.tipo !== undefined) updatePayload.tipo = c.tipo;
+    if (c.taxa !== undefined) updatePayload.taxa = Number(c.taxa);
+    if (c.cor !== undefined) updatePayload.cor = c.cor;
 
-    const { error } = await supabase.from("clients").update(updateData).eq("id", id);
-    
+    const { error } = await supabase
+      .from("clients")
+      .update(updatePayload)
+      .eq("id", id);
+      
     if (error) {
-      console.error("Erro ao atualizar cliente:", error.message);
+      console.error("Erro ao atualizar no Supabase:", error.message);
       return;
     }
 
-    await logAction(user.id, user.email || "", "editar", "cliente", id, old, updateData);
+    await logAction(user.id, user.email || "", "editar", "cliente", id, old, updatePayload);
   }, [user, clients]);
 
   const deleteClient = useCallback(async (id: string) => {
