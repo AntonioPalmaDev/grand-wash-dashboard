@@ -13,6 +13,8 @@ import HistoryPage from "@/pages/HistoryPage";
 import FinancePage from "@/pages/FinancePage";
 import RankingPage from "@/pages/RankingPage";
 import SettingsPage from "@/pages/SettingsPage";
+import UsersPage from "@/pages/UsersPage";
+import AuditLogsPage from "@/pages/AuditLogsPage";
 import AuthPage from "@/pages/AuthPage";
 import NotFound from "@/pages/NotFound";
 
@@ -45,6 +47,8 @@ function ProtectedApp() {
           <Route path="/financeiro" element={<FinancePage />} />
           <Route path="/ranking" element={<RankingPage />} />
           <Route path="/configuracoes" element={<SettingsPage />} />
+          <Route path="/usuarios" element={<UsersPage />} />
+          <Route path="/logs" element={<AuditLogsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>

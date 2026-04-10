@@ -24,6 +24,32 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | null>(null);
 
+async function logAction(userId: string, userEmail: string, action: string, entity: string, entityId?: string, beforeData?: any, afterData?: any) {
+  await supabase.from("audit_logs").insert({
+    user_id: userId,
+    user_email: userEmail,
+    action,
+    entity,
+    entity_id: entityId,
+    before_data: beforeData ?? null,
+    after_data: afterData ?? null,
+  });
+}
+
+function mapClient(r: any): Client {
+  return { id: r.id, nome: r.nome, tipo: r.tipo as "PF" | "PJ", taxa: Number(r.taxa), createdAt: r.created_at };
+}
+
+function mapOperation(r: any): Operation {
+  return {
+    id: r.id, clientId: r.client_id, valorBruto: Number(r.valor_bruto),
+    taxaPercentual: Number(r.taxa_percentual), lucroBruto: Number(r.lucro_bruto),
+    custoMaquina: Number(r.custo_maquina), lucroLiquido: Number(r.lucro_liquido),
+    valorCliente: Number(r.valor_cliente), status: r.status as OperationStatus,
+    responsavel: r.responsavel, data: r.data, createdAt: r.created_at,
+  };
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
@@ -31,7 +57,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all data when user changes
+  // Fetch ALL data (shared across users)
   useEffect(() => {
     if (!user) {
       setClients([]);
@@ -49,29 +75,57 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         supabase.from("configs").select("*").limit(1).single(),
       ]);
 
-      if (cRes.data) {
-        setClients(cRes.data.map(r => ({
-          id: r.id, nome: r.nome, tipo: r.tipo as "PF" | "PJ", taxa: Number(r.taxa), createdAt: r.created_at,
-        })));
-      }
-      if (oRes.data) {
-        setOperations(oRes.data.map(r => ({
-          id: r.id, clientId: r.client_id, valorBruto: Number(r.valor_bruto),
-          taxaPercentual: Number(r.taxa_percentual), lucroBruto: Number(r.lucro_bruto),
-          custoMaquina: Number(r.custo_maquina), lucroLiquido: Number(r.lucro_liquido),
-          valorCliente: Number(r.valor_cliente), status: r.status as OperationStatus,
-          responsavel: r.responsavel, data: r.data, createdAt: r.created_at,
-        })));
-      }
+      if (cRes.data) setClients(cRes.data.map(mapClient));
+      if (oRes.data) setOperations(oRes.data.map(mapOperation));
       if (cfgRes.data) {
         setConfig({ taxaPF: Number(cfgRes.data.taxa_pf), taxaPJ: Number(cfgRes.data.taxa_pj), taxaMaquina: Number(cfgRes.data.taxa_maquina) });
-      } else {
-        // Create default config for new user
-        await supabase.from("configs").insert({ user_id: user.id, taxa_pf: 30, taxa_pj: 25, taxa_maquina: 10 });
       }
       setLoading(false);
     }
     fetchAll();
+  }, [user]);
+
+  // Realtime subscriptions
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel("app-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, (payload) => {
+        if (payload.eventType === "INSERT") {
+          setClients(prev => {
+            if (prev.some(c => c.id === (payload.new as any).id)) return prev;
+            return [mapClient(payload.new), ...prev];
+          });
+        } else if (payload.eventType === "UPDATE") {
+          setClients(prev => prev.map(c => c.id === (payload.new as any).id ? mapClient(payload.new) : c));
+        } else if (payload.eventType === "DELETE") {
+          setClients(prev => prev.filter(c => c.id !== (payload.old as any).id));
+        }
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "operations" }, (payload) => {
+        if (payload.eventType === "INSERT") {
+          setOperations(prev => {
+            if (prev.some(o => o.id === (payload.new as any).id)) return prev;
+            return [mapOperation(payload.new), ...prev];
+          });
+        } else if (payload.eventType === "UPDATE") {
+          setOperations(prev => prev.map(o => o.id === (payload.new as any).id ? mapOperation(payload.new) : o));
+        } else if (payload.eventType === "DELETE") {
+          setOperations(prev => prev.filter(o => o.id !== (payload.old as any).id));
+        }
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "configs" }, (payload) => {
+        if (payload.eventType === "UPDATE" || payload.eventType === "INSERT") {
+          const d = payload.new as any;
+          setConfig({ taxaPF: Number(d.taxa_pf), taxaPJ: Number(d.taxa_pj), taxaMaquina: Number(d.taxa_maquina) });
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const getClientRate = useCallback((client: Client) => {
@@ -83,25 +137,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
     const { data, error } = await supabase.from("clients").insert({ user_id: user.id, nome: c.nome, tipo: c.tipo, taxa: c.taxa }).select().single();
     if (data && !error) {
-      setClients(prev => [{ id: data.id, nome: data.nome, tipo: data.tipo as "PF" | "PJ", taxa: Number(data.taxa), createdAt: data.created_at }, ...prev]);
+      await logAction(user.id, user.email || "", "criar", "cliente", data.id, null, { nome: c.nome, tipo: c.tipo });
     }
   }, [user]);
 
   const updateClient = useCallback(async (id: string, c: Partial<Client>) => {
+    if (!user) return;
+    const old = clients.find(cl => cl.id === id);
     const update: { nome?: string; tipo?: string; taxa?: number } = {};
     if (c.nome !== undefined) update.nome = c.nome;
     if (c.tipo !== undefined) update.tipo = c.tipo;
     if (c.taxa !== undefined) update.taxa = c.taxa;
     await supabase.from("clients").update(update).eq("id", id);
-    setClients(prev => prev.map(cl => cl.id === id ? { ...cl, ...c } : cl));
-  }, []);
+    await logAction(user.id, user.email || "", "editar", "cliente", id, old, update);
+  }, [user, clients]);
 
   const deleteClient = useCallback(async (id: string) => {
+    if (!user) return;
+    const old = clients.find(cl => cl.id === id);
     await supabase.from("operations").delete().eq("client_id", id);
     await supabase.from("clients").delete().eq("id", id);
-    setClients(prev => prev.filter(cl => cl.id !== id));
-    setOperations(prev => prev.filter(op => op.clientId !== id));
-  }, []);
+    await logAction(user.id, user.email || "", "excluir", "cliente", id, old, null);
+  }, [user, clients]);
 
   const addOperation = useCallback(async (o: { clientId: string; valorBruto: number; responsavel: string }) => {
     if (!user) return;
@@ -126,31 +183,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }).select().single();
 
     if (data && !error) {
-      setOperations(prev => [{
-        id: data.id, clientId: data.client_id, valorBruto: Number(data.valor_bruto),
-        taxaPercentual: Number(data.taxa_percentual), lucroBruto: Number(data.lucro_bruto),
-        custoMaquina: Number(data.custo_maquina), lucroLiquido: Number(data.lucro_liquido),
-        valorCliente: Number(data.valor_cliente), status: data.status as OperationStatus,
-        responsavel: data.responsavel, data: data.data, createdAt: data.created_at,
-      }, ...prev]);
+      await logAction(user.id, user.email || "", "criar", "operação", data.id, null, { clientId: o.clientId, valorBruto: o.valorBruto });
     }
   }, [user, clients, config, getClientRate]);
 
   const updateOperationStatus = useCallback(async (id: string, status: OperationStatus) => {
+    if (!user) return;
+    const old = operations.find(op => op.id === id);
     await supabase.from("operations").update({ status }).eq("id", id);
-    setOperations(prev => prev.map(op => op.id === id ? { ...op, status } : op));
-  }, []);
+    await logAction(user.id, user.email || "", "status", "operação", id, { status: old?.status }, { status });
+  }, [user, operations]);
 
   const deleteOperation = useCallback(async (id: string) => {
+    if (!user) return;
+    const old = operations.find(op => op.id === id);
     await supabase.from("operations").delete().eq("id", id);
-    setOperations(prev => prev.filter(op => op.id !== id));
-  }, []);
+    await logAction(user.id, user.email || "", "excluir", "operação", id, old, null);
+  }, [user, operations]);
 
   const updateConfig = useCallback(async (c: AppConfig) => {
     if (!user) return;
     await supabase.from("configs").upsert({ user_id: user.id, taxa_pf: c.taxaPF, taxa_pj: c.taxaPJ, taxa_maquina: c.taxaMaquina });
-    setConfig(c);
-  }, [user]);
+    await logAction(user.id, user.email || "", "config", "configurações", null, config, c);
+  }, [user, config]);
 
   const getStats = useCallback((): DashboardStats => {
     const completed = operations.filter(op => op.status === "concluido");
