@@ -1,6 +1,8 @@
-import { LayoutDashboard, Users, ArrowLeftRight, History, Settings, DollarSign, Trophy, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, ArrowLeftRight, History, Settings, DollarSign, Trophy, LogOut, FileText, ShieldCheck } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/context/AuthContext";
+import { useRole } from "@/hooks/useRole";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -14,20 +16,28 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const items = [
+const baseItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Operações", url: "/operacoes", icon: ArrowLeftRight },
   { title: "Histórico", url: "/historico", icon: History },
   { title: "Financeiro", url: "/financeiro", icon: DollarSign },
   { title: "Ranking", url: "/ranking", icon: Trophy },
+];
+
+const devItems = [
+  { title: "Usuários", url: "/usuarios", icon: ShieldCheck },
+  { title: "Logs", url: "/logs", icon: FileText },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const { signOut, user } = useAuth();
+  const { role, isDev } = useRole();
   const collapsed = state === "collapsed";
+
+  const items = [...baseItems, ...(isDev ? devItems : [])];
 
   return (
     <Sidebar collapsible="icon">
@@ -39,7 +49,6 @@ export function AppSidebar() {
               Zero Foco
             </h1>
           )}
-         
         </div>
         <SidebarGroup className="flex-1">
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
@@ -66,7 +75,12 @@ export function AppSidebar() {
 
         <div className="p-3 border-t border-border/50">
           {!collapsed && user && (
-            <p className="text-xs text-muted-foreground truncate mb-2 px-2">{user.email}</p>
+            <div className="px-2 mb-2 space-y-1">
+              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              <Badge variant={isDev ? "default" : "secondary"} className="text-[10px]">
+                {role === "desenvolvedor" ? "Desenvolvedor" : "Gestão"}
+              </Badge>
+            </div>
           )}
           <Button variant="ghost" size={collapsed ? "icon" : "sm"} onClick={signOut} className="w-full text-muted-foreground hover:text-destructive">
             <LogOut className="h-4 w-4 shrink-0" />

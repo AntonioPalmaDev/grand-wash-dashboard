@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useApp } from "@/context/AppContext";
+import { useRole } from "@/hooks/useRole";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,10 +8,19 @@ import { Settings } from "lucide-react";
 
 export default function SettingsPage() {
   const { config, updateConfig } = useApp();
+  const { isDev } = useRole();
   const [taxaPF, setTaxaPF] = useState(String(config.taxaPF));
   const [taxaPJ, setTaxaPJ] = useState(String(config.taxaPJ));
   const [taxaMaquina, setTaxaMaquina] = useState(String(config.taxaMaquina));
   const [saved, setSaved] = useState(false);
+
+  if (!isDev) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Acesso restrito a Desenvolvedores</p>
+      </div>
+    );
+  }
 
   function handleSave() {
     updateConfig({
