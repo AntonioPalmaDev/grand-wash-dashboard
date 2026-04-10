@@ -7,8 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Settings } from "lucide-react";
 
 export default function SettingsPage() {
+  const { config, updateConfig } = useApp();
   const { isDev } = useRole();
-  
+  const [taxaPF, setTaxaPF] = useState(String(config.taxaPF));
+  const [taxaPJ, setTaxaPJ] = useState(String(config.taxaPJ));
+  const [taxaMaquina, setTaxaMaquina] = useState(String(config.taxaMaquina));
+  const [saved, setSaved] = useState(false);
+
   if (!isDev) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -16,11 +21,6 @@ export default function SettingsPage() {
       </div>
     );
   }
-  const { config, updateConfig } = useApp();
-  const [taxaPF, setTaxaPF] = useState(String(config.taxaPF));
-  const [taxaPJ, setTaxaPJ] = useState(String(config.taxaPJ));
-  const [taxaMaquina, setTaxaMaquina] = useState(String(config.taxaMaquina));
-  const [saved, setSaved] = useState(false);
 
   function handleSave() {
     updateConfig({
