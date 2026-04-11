@@ -193,7 +193,7 @@ export default function Dashboard() {
       </div>
 
       {/* KPIs DINÂMICOS */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
+      <div className="flex flex-wrap gap-4">
         <KpiCard title="Movimentado" value={formatCurrency(kpiStats.totalMovimentado)} icon={DollarSign} />
         <KpiCard title="Lucro Bruto" value={formatCurrency(kpiStats.lucroBrutoTotal)} icon={TrendingUp} variant="success" />
         <KpiCard title="Custo Maq." value={formatCurrency(kpiStats.totalMaquina)} icon={Cpu} variant="warning" />
