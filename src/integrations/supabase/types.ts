@@ -52,6 +52,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          cor: string | null
           created_at: string
           id: string
           nome: string
@@ -60,6 +61,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cor?: string | null
           created_at?: string
           id?: string
           nome: string
@@ -68,6 +70,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cor?: string | null
           created_at?: string
           id?: string
           nome?: string
@@ -80,6 +83,7 @@ export type Database = {
       configs: {
         Row: {
           id: string
+          taxa_liquida: number | null
           taxa_maquina: number
           taxa_pf: number
           taxa_pj: number
@@ -88,6 +92,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          taxa_liquida?: number | null
           taxa_maquina?: number
           taxa_pf?: number
           taxa_pj?: number
@@ -96,6 +101,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          taxa_liquida?: number | null
           taxa_maquina?: number
           taxa_pf?: number
           taxa_pj?: number

@@ -27,13 +27,18 @@ const iconStyles = {
 
 export function KpiCard({ title, value, icon: Icon, description, variant = "default" }: KpiCardProps) {
   return (
-    <div className={cn("glass-card rounded-lg p-5 animate-fade-in", variantStyles[variant])}>
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm text-muted-foreground font-medium">{title}</span>
-        <Icon className={cn("h-5 w-5", iconStyles[variant])} />
+    <div className={cn("glass-card rounded-lg p-3 sm:p-4 lg:p-5 animate-fade-in min-w-0", variantStyles[variant])}>
+      <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <span className="text-xs sm:text-sm text-muted-foreground font-medium truncate mr-2">{title}</span>
+        <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 shrink-0", iconStyles[variant])} />
       </div>
-      <div className="text-2xl font-bold font-mono tracking-tight">{value}</div>
-      {description && <p className="text-xs text-muted-foreground mt-1">{description}</p>}
+      <div
+        className="font-bold font-mono tracking-tighter leading-tight break-all"
+        style={{ fontSize: "clamp(0.875rem, 2.5vw, 1.5rem)" }}
+      >
+        {value}
+      </div>
+      {description && <p className="text-xs text-muted-foreground mt-1 truncate">{description}</p>}
     </div>
   );
 }

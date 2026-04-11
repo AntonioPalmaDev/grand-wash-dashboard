@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 
 export default function SettingsPage() {
   const { config, updateConfig } = useApp();
@@ -22,7 +23,10 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <h1 className="text-2xl font-bold">Configurações do Sistema</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Configurações do Sistema</h1>
+        <ChangePasswordDialog />
+      </div>
       
       <div className="glass-card p-6 rounded-xl space-y-4 border border-white/5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
