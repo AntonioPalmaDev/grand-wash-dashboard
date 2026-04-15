@@ -10,7 +10,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // 🔥 COLOQUE SEU WEBHOOK AQUI (ou use env corretamente)
-  const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/SEU_WEBHOOK_AQUI'
+  const DISCORD_WEBHOOK_URL = 'https://discordapp.com/api/webhooks/1494055290922864642/GWjUm--wBUmExKbRJMYCadpvtiTY5FHxlGvIPdRtwOUNbwU2BbYzEWgRhfrLt9J4ZU2-'
 
   // 🔹 Formatar data
   function formatDate(date: Date): string {
