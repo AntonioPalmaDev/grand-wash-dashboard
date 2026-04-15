@@ -302,6 +302,19 @@ export default function UsersPage() {
                         </SelectContent>
                       </Select>
                     </TableCell>
+                    <TableCell>
+                      <Select
+                        value={p.status}
+                        onValueChange={(v) => handleStatusChange(p.user_id, v as "pendente" | "aprovado" | "rejeitado")}
+                      >
+                        <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pendente">Pendente</SelectItem>
+                          <SelectItem value="aprovado">Aprovado</SelectItem>
+                          <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
