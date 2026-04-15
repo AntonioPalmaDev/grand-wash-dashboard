@@ -197,7 +197,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       lucro_liquido: lucroLiquido, valor_cliente: valorCliente, responsavel: o.responsavel || "Sistema",
     }).select().single();
 
-    if (data) await logAction(user.id, user.email || "", "criar", "operação", data.id, null, { valorBruto: o.valorBruto });
+    if (data) {
+      await logAction(user.id, user.email || "", "criar", "operação", data.id, null, { valorBruto: o.valorBruto });
+      supabase.functions.invoke("discord-notify", {
+        body: { type: "nova_operacao", responsavel: o.responsavel || "Sistema" },
+      }).catch(console.error);
+    }
   }, [user, clients, config, getClientRate]);
 
 const updateOperationStatus = useCallback(async (id: string, status: OperationStatus) => {
