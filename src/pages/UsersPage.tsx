@@ -122,6 +122,16 @@ export default function UsersPage() {
     fetchProfiles();
   }
 
+  async function handleStatusChange(userId: string, newStatus: "pendente" | "aprovado" | "rejeitado") {
+    const { error } = await supabase.from("profiles").update({ status: newStatus }).eq("user_id", userId);
+    if (error) {
+      toast.error("Erro ao alterar status");
+      return;
+    }
+    toast.success(`Status alterado para ${newStatus}`);
+    fetchProfiles();
+  }
+
   const pendingProfiles = profiles.filter(p => p.status === "pendente");
   const approvedProfiles = profiles.filter(p => p.status === "aprovado");
   const rejectedProfiles = profiles.filter(p => p.status === "rejeitado");
