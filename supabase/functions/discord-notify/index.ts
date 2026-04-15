@@ -1,4 +1,7 @@
-import { corsHeaders } from '@supabase/supabase-js/cors'
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 const DISCORD_WEBHOOK_URL = 'https://discordapp.com/api/webhooks/1494024002782494840/HZm1DMIJc-0OEipxSQ-_mOoz_S89mwfGn94wASHPkr4w2TIKjFfJTdQ6SraOYFdxjxCx'
 
