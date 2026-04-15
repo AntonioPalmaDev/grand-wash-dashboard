@@ -272,9 +272,10 @@ export default function UsersPage() {
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Alterar Role</TableHead>
+                   <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Alterar Role</TableHead>
+                    <TableHead>Alterar Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
