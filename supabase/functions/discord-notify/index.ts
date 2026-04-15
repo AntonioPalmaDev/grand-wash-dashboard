@@ -1,28 +1,28 @@
-async function enviarNotificacao(nomeResponsavel) {
-  const webhookUrl = "https://discord.com/api/webhooks/1494071476188348487/0xAisZWH6i547zNGaGSUBvOiVKPfHek2FGMzuE4WAk6UXibIEVHl_7kLjgID7yu5Il3N";
+Deno.serve(async () => {
+  console.log("🔥 INICIOU")
 
-  const mensagem = {
-    content: `🚀 Nova operação criada por **${nomeResponsavel}** às ${new Date().toLocaleString()}`
-  };
+  try {
+    const webhook = "https://discordapp.com/api/webhooks/1494071476188348487/0xAisZWH6i547zNGaGSUBvOiVKPfHek2FGMzuE4WAk6UXibIEVHl_7kLjgID7yu5Il3N"
 
-  await fetch(webhookUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(mensagem)
-  });
-}if (novaOperacao) {
-  await enviarNotificacao(nomeResponsavel);
-}const mensagem = {
-  embeds: [
-    {
-      title: "📢 Nova Operação",
-      description: `Criada por **${nomeResponsavel}**`,
-      color: 5814783,
-      footer: {
-        text: `Data: ${new Date().toLocaleString()}`
-      }
-    }
-  ]
-};
+    const res = await fetch(webhook, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        content: "🚀 TESTE DIRETO SUPABASE"
+      })
+    })
+
+    console.log("STATUS:", res.status)
+
+    const text = await res.text()
+    console.log("RESPOSTA:", text)
+
+    return new Response("ok")
+
+  } catch (err) {
+    console.error("💥 ERRO:", err)
+    return new Response("erro")
+  }
+})
