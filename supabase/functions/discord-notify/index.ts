@@ -1,30 +1,45 @@
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+Deno.serve(async (req: Request) => {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
 
-const DISCORD_WEBHOOK_URL = 'https://discordapp.com/api/webhooks/1494024002782494840/HZm1DMIJc-0OEipxSQ-_mOoz_S89mwfGn94wASHPkr4w2TIKjFfJTdQ6SraOYFdxjxCx'
-
-function formatDate(date: Date): string {
-  const pad = (n: number) => n.toString().padStart(2, '0')
-  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-
-Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
+  }
+
+  const DISCORD_WEBHOOK_URL = 'SUA_URL_AQUI'
+
+  function formatDate(date: Date): string {
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`
   }
 
   try {
     const { type, nome, responsavel } = await req.json()
     const now = formatDate(new Date())
+    const username = `ZERO FOCO BOT ${Math.floor(Math.random() * 10000)}`
 
-    let content = ''
+    let embed: Record<string, unknown> = {}
 
     if (type === 'novo_usuario') {
-      content = `👤 **Novo usuário cadastrado**\nNome: ${nome}\nData: ${now}`
+      embed = {
+        title: '👤 Novo usuário cadastrado',
+        color: 3066993,
+        fields: [
+          { name: 'Nome', value: nome || 'Não informado', inline: true },
+          { name: 'Data', value: now, inline: true }
+        ]
+      }
     } else if (type === 'nova_operacao') {
-      content = `⚙️ **Nova operação criada**\nResponsável: ${responsavel}\nData: ${now}`
+      embed = {
+        title: '⚙️ Nova operação criada',
+        color: 3447003,
+        fields: [
+          { name: 'Responsável', value: responsavel || 'Sistema', inline: true },
+          { name: 'Data', value: now, inline: true }
+        ]
+      }
     } else {
       return new Response(JSON.stringify({ error: 'Invalid type' }), {
         status: 400,
@@ -35,7 +50,14 @@ Deno.serve(async (req) => {
     const discordRes = await fetch(DISCORD_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({
+        username,
+        embeds: [{
+          ...embed,
+          footer: { text: 'Sistema ZERO FOCO' },
+          timestamp: new Date().toISOString()
+        }]
+      }),
     })
 
     if (!discordRes.ok) {
@@ -50,6 +72,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
+
   } catch (error) {
     console.error('Error:', error)
     return new Response(JSON.stringify({ error: 'Internal error' }), {
