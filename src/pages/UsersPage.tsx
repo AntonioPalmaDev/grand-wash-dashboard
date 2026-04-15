@@ -8,8 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Users, Plus, Shield, Trash2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Users, Plus, Shield, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Profile {
   id: string;
@@ -17,6 +19,8 @@ interface Profile {
   nome: string;
   email: string;
   role: "desenvolvedor" | "gestao";
+  status: "pendente" | "aprovado" | "rejeitado";
+  motivo_rejeicao: string | null;
   created_at: string;
 }
 
@@ -25,6 +29,9 @@ export default function UsersPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectUserId, setRejectUserId] = useState("");
+  const [motivo, setMotivo] = useState("");
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,7 +53,6 @@ export default function UsersPage() {
       return;
     }
 
-    // Create user via edge function or direct signup
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -59,7 +65,6 @@ export default function UsersPage() {
     }
 
     if (data.user) {
-      // Update role if not default
       if (role === "desenvolvedor") {
         await supabase.from("profiles").update({ role, nome }).eq("user_id", data.user.id);
         await supabase.from("user_roles").upsert({ user_id: data.user.id, role });
@@ -77,16 +82,49 @@ export default function UsersPage() {
     fetchProfiles();
   }
 
+  async function handleApprove(userId: string) {
+    const { error } = await supabase.from("profiles").update({ status: "aprovado" }).eq("user_id", userId);
+    if (error) {
+      toast.error("Erro ao aprovar usuário");
+      return;
+    }
+    toast.success("Usuário aprovado!");
+    fetchProfiles();
+  }
+
+  async function handleReject() {
+    const { error } = await supabase.from("profiles").update({ 
+      status: "rejeitado", 
+      motivo_rejeicao: motivo || null 
+    }).eq("user_id", rejectUserId);
+    if (error) {
+      toast.error("Erro ao rejeitar usuário");
+      return;
+    }
+    toast.success("Usuário rejeitado");
+    setRejectOpen(false);
+    setMotivo("");
+    setRejectUserId("");
+    fetchProfiles();
+  }
+
+  function openRejectDialog(userId: string) {
+    setRejectUserId(userId);
+    setMotivo("");
+    setRejectOpen(true);
+  }
+
   async function handleChangeRole(userId: string, newRole: "desenvolvedor" | "gestao") {
     await supabase.from("profiles").update({ role: newRole }).eq("user_id", userId);
-    
-    // Update user_roles table
     await supabase.from("user_roles").delete().eq("user_id", userId);
     await supabase.from("user_roles").insert({ user_id: userId, role: newRole });
-    
     toast.success("Role atualizada");
     fetchProfiles();
   }
+
+  const pendingProfiles = profiles.filter(p => p.status === "pendente");
+  const approvedProfiles = profiles.filter(p => p.status === "aprovado");
+  const rejectedProfiles = profiles.filter(p => p.status === "rejeitado");
 
   if (!isDev) {
     return (
@@ -95,6 +133,12 @@ export default function UsersPage() {
       </div>
     );
   }
+
+  const statusBadge = (status: string) => {
+    if (status === "aprovado") return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><CheckCircle2 className="h-3 w-3 mr-1" />Aprovado</Badge>;
+    if (status === "rejeitado") return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Rejeitado</Badge>;
+    return <Badge variant="outline" className="border-yellow-500/50 text-yellow-400"><Clock className="h-3 w-3 mr-1" />Pendente</Badge>;
+  };
 
   return (
     <div className="space-y-6">
@@ -127,9 +171,7 @@ export default function UsersPage() {
               <div>
                 <Label>Role</Label>
                 <Select value={role} onValueChange={(v) => setRoleValue(v as "desenvolvedor" | "gestao")}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="gestao">Gestão</SelectItem>
                     <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>
@@ -142,50 +184,167 @@ export default function UsersPage() {
         </Dialog>
       </div>
 
-      <div className="glass-card rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Criado em</TableHead>
-              <TableHead>Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {profiles.map(p => (
-              <TableRow key={p.id}>
-                <TableCell className="font-medium">{p.nome || "—"}</TableCell>
-                <TableCell>{p.email}</TableCell>
-                <TableCell>
-                  <Badge variant={p.role === "desenvolvedor" ? "default" : "secondary"}>
-                    <Shield className="h-3 w-3 mr-1" />
-                    {p.role === "desenvolvedor" ? "Desenvolvedor" : "Gestão"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-muted-foreground text-sm">
-                  {new Date(p.created_at).toLocaleDateString("pt-BR")}
-                </TableCell>
-                <TableCell>
-                  <Select
-                    value={p.role}
-                    onValueChange={(v) => handleChangeRole(p.user_id, v as "desenvolvedor" | "gestao")}
-                  >
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gestao">Gestão</SelectItem>
-                      <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      {/* Reject Dialog */}
+      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rejeitar Usuário</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div>
+              <Label>Motivo da rejeição (opcional)</Label>
+              <Textarea
+                value={motivo}
+                onChange={e => setMotivo(e.target.value)}
+                placeholder="Informe o motivo..."
+                rows={3}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setRejectOpen(false)} className="flex-1">Cancelar</Button>
+              <Button variant="destructive" onClick={handleReject} className="flex-1">Confirmar Rejeição</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Tabs defaultValue="pending" className="w-full">
+        <TabsList>
+          <TabsTrigger value="pending" className="relative">
+            Pendentes
+            {pendingProfiles.length > 0 && (
+              <span className="ml-2 bg-yellow-500 text-black text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
+                {pendingProfiles.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="approved">Aprovados ({approvedProfiles.length})</TabsTrigger>
+          <TabsTrigger value="rejected">Rejeitados ({rejectedProfiles.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pending" className="mt-4">
+          {pendingProfiles.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Clock className="h-12 w-12 mx-auto mb-3 opacity-30" />
+              <p>Nenhuma solicitação pendente</p>
+            </div>
+          ) : (
+            <div className="glass-card rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingProfiles.map(p => (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-medium">{p.nome || "—"}</TableCell>
+                      <TableCell>{p.email}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {new Date(p.created_at).toLocaleDateString("pt-BR")}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => handleApprove(p.user_id)} className="bg-green-600 hover:bg-green-700">
+                            <CheckCircle2 className="h-4 w-4 mr-1" />Aceitar
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => openRejectDialog(p.user_id)}>
+                            <XCircle className="h-4 w-4 mr-1" />Rejeitar
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="approved" className="mt-4">
+          <div className="glass-card rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Alterar Role</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {approvedProfiles.map(p => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{p.nome || "—"}</TableCell>
+                    <TableCell>{p.email}</TableCell>
+                    <TableCell>
+                      <Badge variant={p.role === "desenvolvedor" ? "default" : "secondary"}>
+                        <Shield className="h-3 w-3 mr-1" />
+                        {p.role === "desenvolvedor" ? "Desenvolvedor" : "Gestão"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{statusBadge(p.status)}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={p.role}
+                        onValueChange={(v) => handleChangeRole(p.user_id, v as "desenvolvedor" | "gestao")}
+                      >
+                        <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="gestao">Gestão</SelectItem>
+                          <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="rejected" className="mt-4">
+          {rejectedProfiles.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>Nenhum usuário rejeitado</p>
+            </div>
+          ) : (
+            <div className="glass-card rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Motivo</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rejectedProfiles.map(p => (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-medium">{p.nome || "—"}</TableCell>
+                      <TableCell>{p.email}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
+                        {p.motivo_rejeicao || "—"}
+                      </TableCell>
+                      <TableCell>
+                        <Button size="sm" variant="outline" onClick={() => handleApprove(p.user_id)}>
+                          <CheckCircle2 className="h-4 w-4 mr-1" />Reaprovar
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
