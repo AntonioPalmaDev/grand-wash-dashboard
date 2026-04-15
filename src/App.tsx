@@ -16,12 +16,13 @@ import SettingsPage from "@/pages/SettingsPage";
 import UsersPage from "@/pages/UsersPage";
 import AuditLogsPage from "@/pages/AuditLogsPage";
 import AuthPage from "@/pages/AuthPage";
+import PendingApprovalPage from "@/pages/PendingApprovalPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
 function ProtectedApp() {
-  const { user, loading } = useAuth();
+  const { user, loading, userStatus } = useAuth();
 
   if (loading) {
     return (
@@ -35,6 +36,8 @@ function ProtectedApp() {
   }
 
   if (!user) return <AuthPage />;
+
+  if (userStatus !== "aprovado") return <PendingApprovalPage />;
 
   return (
     <AppProvider>
