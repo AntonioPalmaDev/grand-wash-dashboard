@@ -171,8 +171,10 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          motivo_rejeicao: string | null
           nome: string
           role: Database["public"]["Enums"]["app_role"]
+          status: string
           updated_at: string
           user_id: string
         }
@@ -180,8 +182,10 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          motivo_rejeicao?: string | null
           nome?: string
           role?: Database["public"]["Enums"]["app_role"]
+          status?: string
           updated_at?: string
           user_id: string
         }
@@ -189,8 +193,10 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          motivo_rejeicao?: string | null
           nome?: string
           role?: Database["public"]["Enums"]["app_role"]
+          status?: string
           updated_at?: string
           user_id?: string
         }

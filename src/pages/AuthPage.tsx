@@ -26,7 +26,7 @@ export default function AuthPage() {
     } else {
       const { error } = await signUp(email, password);
       if (error) setError(error);
-      else setSuccess("Conta criada! Verifique seu email para confirmar.");
+      else setSuccess("Conta criada! Aguarde a aprovação de um desenvolvedor para acessar o sistema.");
     }
     setLoading(false);
   }
