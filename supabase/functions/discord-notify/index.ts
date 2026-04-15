@@ -10,6 +10,7 @@ Deno.serve(async (req: Request) => {
 
   const DISCORD_WEBHOOK_URL = 'https://discordapp.com/api/webhooks/1494050923587047514/GsLynOIlYxZRNyhx4XRlqPfb1WAek4TOg1UiCIRKPXsjnHYxzIFOghX3raaFegLb0t-Q'
 
+  //teste
   function formatDate(date: Date): string {
     const pad = (n: number) => n.toString().padStart(2, '0')
     return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`
