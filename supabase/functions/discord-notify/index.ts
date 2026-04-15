@@ -49,17 +49,12 @@ Deno.serve(async (req: Request) => {
     }
 
     const discordRes = await fetch(DISCORD_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username,
-        embeds: [{
-          ...embed,
-          footer: { text: 'Sistema ZERO FOCO' },
-          timestamp: new Date().toISOString()
-        }]
-      }),
-    })
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    content: `Nova operação criada por ${responsavel || 'Sistema'}`
+  }),
+})
 
     if (!discordRes.ok) {
       const errText = await discordRes.text()
