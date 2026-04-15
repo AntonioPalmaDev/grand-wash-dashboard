@@ -246,6 +246,7 @@ export default function UsersPage() {
                     <TableHead>Nome</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Data</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -256,6 +257,19 @@ export default function UsersPage() {
                       <TableCell>{p.email}</TableCell>
                       <TableCell className="text-muted-foreground text-sm">
                         {new Date(p.created_at).toLocaleDateString("pt-BR")}
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={p.status}
+                          onValueChange={(v) => handleStatusChange(p.user_id, v as "pendente" | "aprovado" | "rejeitado")}
+                        >
+                          <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pendente">Pendente</SelectItem>
+                            <SelectItem value="aprovado">Aprovado</SelectItem>
+                            <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -345,6 +359,7 @@ export default function UsersPage() {
                     <TableHead>Nome</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Motivo</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -355,6 +370,19 @@ export default function UsersPage() {
                       <TableCell>{p.email}</TableCell>
                       <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
                         {p.motivo_rejeicao || "—"}
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={p.status}
+                          onValueChange={(v) => handleStatusChange(p.user_id, v as "pendente" | "aprovado" | "rejeitado")}
+                        >
+                          <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pendente">Pendente</SelectItem>
+                            <SelectItem value="aprovado">Aprovado</SelectItem>
+                            <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>
                         <Button size="sm" variant="outline" onClick={() => handleApprove(p.user_id)}>
