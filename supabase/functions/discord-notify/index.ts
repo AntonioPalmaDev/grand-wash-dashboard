@@ -8,7 +8,7 @@ Deno.serve(async (req: Request) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
-  const DISCORD_WEBHOOK_URL = 'https://discordapp.com/api/webhooks/1494050923587047514/GsLynOIlYxZRNyhx4XRlqPfb1WAek4TOg1UiCIRKPXsjnHYxzIFOghX3raaFegLb0t-Q'
+  const DISCORD_WEBHOOK_URL = 'https://discordapp.com/api/webhooks/1494055290922864642/GWjUm--wBUmExKbRJMYCadpvtiTY5FHxlGvIPdRtwOUNbwU2BbYzEWgRhfrLt9J4ZU2-'
 
   //teste
   function formatDate(date: Date): string {
