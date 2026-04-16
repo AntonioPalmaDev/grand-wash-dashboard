@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signUp({ email, password });
     if (!error) {
       supabase.functions.invoke("discord-notify", {
-        body: { type: "novo_usuario", nome: email },
+        body: { type: "novo_usuario", nome: email, email },
       }).catch(console.error);
     }
     return { error: error?.message ?? null };

@@ -152,6 +152,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     if (data) {
       await logAction(user.id, user.email || "", "criar", "cliente", data.id, null, { nome: c.nome });
+      supabase.functions.invoke("discord-notify", {
+        body: { type: "novo_cliente", nome: c.nome, responsavel: user.email || "---" },
+      }).catch(console.error);
     }
   }, [user]);
 
@@ -200,7 +203,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (data) {
       await logAction(user.id, user.email || "", "criar", "operação", data.id, null, { valorBruto: o.valorBruto });
       supabase.functions.invoke("discord-notify", {
-        body: { type: "nova_operacao", responsavel: o.responsavel || "Sistema" },
+        body: { type: "nova_operacao", nome: client?.nome, responsavel: o.responsavel || "Sistema", status: "pendente" },
       }).catch(console.error);
     }
   }, [user, clients, config, getClientRate]);
