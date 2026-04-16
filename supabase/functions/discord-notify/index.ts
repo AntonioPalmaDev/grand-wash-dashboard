@@ -4,7 +4,7 @@ const corsHeaders = {
 };
 
 const WEBHOOK_URL =
-  "https://discordapp.com/api/webhooks/1494317723969130597/Wa5Adfo4moMhRWZNRWfHzJvAttHNkxpb_ct-izTqHX_6oJIMTwa1vnZgS6BmA8IG1Tpy";
+  "https://discordapp.com/api/webhooks/1494340186690158737/Eo_zNSHILTQZ2VSCou0A31rYgNdyaUj9EPHqLuL2-vajQfppwSNsjZECAwhPtAeYVA5g";
 
 const CORES = {
   verde: 0x2ecc71,
