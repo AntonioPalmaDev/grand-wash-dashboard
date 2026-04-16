@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
+import { useRole } from "@/hooks/useRole";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Check, X, Clock } from "lucide-react";
+import { Plus, Check, X, Clock, Trash2 } from "lucide-react";
 import type { OperationStatus } from "@/types";
 
 const statusConfig: Record<OperationStatus, { label: string; color: string; icon: typeof Check }> = {
@@ -17,13 +18,18 @@ const statusConfig: Record<OperationStatus, { label: string; color: string; icon
 };
 
 export default function OperationsPage() {
-  const { operations, clients, addOperation, updateOperationStatus, getClientRate, config } = useApp();
+  const { operations, clients, addOperation, updateOperationStatus, deleteOperation, getUserName } = useApp();
+  const { isDev } = useRole();
   const [open, setOpen] = useState(false);
   const [clientId, setClientId] = useState("");
   const [valorBruto, setValorBruto] = useState("");
   const [responsavel, setResponsavel] = useState("");
 
+  // Auto-fill responsável with logged user name
+  const autoResponsavel = getUserName();
+
   // Simulator
+  const { config, getClientRate } = useApp();
   const preview = useMemo(() => {
     const client = clients.find(c => c.id === clientId);
     if (!client || !valorBruto || Number(valorBruto) <= 0) return null;
@@ -36,7 +42,9 @@ export default function OperationsPage() {
 
   function handleAdd() {
     if (!clientId || !valorBruto || Number(valorBruto) <= 0) return;
-    addOperation({ clientId, valorBruto: Number(valorBruto), responsavel: responsavel.trim() || "Sistema" });
+    // Dev can override responsável, otherwise use auto
+    const finalResponsavel = isDev && responsavel.trim() ? responsavel.trim() : autoResponsavel;
+    addOperation({ clientId, valorBruto: Number(valorBruto), responsavel: finalResponsavel });
     setClientId(""); setValorBruto(""); setResponsavel(""); setOpen(false);
   }
 
@@ -68,7 +76,12 @@ export default function OperationsPage() {
               </div>
               <div>
                 <Label>Responsável</Label>
-                <Input value={responsavel} onChange={e => setResponsavel(e.target.value)} placeholder="Nome do operador" />
+                {isDev ? (
+                  <Input value={responsavel} onChange={e => setResponsavel(e.target.value)} placeholder={autoResponsavel} />
+                ) : (
+                  <Input value={autoResponsavel} disabled className="opacity-70" />
+                )}
+                {!isDev && <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente com seu usuário</p>}
               </div>
 
               {preview && (
@@ -103,6 +116,7 @@ export default function OperationsPage() {
                   <th className="text-right p-3">Lucro Líq.</th>
                   <th className="text-right p-3">Ao Cliente</th>
                   <th className="text-center p-3">Status</th>
+                  <th className="text-left p-3">Responsável</th>
                   <th className="text-left p-3">Data</th>
                   <th className="text-center p-3">Ações</th>
                 </tr>
@@ -125,14 +139,22 @@ export default function OperationsPage() {
                           <StatusIcon className="h-3 w-3" /> {sc.label}
                         </span>
                       </td>
+                      <td className="p-3 text-xs text-muted-foreground">{op.responsavel}</td>
                       <td className="p-3 text-xs text-muted-foreground">{formatDate(op.data)}</td>
                       <td className="p-3 text-center">
-                        {op.status === "pendente" && (
-                          <div className="flex gap-1 justify-center">
-                            <Button size="sm" variant="ghost" className="h-7 text-xs text-success" onClick={() => updateOperationStatus(op.id, "concluido")}>✓</Button>
-                            <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => updateOperationStatus(op.id, "cancelado")}>✗</Button>
-                          </div>
-                        )}
+                        <div className="flex gap-1 justify-center">
+                          {op.status === "pendente" && (
+                            <>
+                              <Button size="sm" variant="ghost" className="h-7 text-xs text-success" onClick={() => updateOperationStatus(op.id, "concluido")}>✓</Button>
+                              <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => updateOperationStatus(op.id, "cancelado")}>✗</Button>
+                            </>
+                          )}
+                          {isDev && (
+                            <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => deleteOperation(op.id)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
