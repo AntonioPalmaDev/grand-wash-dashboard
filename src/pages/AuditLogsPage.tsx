@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useRole } from "@/hooks/useRole";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FileText, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface AuditLog {
   id: string;
@@ -25,6 +28,7 @@ const actionColors: Record<string, string> = {
 };
 
 export default function AuditLogsPage() {
+  const { isDev } = useRole();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -40,6 +44,17 @@ export default function AuditLogsPage() {
     }
     fetchLogs();
   }, []);
+
+  async function handleDelete(id: string) {
+    const { error } = await supabase.from("audit_logs").delete().eq("id", id);
+    if (error) { toast.error("Erro ao excluir log"); return; }
+    setLogs(prev => prev.filter(l => l.id !== id));
+    toast.success("Log excluído");
+  }
+
+  function getDescription(log: AuditLog): string {
+    return log.after_data?.descricao || log.before_data?.descricao || "—";
+  }
 
   return (
     <div className="space-y-6">
@@ -57,14 +72,15 @@ export default function AuditLogsPage() {
                 <TableHead>Usuário</TableHead>
                 <TableHead>Ação</TableHead>
                 <TableHead>Entidade</TableHead>
-                <TableHead>Detalhes</TableHead>
+                <TableHead className="min-w-[300px]">Descrição</TableHead>
+                {isDev && <TableHead className="w-12"></TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
               ) : logs.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhum log registrado</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum log registrado</TableCell></TableRow>
               ) : logs.map(log => (
                 <TableRow key={log.id}>
                   <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
@@ -77,9 +93,16 @@ export default function AuditLogsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm">{log.entity}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground max-w-xs truncate">
-                    {log.after_data ? JSON.stringify(log.after_data).slice(0, 80) : "—"}
+                  <TableCell className="text-sm text-muted-foreground">
+                    {getDescription(log)}
                   </TableCell>
+                  {isDev && (
+                    <TableCell>
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => handleDelete(log.id)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
