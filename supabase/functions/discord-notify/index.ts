@@ -1,28 +1,107 @@
-Deno.serve(async () => {
-  console.log("🔥 INICIOU")
+import { corsHeaders } from "@supabase/supabase-js/cors";
+
+const WEBHOOK_URL =
+  "https://discordapp.com/api/webhooks/1494024002782494840/HZm1DMIJc-0OEipxSQ-_mOoz_S89mwfGn94wASHPkr4w2TIKjFfJTdQ6SraOYFdxjxCx";
+
+const CORES = {
+  verde: 0x2ecc71,
+  azul: 0x3498db,
+};
+
+function formatarData(date?: string | Date): string {
+  const d = date ? new Date(date) : new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function campo(nome: string, valor?: string | null): { name: string; value: string; inline: boolean } {
+  return { name: nome, value: valor?.trim() || "---", inline: true };
+}
+
+interface NotificacaoDados {
+  nome?: string;
+  email?: string;
+  responsavel?: string;
+  status?: string;
+  cliente?: string;
+  data?: string;
+}
+
+function criarEmbed(tipo: string, dados: NotificacaoDados) {
+  const dataFormatada = formatarData(dados.data);
+
+  switch (tipo) {
+    case "novo_usuario":
+      return {
+        title: "👤 Novo usuário criado",
+        color: CORES.verde,
+        fields: [
+          campo("Nome", dados.nome),
+          campo("Email", dados.email),
+          campo("Data", dataFormatada),
+        ],
+      };
+
+    case "novo_cliente":
+      return {
+        title: "🏢 Novo cliente criado",
+        color: CORES.azul,
+        fields: [
+          campo("Nome do cliente", dados.nome),
+          campo("Responsável", dados.responsavel),
+          campo("Data", dataFormatada),
+        ],
+      };
+
+    case "nova_operacao":
+      return {
+        title: "🚀 Nova operação criada",
+        color: CORES.verde,
+        fields: [
+          campo("Nome da operação", dados.nome),
+          campo("Responsável", dados.responsavel),
+          campo("Status", dados.status),
+          campo("Data", dataFormatada),
+        ],
+      };
+
+    default:
+      return null;
+  }
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
 
   try {
-    const webhook = "https://discordapp.com/api/webhooks/1494071476188348487/0xAisZWH6i547zNGaGSUBvOiVKPfHek2FGMzuE4WAk6UXibIEVHl_7kLjgID7yu5Il3N"
+    const { type, ...dados } = await req.json();
+    const embed = criarEmbed(type, dados);
 
-    const res = await fetch(webhook, {
+    if (!embed) {
+      return new Response(JSON.stringify({ error: "Tipo inválido" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const res = await fetch(WEBHOOK_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        content: "🚀 TESTE DIRETO SUPABASE"
-      })
-    })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ embeds: [embed] }),
+    });
 
-    console.log("STATUS:", res.status)
+    console.log(`[discord-notify] tipo=${type} status=${res.status}`);
 
-    const text = await res.text()
-    console.log("RESPOSTA:", text)
-
-    return new Response("ok")
-
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err) {
-    console.error("💥 ERRO:", err)
-    return new Response("erro")
+    console.error("[discord-notify] erro:", err);
+    return new Response(JSON.stringify({ error: "Erro interno" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
-})
+});
