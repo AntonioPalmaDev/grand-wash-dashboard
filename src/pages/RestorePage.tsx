@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { History, RotateCcw, Undo2 } from "lucide-react";
 import { toast } from "sonner";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate } from "@/lib/format";
 
 interface DeletedOperation {
   id: string;
