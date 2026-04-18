@@ -216,7 +216,7 @@ export default function UsersPage() {
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">{p.nome || "—"}</TableCell>
                       <TableCell>{p.email}</TableCell>
-                      <TableCell className="text-muted-foreground text-sm">{new Date(p.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{formatDateOnly(p.created_at)}</TableCell>
                       <TableCell>
                         <Select value={p.status} onValueChange={(v) => handleStatusChange(p.user_id, v as any)}>
                           <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
