@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, ArrowLeftRight, History, Settings, DollarSign, Trophy, LogOut, FileText, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Users, ArrowLeftRight, History, Settings, DollarSign, Trophy, LogOut, FileText, ShieldCheck, RotateCcw } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/context/AuthContext";
 import { useRole } from "@/hooks/useRole";
@@ -28,6 +28,7 @@ const baseItems = [
 const devItems = [
   { title: "Usuários", url: "/usuarios", icon: ShieldCheck },
   { title: "Logs", url: "/logs", icon: FileText },
+  { title: "Restaurações", url: "/restauracoes", icon: RotateCcw },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
 
