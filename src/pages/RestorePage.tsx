@@ -283,7 +283,7 @@ export default function RestorePage() {
                     <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhuma edição registrada</TableCell></TableRow>
                   ) : updateLogs.map(log => (
                     <TableRow key={log.id}>
-                      <TableCell className="text-xs whitespace-nowrap">{new Date(log.created_at).toLocaleString("pt-BR")}</TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">{formatDate(log.created_at)}</TableCell>
                       <TableCell className="text-sm">{log.nome_personagem || log.user_email || "—"}</TableCell>
                       <TableCell><Badge variant="outline">{log.entity}</Badge></TableCell>
                       <TableCell className="text-sm text-muted-foreground">{log.after_data?.descricao || "—"}</TableCell>
