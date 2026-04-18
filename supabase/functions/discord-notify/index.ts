@@ -91,15 +91,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    const res = await fetch(WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ embeds: [embed] }),
-    });
+    const results = await Promise.all(
+      WEBHOOK_URLS.map((url) =>
+        fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ embeds: [embed] }),
+        }).then((r) => r.status).catch((e) => `err:${e?.message ?? e}`)
+      )
+    );
 
-    console.log(`[discord-notify] tipo=${type} status=${res.status}`);
+    console.log(`[discord-notify] tipo=${type} statuses=${results.join(",")}`);
 
     return new Response(JSON.stringify({ ok: true }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
