@@ -212,7 +212,7 @@ export default function RestorePage() {
                       <TableCell className="font-mono">{formatCurrency(Number(op.valor_bruto))}</TableCell>
                       <TableCell><Badge variant="outline">{op.status}</Badge></TableCell>
                       <TableCell className="text-sm">{op.responsavel}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{new Date(op.deleted_at).toLocaleString("pt-BR")}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{formatDate(op.deleted_at)}</TableCell>
                       <TableCell>
                         <Button size="sm" variant="outline" onClick={() => restoreOperation(op)}>
                           <RotateCcw className="h-3 w-3 mr-1" /> Restaurar
