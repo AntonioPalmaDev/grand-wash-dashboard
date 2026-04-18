@@ -106,8 +106,6 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
   } catch (err) {
     console.error("[discord-notify] erro:", err);
     return new Response(JSON.stringify({ error: "Erro interno" }), {
