@@ -3,13 +3,14 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, Mail } from "lucide-react";
+import { Lock, Mail, User } from "lucide-react";
 
 export default function AuthPage() {
   const { signIn, signUp } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [nomePersonagem, setNomePersonagem] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
@@ -24,7 +25,12 @@ export default function AuthPage() {
       const { error } = await signIn(email, password);
       if (error) setError(error);
     } else {
-      const { error } = await signUp(email, password);
+      if (!nomePersonagem.trim()) {
+        setError("Nome do Personagem é obrigatório.");
+        setLoading(false);
+        return;
+      }
+      const { error } = await signUp(email, password, nomePersonagem);
       if (error) setError(error);
       else setSuccess("Conta criada! Aguarde a aprovação de um desenvolvedor para acessar o sistema.");
     }
@@ -37,7 +43,6 @@ export default function AuthPage() {
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold gradient-text">
             <img src="/zerofoco3.png" alt="Zero Foco" className="h-25 w-25 inline-block mr-2 rounded-full" />
-            
           </h1>
           <p className="text-sm text-muted-foreground">
             {isLogin ? "Acesse o painel de controle" : "Crie sua conta"}
@@ -45,6 +50,24 @@ export default function AuthPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <div>
+              <Label>Nome do Personagem *</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  value={nomePersonagem}
+                  onChange={e => setNomePersonagem(e.target.value)}
+                  placeholder="Ex: Antonio Palma"
+                  className="pl-10"
+                  required
+                  minLength={2}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Identificação única usada em logs e ações.</p>
+            </div>
+          )}
           <div>
             <Label>Email</Label>
             <div className="relative">
