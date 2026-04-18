@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Users, Plus, Shield, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { formatDateOnly } from "@/lib/format";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Profile {
