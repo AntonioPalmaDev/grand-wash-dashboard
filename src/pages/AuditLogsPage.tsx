@@ -11,6 +11,7 @@ import { toast } from "sonner";
 interface AuditLog {
   id: string;
   user_email: string | null;
+  nome_personagem: string | null;
   action: string;
   entity: string;
   entity_id: string | null;
@@ -25,6 +26,8 @@ const actionColors: Record<string, string> = {
   excluir: "bg-red-500/20 text-red-400",
   status: "bg-blue-500/20 text-blue-400",
   config: "bg-purple-500/20 text-purple-400",
+  restaurar: "bg-emerald-500/20 text-emerald-400",
+  reverter: "bg-orange-500/20 text-orange-400",
 };
 
 export default function AuditLogsPage() {
@@ -86,7 +89,10 @@ export default function AuditLogsPage() {
                   <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                     {new Date(log.created_at).toLocaleString("pt-BR")}
                   </TableCell>
-                  <TableCell className="text-sm">{log.user_email || "—"}</TableCell>
+                  <TableCell className="text-sm">
+                    <div className="font-medium">{log.nome_personagem || "—"}</div>
+                    <div className="text-xs text-muted-foreground">{log.user_email || ""}</div>
+                  </TableCell>
                   <TableCell>
                     <Badge className={actionColors[log.action] || "bg-muted text-muted-foreground"}>
                       {log.action}

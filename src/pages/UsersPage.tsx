@@ -60,7 +60,7 @@ export default function UsersPage() {
   async function handleCreate() {
     if (!user) return;
     if (!email || !password) { toast.error("Email e senha são obrigatórios"); return; }
-    const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { nome } } });
+    const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { nome, nome_personagem: nome } } });
     if (error) { toast.error(error.message); return; }
     if (data.user) {
       if (role === "desenvolvedor") {
