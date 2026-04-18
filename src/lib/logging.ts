@@ -19,6 +19,7 @@ function safe(value: any, fallback = "---"): string {
 interface LogParams {
   userId: string;
   userEmail: string;
+  nomePersonagem?: string | null;
   action: string;
   entity: string;
   entityId?: string;
@@ -31,6 +32,7 @@ export async function registrarLog(params: LogParams) {
   await supabase.from("audit_logs").insert({
     user_id: params.userId,
     user_email: params.userEmail,
+    nome_personagem: params.nomePersonagem ?? null,
     action: params.action,
     entity: params.entity,
     entity_id: params.entityId ?? null,
@@ -68,7 +70,14 @@ export function logExcluirOperacao(dados: {
   nomeCliente: string;
   valorBruto: number;
 }) {
-  return `Operação de ${safe(dados.nomeCliente)} (${formatCurrency(dados.valorBruto)}) excluída por ${safe(dados.responsavel)}`;
+  return `Operação de ${safe(dados.nomeCliente)} (${formatCurrency(dados.valorBruto)}) excluída por ${safe(dados.responsavel)} em ${formatDataLog()}`;
+}
+
+export function logRestaurarOperacao(dados: {
+  responsavel: string;
+  nomeCliente: string;
+}) {
+  return `Operação de ${safe(dados.nomeCliente)} restaurada por ${safe(dados.responsavel)} em ${formatDataLog()}`;
 }
 
 export function logCriarCliente(dados: {
@@ -92,7 +101,22 @@ export function logExcluirCliente(dados: {
   responsavel: string;
   nomeCliente: string;
 }) {
-  return `Cliente ${safe(dados.nomeCliente)} excluído por ${safe(dados.responsavel)}`;
+  return `Cliente ${safe(dados.nomeCliente)} excluído por ${safe(dados.responsavel)} em ${formatDataLog()}`;
+}
+
+export function logRestaurarCliente(dados: {
+  responsavel: string;
+  nomeCliente: string;
+}) {
+  return `Cliente ${safe(dados.nomeCliente)} restaurado por ${safe(dados.responsavel)} em ${formatDataLog()}`;
+}
+
+export function logReverterEdicao(dados: {
+  responsavel: string;
+  entidade: string;
+  identificacao: string;
+}) {
+  return `Edição revertida em ${safe(dados.entidade)} (${safe(dados.identificacao)}) por ${safe(dados.responsavel)} em ${formatDataLog()}`;
 }
 
 export function logAlterarConfig(dados: {

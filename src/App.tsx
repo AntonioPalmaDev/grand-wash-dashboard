@@ -17,12 +17,14 @@ import UsersPage from "@/pages/UsersPage";
 import AuditLogsPage from "@/pages/AuditLogsPage";
 import AuthPage from "@/pages/AuthPage";
 import PendingApprovalPage from "@/pages/PendingApprovalPage";
+import CompletePersonagemPage from "@/pages/CompletePersonagemPage";
+import RestorePage from "@/pages/RestorePage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
 function ProtectedApp() {
-  const { user, loading, userStatus } = useAuth();
+  const { user, loading, userStatus, nomePersonagem } = useAuth();
 
   if (loading) {
     return (
@@ -39,6 +41,9 @@ function ProtectedApp() {
 
   if (userStatus !== "aprovado") return <PendingApprovalPage />;
 
+  // Força preenchimento do Nome do Personagem para usuários antigos
+  if (!nomePersonagem || !nomePersonagem.trim()) return <CompletePersonagemPage />;
+
   return (
     <AppProvider>
       <AppLayout>
@@ -52,6 +57,7 @@ function ProtectedApp() {
           <Route path="/configuracoes" element={<SettingsPage />} />
           <Route path="/usuarios" element={<UsersPage />} />
           <Route path="/logs" element={<AuditLogsPage />} />
+          <Route path="/restauracoes" element={<RestorePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>

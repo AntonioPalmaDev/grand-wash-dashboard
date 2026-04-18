@@ -50,23 +50,27 @@ function mapOperation(r: any): Operation {
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, nomePersonagem } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [operations, setOperations] = useState<Operation[]>([]);
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(true);
-  const [userName, setUserName] = useState("");
 
-  const getUserName = useCallback(() => userName || user?.email || "Sistema", [userName, user]);
+  const getUserName = useCallback(
+    () => nomePersonagem || user?.email || "Sistema",
+    [nomePersonagem, user]
+  );
 
-  // Fetch user profile name
-  useEffect(() => {
-    if (!user) { setUserName(""); return; }
-    supabase.from("profiles").select("nome").eq("user_id", user.id).single()
-      .then(({ data }) => { if (data?.nome) setUserName(data.nome); });
-  }, [user]);
+  const logBase = useCallback(
+    () => ({
+      userId: user?.id ?? "",
+      userEmail: user?.email ?? "",
+      nomePersonagem: nomePersonagem ?? null,
+    }),
+    [user, nomePersonagem]
+  );
 
-  // Carregamento Inicial
+  // Carregamento Inicial — filtra registros deletados (soft delete)
   useEffect(() => {
     if (!user) {
       setClients([]); setOperations([]); setConfig(DEFAULT_CONFIG); setLoading(false);
@@ -75,8 +79,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     async function fetchAll() {
       setLoading(true);
       const [cRes, oRes, cfgRes] = await Promise.all([
-        supabase.from("clients").select("*").order("created_at", { ascending: false }),
-        supabase.from("operations").select("*").order("data", { ascending: false }),
+        supabase.from("clients").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
+        supabase.from("operations").select("*").is("deleted_at", null).order("data", { ascending: false }),
         supabase.from("configs").select("*").limit(1).single(),
       ]);
       if (cRes.data) setClients(cRes.data.map(mapClient));
@@ -90,20 +94,44 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     fetchAll();
   }, [user]);
 
-  // Realtime
+  // Realtime — também respeita soft delete
   useEffect(() => {
     if (!user) return;
     const channel = supabase
       .channel("app-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, (payload) => {
-        if (payload.eventType === "INSERT") setClients(prev => [mapClient(payload.new), ...prev]);
-        else if (payload.eventType === "UPDATE") setClients(prev => prev.map(c => c.id === (payload.new as any).id ? mapClient(payload.new) : c));
-        else if (payload.eventType === "DELETE") setClients(prev => prev.filter(c => c.id !== (payload.old as any).id));
+        if (payload.eventType === "INSERT") {
+          if (!(payload.new as any).deleted_at) setClients(prev => [mapClient(payload.new), ...prev]);
+        } else if (payload.eventType === "UPDATE") {
+          const n = payload.new as any;
+          if (n.deleted_at) {
+            setClients(prev => prev.filter(c => c.id !== n.id));
+          } else {
+            setClients(prev => {
+              const exists = prev.some(c => c.id === n.id);
+              return exists ? prev.map(c => c.id === n.id ? mapClient(n) : c) : [mapClient(n), ...prev];
+            });
+          }
+        } else if (payload.eventType === "DELETE") {
+          setClients(prev => prev.filter(c => c.id !== (payload.old as any).id));
+        }
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "operations" }, (payload) => {
-        if (payload.eventType === "INSERT") setOperations(prev => [mapOperation(payload.new), ...prev]);
-        else if (payload.eventType === "UPDATE") setOperations(prev => prev.map(o => o.id === (payload.new as any).id ? mapOperation(payload.new) : o));
-        else if (payload.eventType === "DELETE") setOperations(prev => prev.filter(o => o.id !== (payload.old as any).id));
+        if (payload.eventType === "INSERT") {
+          if (!(payload.new as any).deleted_at) setOperations(prev => [mapOperation(payload.new), ...prev]);
+        } else if (payload.eventType === "UPDATE") {
+          const n = payload.new as any;
+          if (n.deleted_at) {
+            setOperations(prev => prev.filter(o => o.id !== n.id));
+          } else {
+            setOperations(prev => {
+              const exists = prev.some(o => o.id === n.id);
+              return exists ? prev.map(o => o.id === n.id ? mapOperation(n) : o) : [mapOperation(n), ...prev];
+            });
+          }
+        } else if (payload.eventType === "DELETE") {
+          setOperations(prev => prev.filter(o => o.id !== (payload.old as any).id));
+        }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -122,12 +150,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (error) { console.error("Erro ao inserir cliente:", error.message); return; }
     if (data) {
       const desc = logCriarCliente({ responsavel: getUserName(), nomeCliente: c.nome, tipo: c.tipo });
-      await registrarLog({ userId: user.id, userEmail: user.email || "", action: "criar", entity: "cliente", entityId: data.id, description: desc, afterData: { nome: c.nome, tipo: c.tipo } });
+      await registrarLog({ ...logBase(), action: "criar", entity: "cliente", entityId: data.id, description: desc, afterData: { nome: c.nome, tipo: c.tipo } });
       supabase.functions.invoke("discord-notify", {
         body: { type: "novo_cliente", nome: c.nome, responsavel: getUserName() },
       }).catch(console.error);
     }
-  }, [user, getUserName]);
+  }, [user, getUserName, logBase]);
 
   const updateClient = useCallback(async (id: string, c: Partial<Client>) => {
     if (!user) return;
@@ -141,17 +169,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.from("clients").update(updatePayload).eq("id", id);
     if (error) { console.error("Erro ao atualizar cliente:", error.message); return; }
     const desc = logEditarCliente({ responsavel: getUserName(), nomeCliente: old?.nome || c.nome || "---", campos });
-    await registrarLog({ userId: user.id, userEmail: user.email || "", action: "editar", entity: "cliente", entityId: id, description: desc, beforeData: old, afterData: updatePayload });
-  }, [user, clients, getUserName]);
+    await registrarLog({ ...logBase(), action: "editar", entity: "cliente", entityId: id, description: desc, beforeData: old, afterData: updatePayload });
+  }, [user, clients, getUserName, logBase]);
 
+  // SOFT DELETE — marca deleted_at; também faz soft-delete em cascata nas operações do cliente
   const deleteClient = useCallback(async (id: string) => {
     if (!user) return;
     const old = clients.find(cl => cl.id === id);
-    await supabase.from("operations").delete().eq("client_id", id);
-    await supabase.from("clients").delete().eq("id", id);
+    const now = new Date().toISOString();
+    await supabase.from("operations").update({ deleted_at: now }).eq("client_id", id).is("deleted_at", null);
+    const { error } = await supabase.from("clients").update({ deleted_at: now }).eq("id", id);
+    if (error) { console.error("Erro ao excluir cliente:", error.message); return; }
     const desc = logExcluirCliente({ responsavel: getUserName(), nomeCliente: old?.nome || "---" });
-    await registrarLog({ userId: user.id, userEmail: user.email || "", action: "excluir", entity: "cliente", entityId: id, description: desc, beforeData: old });
-  }, [user, clients, getUserName]);
+    await registrarLog({ ...logBase(), action: "excluir", entity: "cliente", entityId: id, description: desc, beforeData: old });
+  }, [user, clients, getUserName, logBase]);
 
   const addOperation = useCallback(async (o: { clientId: string; valorBruto: number; responsavel?: string }) => {
     if (!user) return;
@@ -172,12 +203,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     if (data) {
       const desc = logCriarOperacao({ responsavel, nomeCliente: client.nome, valorBruto: o.valorBruto });
-      await registrarLog({ userId: user.id, userEmail: user.email || "", action: "criar", entity: "operação", entityId: data.id, description: desc, afterData: { valorBruto: o.valorBruto, cliente: client.nome } });
+      await registrarLog({ ...logBase(), action: "criar", entity: "operação", entityId: data.id, description: desc, afterData: { valorBruto: o.valorBruto, cliente: client.nome, responsavel } });
       supabase.functions.invoke("discord-notify", {
         body: { type: "nova_operacao", nome: client.nome, responsavel, status: "pendente" },
       }).catch(console.error);
     }
-  }, [user, clients, config, getClientRate, getUserName]);
+  }, [user, clients, config, getClientRate, getUserName, logBase]);
 
   const updateOperationStatus = useCallback(async (id: string, status: OperationStatus) => {
     if (!user) return;
@@ -185,17 +216,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const client = op ? clients.find(c => c.id === op.clientId) : null;
     await supabase.from("operations").update({ status }).eq("id", id);
     const desc = logAlterarStatusOperacao({ responsavel: getUserName(), nomeCliente: client?.nome || "---", statusAnterior: op?.status || "---", statusNovo: status });
-    await registrarLog({ userId: user.id, userEmail: user.email || "", action: "status", entity: "operação", entityId: id, description: desc, beforeData: { status: op?.status }, afterData: { status } });
-  }, [user, operations, clients, getUserName]);
+    await registrarLog({ ...logBase(), action: "status", entity: "operação", entityId: id, description: desc, beforeData: { status: op?.status }, afterData: { status } });
+  }, [user, operations, clients, getUserName, logBase]);
 
+  // SOFT DELETE da operação
   const deleteOperation = useCallback(async (id: string) => {
     if (!user) return;
     const op = operations.find(o => o.id === id);
     const client = op ? clients.find(c => c.id === op.clientId) : null;
-    await supabase.from("operations").delete().eq("id", id);
+    const now = new Date().toISOString();
+    await supabase.from("operations").update({ deleted_at: now }).eq("id", id);
     const desc = logExcluirOperacao({ responsavel: getUserName(), nomeCliente: client?.nome || "---", valorBruto: op?.valorBruto || 0 });
-    await registrarLog({ userId: user.id, userEmail: user.email || "", action: "excluir", entity: "operação", entityId: id, description: desc, beforeData: op });
-  }, [user, operations, clients, getUserName]);
+    await registrarLog({ ...logBase(), action: "excluir", entity: "operação", entityId: id, description: desc, beforeData: op });
+  }, [user, operations, clients, getUserName, logBase]);
 
   const updateConfig = useCallback(async (c: AppConfig) => {
     if (!user) return;
@@ -208,9 +241,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (c.taxaMaquina !== config.taxaMaquina) campos.push("Taxa Máquina");
     if (c.taxaLiquida !== config.taxaLiquida) campos.push("Taxa Líquida");
     const desc = logAlterarConfig({ responsavel: getUserName(), campos });
-    await registrarLog({ userId: user.id, userEmail: user.email || "", action: "config", entity: "configuração", description: desc, afterData: c });
+    await registrarLog({ ...logBase(), action: "config", entity: "configuração", description: desc, beforeData: config, afterData: c });
     setConfig(c);
-  }, [user, config, getUserName]);
+  }, [user, config, getUserName, logBase]);
 
   const getStats = useCallback((): DashboardStats => {
     const completed = operations.filter(op => op.status === "concluido");

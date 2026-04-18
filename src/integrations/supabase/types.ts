@@ -23,6 +23,7 @@ export type Database = {
           entity: string
           entity_id: string | null
           id: string
+          nome_personagem: string | null
           user_email: string | null
           user_id: string
         }
@@ -34,6 +35,7 @@ export type Database = {
           entity: string
           entity_id?: string | null
           id?: string
+          nome_personagem?: string | null
           user_email?: string | null
           user_id: string
         }
@@ -45,6 +47,7 @@ export type Database = {
           entity?: string
           entity_id?: string | null
           id?: string
+          nome_personagem?: string | null
           user_email?: string | null
           user_id?: string
         }
@@ -54,6 +57,7 @@ export type Database = {
         Row: {
           cor: string | null
           created_at: string
+          deleted_at: string | null
           id: string
           nome: string
           taxa: number
@@ -63,6 +67,7 @@ export type Database = {
         Insert: {
           cor?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           nome: string
           taxa?: number
@@ -72,6 +77,7 @@ export type Database = {
         Update: {
           cor?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           nome?: string
           taxa?: number
@@ -116,6 +122,7 @@ export type Database = {
           created_at: string
           custo_maquina: number
           data: string
+          deleted_at: string | null
           id: string
           lucro_bruto: number
           lucro_liquido: number
@@ -131,6 +138,7 @@ export type Database = {
           created_at?: string
           custo_maquina: number
           data?: string
+          deleted_at?: string | null
           id?: string
           lucro_bruto: number
           lucro_liquido: number
@@ -146,6 +154,7 @@ export type Database = {
           created_at?: string
           custo_maquina?: number
           data?: string
+          deleted_at?: string | null
           id?: string
           lucro_bruto?: number
           lucro_liquido?: number
@@ -169,10 +178,12 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          deleted_at: string | null
           email: string
           id: string
           motivo_rejeicao: string | null
           nome: string
+          nome_personagem: string | null
           role: Database["public"]["Enums"]["app_role"]
           status: string
           updated_at: string
@@ -180,10 +191,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           email?: string
           id?: string
           motivo_rejeicao?: string | null
           nome?: string
+          nome_personagem?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           status?: string
           updated_at?: string
@@ -191,10 +204,12 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           email?: string
           id?: string
           motivo_rejeicao?: string | null
           nome?: string
+          nome_personagem?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           status?: string
           updated_at?: string

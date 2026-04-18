@@ -9,10 +9,12 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   userStatus: UserStatus;
-  signUp: (email: string, password: string) => Promise<{ error: string | null }>;
+  nomePersonagem: string | null;
+  signUp: (email: string, password: string, nomePersonagem: string) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshStatus: () => Promise<void>;
+  refreshPersonagem: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -22,18 +24,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [userStatus, setUserStatus] = useState<UserStatus>(null);
+  const [nomePersonagem, setNomePersonagem] = useState<string | null>(null);
 
-  async function fetchStatus(userId: string) {
+  async function fetchProfile(userId: string) {
     const { data } = await supabase
       .from("profiles")
-      .select("status")
+      .select("status, nome_personagem")
       .eq("user_id", userId)
       .single();
     setUserStatus((data?.status as UserStatus) ?? "pendente");
+    setNomePersonagem((data?.nome_personagem as string | null) ?? null);
   }
 
   const refreshStatus = async () => {
-    if (user) await fetchStatus(user.id);
+    if (user) await fetchProfile(user.id);
+  };
+  const refreshPersonagem = async () => {
+    if (user) await fetchProfile(user.id);
   };
 
   useEffect(() => {
@@ -41,9 +48,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchStatus(session.user.id).then(() => setLoading(false));
+        fetchProfile(session.user.id).then(() => setLoading(false));
       } else {
         setUserStatus(null);
+        setNomePersonagem(null);
         setLoading(false);
       }
     });
@@ -52,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchStatus(session.user.id).then(() => setLoading(false));
+        fetchProfile(session.user.id).then(() => setLoading(false));
       } else {
         setLoading(false);
       }
@@ -61,11 +69,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
+  const signUp = async (email: string, password: string, nomePersonagem: string) => {
+    // Verificar duplicidade do nome do personagem antes do signup
+    const { data: existing } = await supabase
+      .from("profiles")
+      .select("id")
+      .ilike("nome_personagem", nomePersonagem.trim())
+      .maybeSingle();
+    if (existing) return { error: "Este Nome do Personagem já está em uso." };
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { nome_personagem: nomePersonagem.trim(), nome: nomePersonagem.trim() } },
+    });
     if (!error) {
       supabase.functions.invoke("discord-notify", {
-        body: { type: "novo_usuario", nome: email, email },
+        body: { type: "novo_usuario", nome: nomePersonagem.trim(), email },
       }).catch(console.error);
     }
     return { error: error?.message ?? null };
@@ -81,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, userStatus, signUp, signIn, signOut, refreshStatus }}>
+    <AuthContext.Provider value={{ user, session, loading, userStatus, nomePersonagem, signUp, signIn, signOut, refreshStatus, refreshPersonagem }}>
       {children}
     </AuthContext.Provider>
   );

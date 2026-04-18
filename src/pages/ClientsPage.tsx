@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { formatCurrency, formatDate, formatPercent } from "@/lib/format";
+import { useRole } from "@/hooks/useRole";
+import { formatCurrency, formatPercent } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, User, Building2, Pencil } from "lucide-react";
 import type { Client, ClientType } from "@/types";
 
 export default function ClientsPage() {
   const { clients, addClient, updateClient, deleteClient, getClientStats, getClientRate, config } = useApp();
-  
+  const { isDev } = useRole();
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState<ClientType>("PF");
@@ -124,7 +124,9 @@ export default function ClientsPage() {
                 </div>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => handleStartEdit(client)} className="h-8 w-8"><Pencil size={14} /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => deleteClient(client.id)} className="h-8 w-8 text-destructive"><Trash2 size={14} /></Button>
+                  {isDev && (
+                    <Button variant="ghost" size="icon" onClick={() => deleteClient(client.id)} className="h-8 w-8 text-destructive"><Trash2 size={14} /></Button>
+                  )}
                 </div>
               </div>
 
