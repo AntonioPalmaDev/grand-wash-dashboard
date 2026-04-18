@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { History, RotateCcw, Undo2 } from "lucide-react";
 import { toast } from "sonner";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate } from "@/lib/format";
 
 interface DeletedOperation {
   id: string;
@@ -212,7 +212,7 @@ export default function RestorePage() {
                       <TableCell className="font-mono">{formatCurrency(Number(op.valor_bruto))}</TableCell>
                       <TableCell><Badge variant="outline">{op.status}</Badge></TableCell>
                       <TableCell className="text-sm">{op.responsavel}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{new Date(op.deleted_at).toLocaleString("pt-BR")}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{formatDate(op.deleted_at)}</TableCell>
                       <TableCell>
                         <Button size="sm" variant="outline" onClick={() => restoreOperation(op)}>
                           <RotateCcw className="h-3 w-3 mr-1" /> Restaurar
@@ -249,7 +249,7 @@ export default function RestorePage() {
                       <TableCell className="font-medium">{c.nome}</TableCell>
                       <TableCell><Badge variant="outline">{c.tipo}</Badge></TableCell>
                       <TableCell className="font-mono">{Number(c.taxa)}%</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{new Date(c.deleted_at).toLocaleString("pt-BR")}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{formatDate(c.deleted_at)}</TableCell>
                       <TableCell>
                         <Button size="sm" variant="outline" onClick={() => restoreClient(c)}>
                           <RotateCcw className="h-3 w-3 mr-1" /> Restaurar
@@ -283,7 +283,7 @@ export default function RestorePage() {
                     <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhuma edição registrada</TableCell></TableRow>
                   ) : updateLogs.map(log => (
                     <TableRow key={log.id}>
-                      <TableCell className="text-xs whitespace-nowrap">{new Date(log.created_at).toLocaleString("pt-BR")}</TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">{formatDate(log.created_at)}</TableCell>
                       <TableCell className="text-sm">{log.nome_personagem || log.user_email || "—"}</TableCell>
                       <TableCell><Badge variant="outline">{log.entity}</Badge></TableCell>
                       <TableCell className="text-sm text-muted-foreground">{log.after_data?.descricao || "—"}</TableCell>

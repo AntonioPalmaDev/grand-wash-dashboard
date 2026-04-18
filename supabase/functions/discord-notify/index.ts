@@ -15,8 +15,15 @@ const CORES = {
 
 function formatarData(date?: string | Date): string {
   const d = date ? new Date(date) : new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  // Formata sempre no fuso de São Paulo (UTC-3), independente do servidor
+  const fmt = new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+    timeZone: "America/Sao_Paulo",
+    hour12: false,
+  });
+  // Resultado: "18/04/2026, 14:32" → trocamos a vírgula por espaço
+  return fmt.format(d).replace(",", "");
 }
 
 function campo(nome: string, valor?: string | null): { name: string; value: string; inline: boolean } {

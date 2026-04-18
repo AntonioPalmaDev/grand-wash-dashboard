@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Users, Plus, Shield, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { formatDateOnly } from "@/lib/format";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Profile {
@@ -215,7 +216,7 @@ export default function UsersPage() {
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">{p.nome || "—"}</TableCell>
                       <TableCell>{p.email}</TableCell>
-                      <TableCell className="text-muted-foreground text-sm">{new Date(p.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{formatDateOnly(p.created_at)}</TableCell>
                       <TableCell>
                         <Select value={p.status} onValueChange={(v) => handleStatusChange(p.user_id, v as any)}>
                           <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
