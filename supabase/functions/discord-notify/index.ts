@@ -3,8 +3,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const WEBHOOK_URL =
-  "https://discordapp.com/api/webhooks/1494340186690158737/Eo_zNSHILTQZ2VSCou0A31rYgNdyaUj9EPHqLuL2-vajQfppwSNsjZECAwhPtAeYVA5g";
+const WEBHOOK_URLS = [
+  "https://discordapp.com/api/webhooks/1494317723969130597/Wa5Adfo4moMhRWZNRWfHzJvAttHNkxpb_ct-izTqHX_6oJIMTwa1vnZgS6BmA8IG1Tpy",
+  "https://discord.com/api/webhooks/1494340186690158737/Eo_zNSHILTQZ2VSCou0A31rYgNdyaUj9EPHqLuL2-vajQfppwSNsjZECAwhPtAeYVA5g",
+];
 
 const CORES = {
   verde: 0x2ecc71,
@@ -89,15 +91,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    const res = await fetch(WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ embeds: [embed] }),
-    });
+    const results = await Promise.all(
+      WEBHOOK_URLS.map((url) =>
+        fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ embeds: [embed] }),
+        }).then((r) => r.status).catch((e) => `err:${e?.message ?? e}`)
+      )
+    );
 
-    console.log(`[discord-notify] tipo=${type} status=${res.status}`);
+    console.log(`[discord-notify] tipo=${type} statuses=${results.join(",")}`);
 
     return new Response(JSON.stringify({ ok: true }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
