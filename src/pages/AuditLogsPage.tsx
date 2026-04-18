@@ -88,7 +88,7 @@ export default function AuditLogsPage() {
               ) : logs.map(log => (
                 <TableRow key={log.id}>
                   <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                    {new Date(log.created_at).toLocaleString("pt-BR")}
+                    {formatDate(log.created_at)}
                   </TableCell>
                   <TableCell className="text-sm">
                     <div className="font-medium">{log.nome_personagem || "—"}</div>
