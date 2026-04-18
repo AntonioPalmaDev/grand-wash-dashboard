@@ -249,7 +249,7 @@ export default function RestorePage() {
                       <TableCell className="font-medium">{c.nome}</TableCell>
                       <TableCell><Badge variant="outline">{c.tipo}</Badge></TableCell>
                       <TableCell className="font-mono">{Number(c.taxa)}%</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{new Date(c.deleted_at).toLocaleString("pt-BR")}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{formatDate(c.deleted_at)}</TableCell>
                       <TableCell>
                         <Button size="sm" variant="outline" onClick={() => restoreClient(c)}>
                           <RotateCcw className="h-3 w-3 mr-1" /> Restaurar
