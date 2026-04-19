@@ -45,8 +45,10 @@ export default function Dashboard() {
 
     if (filtros.mes !== "ALL") {
       filtered = filtered.filter(op => {
-        const d = new Date(op.data);
-        return String(d.getMonth() + 1).padStart(2, "0") === filtros.mes;
+        const month = new Intl.DateTimeFormat("en-CA", {
+          month: "2-digit", timeZone: "America/Sao_Paulo",
+        }).format(new Date(op.data));
+        return month === filtros.mes;
       });
     } else if (filtros.periodo !== "ALL") {
       const days = Number(filtros.periodo.replace("d", ""));
