@@ -1,5 +1,5 @@
 import { useApp } from "@/context/AppContext";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDateOnly } from "@/lib/format";
 import { KpiCard } from "@/components/KpiCard";
 import {
   DollarSign,
@@ -45,8 +45,10 @@ export default function Dashboard() {
 
     if (filtros.mes !== "ALL") {
       filtered = filtered.filter(op => {
-        const d = new Date(op.data);
-        return String(d.getMonth() + 1).padStart(2, "0") === filtros.mes;
+        const month = new Intl.DateTimeFormat("en-CA", {
+          month: "2-digit", timeZone: "America/Sao_Paulo",
+        }).format(new Date(op.data));
+        return month === filtros.mes;
       });
     } else if (filtros.periodo !== "ALL") {
       const days = Number(filtros.periodo.replace("d", ""));
@@ -84,21 +86,38 @@ export default function Dashboard() {
     const result: Record<string, number> = {};
     const now = new Date();
 
+    // Helper: pega YYYY-MM-DD no fuso de São Paulo
+    const getSPDateKey = (date: Date) => {
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        year: "numeric", month: "2-digit", day: "2-digit",
+        timeZone: "America/Sao_Paulo",
+      }).formatToParts(date);
+      const y = parts.find(p => p.type === "year")?.value;
+      const m = parts.find(p => p.type === "month")?.value;
+      const d = parts.find(p => p.type === "day")?.value;
+      return `${y}-${m}-${d}`;
+    };
+
+    const getSPMonthKey = (date: Date) => {
+      const key = getSPDateKey(date);
+      return key.substring(0, 7);
+    };
+
     if (filtros.agrupamento === "dia") {
       const days = filtros.periodo === "ALL" ? 30 : Number(filtros.periodo.replace("d", ""));
       for (let i = days - 1; i >= 0; i--) {
         const d = new Date();
         d.setDate(now.getDate() - i);
-        result[d.toISOString().split("T")[0]] = 0;
+        result[getSPDateKey(d)] = 0;
       }
     }
 
     filteredOperations.forEach(op => {
       const d = new Date(op.data);
-      let key = filtros.agrupamento === "dia" 
-        ? d.toISOString().split("T")[0] 
-        : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      
+      let key = filtros.agrupamento === "dia"
+        ? getSPDateKey(d)
+        : getSPMonthKey(d);
+
       if (filtros.agrupamento === "empresa") {
         key = clients.find(c => c.id === op.clientId)?.nome ?? "Desconhecido";
       }
@@ -106,9 +125,9 @@ export default function Dashboard() {
     });
 
     return Object.entries(result)
-      .sort(([a], [b]) => (filtros.agrupamento === "empresa" ? a.localeCompare(b) : new Date(a).getTime() - new Date(b).getTime()))
+      .sort(([a], [b]) => (filtros.agrupamento === "empresa" ? a.localeCompare(b) : a.localeCompare(b)))
       .map(([key, total]) => ({
-        label: filtros.agrupamento === "dia" ? formatDate(key) : key,
+        label: filtros.agrupamento === "dia" ? formatDayLabel(key) : key,
         total,
       }));
   }, [filteredOperations, filtros, clients]);
@@ -212,7 +231,7 @@ function formatCompact(v: number) {
   return v.toString();
 }
 
-function formatDate(d: string) {
-  const [year, month, day] = d.split("-");
+function formatDayLabel(d: string) {
+  const [, month, day] = d.split("-");
   return `${day}/${month}`;
 }
