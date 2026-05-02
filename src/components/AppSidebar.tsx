@@ -23,7 +23,7 @@ const baseItems = [
   { title: "Histórico", url: "/historico", icon: History },
   { title: "Financeiro", url: "/financeiro", icon: DollarSign },
   { title: "Ranking", url: "/ranking", icon: Trophy },
-  { title: "Laudos", url: "/laudos", icon: ClipboardList },
+  { title: "Resumo Financeiro", url: "/laudos", icon: ClipboardList },
 ];
 
 const devItems = [
