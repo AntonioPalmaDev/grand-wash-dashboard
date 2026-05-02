@@ -1,17 +1,24 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, Download, FileText, TrendingUp, Activity, DollarSign } from "lucide-react";
+import {
+  CalendarIcon,
+  Download,
+  FileText,
+  TrendingUp,
+  Activity,
+  DollarSign,
+  Loader2,
+} from "lucide-react";
 import { toPng } from "html-to-image";
 
 import { cn } from "@/lib/utils";
 import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
 import { formatCurrency } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -35,48 +42,95 @@ const STATUS_STYLE: Record<StatusGeral, { bg: string; text: string; border: stri
 };
 
 function slugify(s: string) {
-  return s
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "") || "empresa";
+  return (
+    s
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") || "empresa"
+  );
 }
+
+// Garante que a logo já está pronta antes de exportar
+function preloadImage(src: string): Promise<void> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+    img.src = src;
+  });
+}
+
+const LOGO_SRC = "/zerofoco.png";
 
 export default function ReportsPage() {
   const previewRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
-  const { clients } = useApp();
+  const { clients, operations } = useApp();
+  const { user, nomePersonagem } = useAuth();
+
+  const responsavelAuto =
+    nomePersonagem || user?.user_metadata?.nome || user?.email || "Responsável";
 
   const [form, setForm] = useState({
-    empresa: "",
+    clientId: "",
     dataInicio: undefined as Date | undefined,
     dataFim: undefined as Date | undefined,
-    qtdOperacoes: "" as string,
-    valorTotal: "" as string,
     statusGeral: "Dentro da Meta" as StatusGeral,
     resumo: "",
-    responsavel: "",
   });
 
   const update = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const valorTotalNum = useMemo(() => {
-    const n = parseFloat(form.valorTotal.replace(",", "."));
-    return isNaN(n) ? 0 : n;
-  }, [form.valorTotal]);
+  const empresaSelecionada = useMemo(
+    () => clients.find((c) => c.id === form.clientId)?.nome ?? "",
+    [clients, form.clientId],
+  );
 
-  const qtdOperacoesNum = useMemo(() => {
-    const n = parseInt(form.qtdOperacoes, 10);
-    return isNaN(n) ? 0 : n;
-  }, [form.qtdOperacoes]);
+  // Cálculo automático: filtra operações pelo cliente + período (concluídas)
+  const [calculating, setCalculating] = useState(false);
+  const [metrics, setMetrics] = useState({ qtd: 0, valorTotal: 0 });
 
-  const ticketMedio = qtdOperacoesNum > 0 ? valorTotalNum / qtdOperacoesNum : 0;
+  useEffect(() => {
+    if (!form.clientId || !form.dataInicio || !form.dataFim) {
+      setMetrics({ qtd: 0, valorTotal: 0 });
+      return;
+    }
+    setCalculating(true);
+    // Pequeno debounce visual; cálculo é local mas garante UX de "carregando"
+    const t = setTimeout(() => {
+      const start = new Date(form.dataInicio!);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(form.dataFim!);
+      end.setHours(23, 59, 59, 999);
+
+      const filtered = operations.filter((op) => {
+        if (op.clientId !== form.clientId) return false;
+        if (op.status !== "concluido") return false;
+        const d = new Date(op.data).getTime();
+        return d >= start.getTime() && d <= end.getTime();
+      });
+
+      setMetrics({
+        qtd: filtered.length,
+        valorTotal: filtered.reduce((s, op) => s + op.valorBruto, 0),
+      });
+      setCalculating(false);
+    }, 250);
+    return () => clearTimeout(t);
+  }, [form.clientId, form.dataInicio, form.dataFim, operations]);
+
+  const ticketMedio = metrics.qtd > 0 ? metrics.valorTotal / metrics.qtd : 0;
 
   const periodoLabel = useMemo(() => {
     if (form.dataInicio && form.dataFim) {
-      return `${format(form.dataInicio, "dd/MM/yyyy", { locale: ptBR })} — ${format(form.dataFim, "dd/MM/yyyy", { locale: ptBR })}`;
+      return `${format(form.dataInicio, "dd/MM/yyyy", { locale: ptBR })} — ${format(
+        form.dataFim,
+        "dd/MM/yyyy",
+        { locale: ptBR },
+      )}`;
     }
     if (form.dataInicio) return `A partir de ${format(form.dataInicio, "dd/MM/yyyy", { locale: ptBR })}`;
     if (form.dataFim) return `Até ${format(form.dataFim, "dd/MM/yyyy", { locale: ptBR })}`;
@@ -87,13 +141,18 @@ export default function ReportsPage() {
     if (!previewRef.current) return;
     try {
       setDownloading(true);
+      // Espera fontes + logo carregarem
+      await Promise.all([
+        (document as any).fonts?.ready ?? Promise.resolve(),
+        preloadImage(LOGO_SRC),
+      ]);
       const dataUrl = await toPng(previewRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#ffffff",
       });
       const link = document.createElement("a");
-      link.download = `resumo-operacoes-${slugify(form.empresa)}.png`;
+      link.download = `resumo-operacoes-${slugify(empresaSelecionada)}.png`;
       link.href = dataUrl;
       link.click();
       toast.success("Resumo baixado com sucesso!");
@@ -116,10 +175,10 @@ export default function ReportsPage() {
             Resumo Executivo de Operações
           </h1>
           <p className="text-sm text-muted-foreground">
-            Gere um relatório executivo do período e baixe em PNG.
+            Selecione a empresa e o período — os dados são calculados automaticamente.
           </p>
         </div>
-        <Button onClick={handleDownload} disabled={downloading} size="lg">
+        <Button onClick={handleDownload} disabled={downloading || calculating} size="lg">
           <Download className="mr-2 h-4 w-4" />
           {downloading ? "Gerando..." : "Baixar Relatório (PNG)"}
         </Button>
@@ -134,34 +193,24 @@ export default function ReportsPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Empresa / Cliente Alvo</Label>
-              {clients.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
-                  <Select value={form.empresa} onValueChange={(v) => update("empresa", v)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um cliente..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map((c) => (
-                        <SelectItem key={c.id} value={c.nome}>
-                          {c.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    placeholder="Ou digite..."
-                    value={form.empresa}
-                    onChange={(e) => update("empresa", e.target.value)}
-                    className="sm:w-44"
-                  />
-                </div>
-              ) : (
-                <Input
-                  placeholder="Nome da empresa"
-                  value={form.empresa}
-                  onChange={(e) => update("empresa", e.target.value)}
-                />
-              )}
+              <Select value={form.clientId} onValueChange={(v) => update("clientId", v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um cliente..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">
+                      Nenhum cliente cadastrado
+                    </div>
+                  ) : (
+                    clients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.nome}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -225,28 +274,33 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="qtd">Quantidade de Operações</Label>
-                <Input
-                  id="qtd"
-                  type="number"
-                  min={0}
-                  placeholder="0"
-                  value={form.qtdOperacoes}
-                  onChange={(e) => update("qtdOperacoes", e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="valor">Valor Total (R$)</Label>
-                <Input
-                  id="valor"
-                  inputMode="decimal"
-                  placeholder="0,00"
-                  value={form.valorTotal}
-                  onChange={(e) => update("valorTotal", e.target.value)}
-                />
-              </div>
+            {/* Métricas calculadas (apenas exibição) */}
+            <div className="rounded-lg border bg-muted/30 p-4">
+              {calculating ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Calculando operações do período...
+                </div>
+              ) : !form.clientId || !form.dataInicio || !form.dataFim ? (
+                <p className="text-sm text-muted-foreground">
+                  Selecione empresa e período para calcular automaticamente.
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Operações</p>
+                    <p className="text-base font-bold">{metrics.qtd.toLocaleString("pt-BR")}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor Total</p>
+                    <p className="text-base font-bold">{formatCurrency(metrics.valorTotal)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Ticket Médio</p>
+                    <p className="text-base font-bold">{formatCurrency(ticketMedio)}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -279,14 +333,9 @@ export default function ReportsPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="resp">Responsável pela Análise</Label>
-              <Input
-                id="resp"
-                placeholder="Nome de quem gerou o resumo"
-                value={form.responsavel}
-                onChange={(e) => update("responsavel", e.target.value)}
-              />
+            <div className="rounded-md bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              Responsável pela análise: <span className="font-medium text-foreground">{responsavelAuto}</span>{" "}
+              (preenchido automaticamente)
             </div>
           </CardContent>
         </Card>
@@ -306,16 +355,24 @@ export default function ReportsPage() {
                 fontFamily: "'Helvetica', 'Arial', sans-serif",
               }}
             >
-              {/* Cabeçalho */}
+              {/* Cabeçalho com logo */}
               <div className="border-b-2 pb-4" style={{ borderColor: "#0f172a" }}>
                 <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-                      Resumo de Operações Financeiras e Estratégicas
-                    </p>
-                    <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-zinc-900">
-                      {form.empresa || "Nome da Empresa"}
-                    </h2>
+                  <div className="flex items-start gap-3 min-w-0">
+                    <img
+                      src={LOGO_SRC}
+                      alt="Zero Foco"
+                      crossOrigin="anonymous"
+                      className="h-12 w-auto object-contain shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+                        Resumo de Operações Financeiras e Estratégicas
+                      </p>
+                      <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-zinc-900 truncate">
+                        {empresaSelecionada || "Nome da Empresa"}
+                      </h2>
+                    </div>
                   </div>
                   <div className="text-right text-[10px] text-zinc-500 shrink-0">
                     <p>Emitido em</p>
@@ -331,12 +388,12 @@ export default function ReportsPage() {
                 <MiniMetric
                   icon={<Activity size={14} />}
                   label="Operações"
-                  value={qtdOperacoesNum.toLocaleString("pt-BR")}
+                  value={metrics.qtd.toLocaleString("pt-BR")}
                 />
                 <MiniMetric
                   icon={<DollarSign size={14} />}
                   label="Valor Total"
-                  value={formatCurrency(valorTotalNum)}
+                  value={formatCurrency(metrics.valorTotal)}
                   highlight
                 />
                 <MiniMetric
@@ -356,9 +413,7 @@ export default function ReportsPage() {
                     <p className="text-[13px] font-medium text-zinc-900">{periodoLabel}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-zinc-500">
-                      Status Geral
-                    </p>
+                    <p className="text-[10px] uppercase tracking-wider text-zinc-500">Status Geral</p>
                     <span
                       className="mt-1 inline-block rounded-full px-3 py-1 text-[11px] font-semibold"
                       style={{
@@ -381,9 +436,7 @@ export default function ReportsPage() {
                     style={{ lineHeight: 1.6 }}
                   >
                     {form.resumo || (
-                      <span className="text-zinc-400">
-                        Nenhum resumo informado.
-                      </span>
+                      <span className="text-zinc-400">Nenhum resumo informado.</span>
                     )}
                   </div>
                 </div>
@@ -392,9 +445,7 @@ export default function ReportsPage() {
               {/* Rodapé */}
               <div className="mt-12 pt-4">
                 <div className="mx-auto w-2/3 border-t border-zinc-700 pt-2 text-center">
-                  <p className="text-[12px] font-semibold text-zinc-800">
-                    {form.responsavel || "Responsável pela Análise"}
-                  </p>
+                  <p className="text-[12px] font-semibold text-zinc-800">{responsavelAuto}</p>
                   <p className="text-[10px] uppercase tracking-widest text-zinc-500">
                     Assinatura do responsável
                   </p>
