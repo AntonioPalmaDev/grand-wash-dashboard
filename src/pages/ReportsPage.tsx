@@ -62,7 +62,7 @@ function preloadImage(src: string): Promise<void> {
   });
 }
 
-const LOGO_SRC = "/Zero_foco_cinza.png";
+const LOGO_SRC = "/Zero foco cinza.png";
 
 export default function ReportsPage() {
   const previewRef = useRef<HTMLDivElement>(null);
