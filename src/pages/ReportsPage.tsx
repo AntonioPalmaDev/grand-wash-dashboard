@@ -92,14 +92,16 @@ export default function ReportsPage() {
   // Cálculo automático: filtra operações pelo cliente + período (concluídas)
   const [calculating, setCalculating] = useState(false);
   const [metrics, setMetrics] = useState({ qtd: 0, valorTotal: 0 });
-useEffect(() => {
+
+
+ useEffect(() => {
     if (!form.clientId || !form.dataInicio || !form.dataFim) {
       setMetrics({ qtd: 0, valorTotal: 0 });
       update("resumo", ""); // Limpa o resumo se faltar dados
       return;
     }
     setCalculating(true);
-    
+
     const t = setTimeout(() => {
       const start = new Date(form.dataInicio!);
       start.setHours(0, 0, 0, 0);
@@ -122,10 +124,20 @@ useEffect(() => {
         valorTotal: valorTotalCalc,
       });
 
-      // === NOVA LÓGICA DO TEXTO DINÂMICO ===
+      // === TEXTOS DINÂMICOS BASEADOS NO STATUS GERAL ===
       if (qtdCalc > 0) {
-        const textoDinamico = `O período analisado apresentou um total de ${qtdCalc} operações, alcançando um valor total de ${formatCurrency(valorTotalCalc)}. O ticket médio registrado foi de ${formatCurrency(ticketMedioCalc)}, evidenciando um volume expressivo por transação.\n\nEsses resultados indicam uma movimentação financeira robusta, com operações de alto valor agregado, refletindo consistência nas negociações realizadas ao longo do período e consolidando a parceria firmada no início da afiliação.`;
-        
+        let textoDinamico = "";
+
+        if (form.statusGeral === "Dentro da Meta") {
+          textoDinamico = `O período analisado apresentou um total de ${qtdCalc} operações, alcançando um valor total de ${formatCurrency(valorTotalCalc)}. O ticket médio registrado foi de ${formatCurrency(ticketMedioCalc)}, evidenciando um volume expressivo por transação.\n\nEsses resultados indicam uma movimentação financeira robusta, com operações de alto valor agregado, refletindo consistência nas negociações realizadas ao longo do período e consolidando a parceria firmada no início da afiliação.`;
+        } 
+        else if (form.statusGeral === "Atenção") {
+          textoDinamico = `O período analisado apresentou um total de ${qtdCalc} operações, alcançando um valor total de ${formatCurrency(valorTotalCalc)}. O ticket médio registrado foi de ${formatCurrency(ticketMedioCalc)}, evidenciando um volume relevante por transação.\n\nApesar dos resultados consistentes, observa-se a necessidade de atenção em pontos estratégicos, visando manter a performance e garantir a evolução dos indicadores. Ajustes pontuais e acompanhamento mais próximo podem contribuir para a otimização dos resultados e fortalecimento contínuo da parceria firmada no início da afiliação.`;
+        } 
+        else if (form.statusGeral === "Fechado") {
+          textoDinamico = `O período analisado apresentou um total de ${qtdCalc} operações, alcançando um valor total de ${formatCurrency(valorTotalCalc)}. O ticket médio registrado foi de ${formatCurrency(ticketMedioCalc)}, demonstrando um volume significativo por transação.\n\nCom a conclusão do ciclo, os resultados refletem o desempenho consolidado ao longo do período, encerrando as atividades com consistência nos indicadores e reafirmando o alinhamento estratégico. Dessa forma, o período é finalizado com a parceria estabelecida e devidamente consolidada desde o início da afiliação.`;
+        }
+
         update("resumo", textoDinamico);
       } else {
         update("resumo", "Nenhuma operação encontrada para este período.");
@@ -133,9 +145,10 @@ useEffect(() => {
 
       setCalculating(false);
     }, 250);
-    
+
+    // NOTA: Adicionamos o form.statusGeral aqui na última linha para o React saber que deve regerar o texto se você mudar o status no select!
     return () => clearTimeout(t);
-  }, [form.clientId, form.dataInicio, form.dataFim, operations]);
+  }, [form.clientId, form.dataInicio, form.dataFim, form.statusGeral, operations]);
 
   const ticketMedio = metrics.qtd > 0 ? metrics.valorTotal / metrics.qtd : 0;
 
