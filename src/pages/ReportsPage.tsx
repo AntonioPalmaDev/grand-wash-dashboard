@@ -92,14 +92,14 @@ export default function ReportsPage() {
   // Cálculo automático: filtra operações pelo cliente + período (concluídas)
   const [calculating, setCalculating] = useState(false);
   const [metrics, setMetrics] = useState({ qtd: 0, valorTotal: 0 });
-
-  useEffect(() => {
+useEffect(() => {
     if (!form.clientId || !form.dataInicio || !form.dataFim) {
       setMetrics({ qtd: 0, valorTotal: 0 });
+      update("resumo", ""); // Limpa o resumo se faltar dados
       return;
     }
     setCalculating(true);
-    // Pequeno debounce visual; cálculo é local mas garante UX de "carregando"
+    
     const t = setTimeout(() => {
       const start = new Date(form.dataInicio!);
       start.setHours(0, 0, 0, 0);
@@ -113,12 +113,27 @@ export default function ReportsPage() {
         return d >= start.getTime() && d <= end.getTime();
       });
 
+      const qtdCalc = filtered.length;
+      const valorTotalCalc = filtered.reduce((s, op) => s + op.valorBruto, 0);
+      const ticketMedioCalc = qtdCalc > 0 ? valorTotalCalc / qtdCalc : 0;
+
       setMetrics({
-        qtd: filtered.length,
-        valorTotal: filtered.reduce((s, op) => s + op.valorBruto, 0),
+        qtd: qtdCalc,
+        valorTotal: valorTotalCalc,
       });
+
+      // === NOVA LÓGICA DO TEXTO DINÂMICO ===
+      if (qtdCalc > 0) {
+        const textoDinamico = `O período analisado apresentou um total de ${qtdCalc} operações, alcançando um valor total de ${formatCurrency(valorTotalCalc)}. O ticket médio registrado foi de ${formatCurrency(ticketMedioCalc)}, evidenciando um volume expressivo por transação.\n\nEsses resultados indicam uma movimentação financeira robusta, com operações de alto valor agregado, refletindo consistência nas negociações realizadas ao longo do período e consolidando a parceria firmada no início da afiliação.`;
+        
+        update("resumo", textoDinamico);
+      } else {
+        update("resumo", "Nenhuma operação encontrada para este período.");
+      }
+
       setCalculating(false);
     }, 250);
+    
     return () => clearTimeout(t);
   }, [form.clientId, form.dataInicio, form.dataFim, operations]);
 
