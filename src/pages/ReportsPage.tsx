@@ -442,15 +442,26 @@ export default function ReportsPage() {
                 </div>
               </div>
 
-              {/* Rodapé */}
-              <div className="mt-12 pt-4">
-                <div className="mx-auto w-2/3 border-t border-zinc-700 pt-2 text-center">
-                  <p className="text-[12px] font-semibold text-zinc-800">{responsavelAuto}</p>
+             {/* Rodapé */}
+              <div className="mt-20 pt-4">
+                <div className="mx-auto w-2/3 border-t border-zinc-700 pt-2 text-center relative">
+                  
+                  {/* SIMULAÇÃO DA ASSINATURA DINÂMICA */}
+                  <div className="absolute left-0 right-0 -top-14 flex justify-center pointer-events-none">
+                    <span 
+                      className="text-4xl text-zinc-700 -rotate-3 opacity-90"
+                      style={{ fontFamily: "'Dancing Script', cursive" }}
+                    >
+                      {responsavelAuto}
+                    </span>
+                  </div>
+
+                  <p className="text-[12px] font-semibold text-zinc-800 mt-2">{responsavelAuto}</p>
                   <p className="text-[10px] uppercase tracking-widest text-zinc-500">
                     Assinatura do responsável
                   </p>
                 </div>
-                <p className="mt-6 text-center text-[9px] text-zinc-400">
+                <p className="mt-8 text-center text-[9px] text-zinc-400">
                   Documento gerado automaticamente — Zero Foco
                 </p>
               </div>
