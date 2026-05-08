@@ -104,65 +104,127 @@ export default function OperationsPage() {
       {sorted.length === 0 ? (
         <div className="glass-card rounded-lg p-8 text-center text-muted-foreground">Nenhuma operação registrada.</div>
       ) : (
-        <div className="glass-card rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/50 text-muted-foreground">
-                  <th className="text-left p-3">Cliente</th>
-                  <th className="text-left p-3">Tipo</th>
-                  <th className="text-right p-3">Valor Bruto</th>
-                  <th className="text-right p-3">Taxa</th>
-                  <th className="text-right p-3">Lucro Líq.</th>
-                  <th className="text-right p-3">Ao Cliente</th>
-                  <th className="text-center p-3">Status</th>
-                  <th className="text-left p-3">Responsável</th>
-                  <th className="text-left p-3">Data</th>
-                  <th className="text-center p-3">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sorted.map(op => {
-                  const client = clients.find(c => c.id === op.clientId);
-                  const sc = statusConfig[op.status];
-                  const StatusIcon = sc.icon;
-                  return (
-                    <tr key={op.id} className="border-b border-border/20 hover:bg-secondary/20 transition-colors">
-                      <td className="p-3 font-medium">{client?.nome ?? "?"}</td>
-                      <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
-                      <td className="p-3 text-right font-mono">{formatCurrency(op.valorBruto)}</td>
-                      <td className="p-3 text-right font-mono">{formatPercent(op.taxaPercentual)}</td>
-                      <td className="p-3 text-right font-mono font-semibold">{formatCurrency(op.lucroLiquido)}</td>
-                      <td className="p-3 text-right font-mono">{formatCurrency(op.valorCliente)}</td>
-                      <td className="p-3 text-center">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>
-                          <StatusIcon className="h-3 w-3" /> {sc.label}
-                        </span>
-                      </td>
-                      <td className="p-3 text-xs text-muted-foreground">{op.responsavel}</td>
-                      <td className="p-3 text-xs text-muted-foreground">{formatDate(op.data)}</td>
-                      <td className="p-3 text-center">
-                        <div className="flex gap-1 justify-center">
-                          {op.status === "pendente" && (
-                            <>
-                              <Button size="sm" variant="ghost" className="h-7 text-xs text-success" onClick={() => updateOperationStatus(op.id, "concluido")}>✓</Button>
-                              <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => updateOperationStatus(op.id, "cancelado")}>✗</Button>
-                            </>
-                          )}
-                          {isDev && (
-                            <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => deleteOperation(op.id)}>
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        <>
+          {/* Mobile: cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:hidden">
+            {sorted.map(op => {
+              const client = clients.find(c => c.id === op.clientId);
+              const sc = statusConfig[op.status];
+              const StatusIcon = sc.icon;
+              return (
+                <div key={op.id} className="glass-card rounded-lg p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="font-semibold truncate">{client?.nome ?? "?"}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className="text-[10px]">{client?.tipo}</Badge>
+                        <span className="text-[11px] text-muted-foreground">{formatDate(op.data)}</span>
+                      </div>
+                    </div>
+                    <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${sc.color}`}>
+                      <StatusIcon className="h-3 w-3" /> {sc.label}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-secondary/20 rounded p-2">
+                      <div className="text-[10px] text-muted-foreground uppercase">Bruto</div>
+                      <div className="font-mono font-semibold">{formatCurrency(op.valorBruto)}</div>
+                    </div>
+                    <div className="bg-secondary/20 rounded p-2">
+                      <div className="text-[10px] text-muted-foreground uppercase">Lucro Líq.</div>
+                      <div className="font-mono font-semibold text-primary">{formatCurrency(op.lucroLiquido)}</div>
+                    </div>
+                    <div className="bg-secondary/20 rounded p-2">
+                      <div className="text-[10px] text-muted-foreground uppercase">Taxa</div>
+                      <div className="font-mono">{formatPercent(op.taxaPercentual)}</div>
+                    </div>
+                    <div className="bg-secondary/20 rounded p-2">
+                      <div className="text-[10px] text-muted-foreground uppercase">Ao Cliente</div>
+                      <div className="font-mono">{formatCurrency(op.valorCliente)}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/30">
+                    <span className="text-[11px] text-muted-foreground truncate">{op.responsavel}</span>
+                    <div className="flex gap-1 shrink-0">
+                      {op.status === "pendente" && (
+                        <>
+                          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs text-success" onClick={() => updateOperationStatus(op.id, "concluido")}>✓</Button>
+                          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs text-destructive" onClick={() => updateOperationStatus(op.id, "cancelado")}>✗</Button>
+                        </>
+                      )}
+                      {isDev && (
+                        <Button size="sm" variant="ghost" className="h-7 px-2 text-xs text-destructive" onClick={() => deleteOperation(op.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
+
+          {/* Desktop: tabela */}
+          <div className="glass-card rounded-lg overflow-hidden hidden lg:block">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/50 text-muted-foreground">
+                    <th className="text-left p-3">Cliente</th>
+                    <th className="text-left p-3">Tipo</th>
+                    <th className="text-right p-3">Valor Bruto</th>
+                    <th className="text-right p-3">Taxa</th>
+                    <th className="text-right p-3">Lucro Líq.</th>
+                    <th className="text-right p-3">Ao Cliente</th>
+                    <th className="text-center p-3">Status</th>
+                    <th className="text-left p-3">Responsável</th>
+                    <th className="text-left p-3">Data</th>
+                    <th className="text-center p-3">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sorted.map(op => {
+                    const client = clients.find(c => c.id === op.clientId);
+                    const sc = statusConfig[op.status];
+                    const StatusIcon = sc.icon;
+                    return (
+                      <tr key={op.id} className="border-b border-border/20 hover:bg-secondary/20 transition-colors">
+                        <td className="p-3 font-medium">{client?.nome ?? "?"}</td>
+                        <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
+                        <td className="p-3 text-right font-mono">{formatCurrency(op.valorBruto)}</td>
+                        <td className="p-3 text-right font-mono">{formatPercent(op.taxaPercentual)}</td>
+                        <td className="p-3 text-right font-mono font-semibold">{formatCurrency(op.lucroLiquido)}</td>
+                        <td className="p-3 text-right font-mono">{formatCurrency(op.valorCliente)}</td>
+                        <td className="p-3 text-center">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>
+                            <StatusIcon className="h-3 w-3" /> {sc.label}
+                          </span>
+                        </td>
+                        <td className="p-3 text-xs text-muted-foreground">{op.responsavel}</td>
+                        <td className="p-3 text-xs text-muted-foreground">{formatDate(op.data)}</td>
+                        <td className="p-3 text-center">
+                          <div className="flex gap-1 justify-center">
+                            {op.status === "pendente" && (
+                              <>
+                                <Button size="sm" variant="ghost" className="h-7 text-xs text-success" onClick={() => updateOperationStatus(op.id, "concluido")}>✓</Button>
+                                <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => updateOperationStatus(op.id, "cancelado")}>✗</Button>
+                              </>
+                            )}
+                            {isDev && (
+                              <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => deleteOperation(op.id)}>
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
