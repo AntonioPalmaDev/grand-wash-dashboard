@@ -186,7 +186,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await registrarLog({ ...logBase(), action: "excluir", entity: "cliente", entityId: id, description: desc, beforeData: old });
   }, [user, clients, getUserName, logBase]);
 
-  const addOperation = useCallback(async (o: { clientId: string; valorBruto: number; responsavel?: string }) => {
+  const addOperation = useCallback(async (o: { clientId: string; valorBruto: number; responsavel?: string; pix?: string | null }) => {
     if (!user) return;
     const client = clients.find(c => c.id === o.clientId);
     if (!client) return;
@@ -196,16 +196,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const lucroLiquido = lucroBruto - custoMaquina;
     const valorCliente = o.valorBruto - lucroBruto;
     const responsavel = o.responsavel || getUserName();
+    const pix = o.pix && /^\d+$/.test(o.pix) ? o.pix : null;
 
     const { data } = await supabase.from("operations").insert({
       user_id: user.id, client_id: o.clientId, valor_bruto: o.valorBruto,
       taxa_percentual: taxa, lucro_bruto: lucroBruto, custo_maquina: custoMaquina,
       lucro_liquido: lucroLiquido, valor_cliente: valorCliente, responsavel,
-    }).select().single();
+      pix,
+    } as any).select().single();
 
     if (data) {
       const desc = logCriarOperacao({ responsavel, nomeCliente: client.nome, valorBruto: o.valorBruto });
-      await registrarLog({ ...logBase(), action: "criar", entity: "operação", entityId: data.id, description: desc, afterData: { valorBruto: o.valorBruto, cliente: client.nome, responsavel } });
+      await registrarLog({ ...logBase(), action: "criar", entity: "operação", entityId: data.id, description: desc, afterData: { valorBruto: o.valorBruto, cliente: client.nome, responsavel, pix } });
       supabase.functions.invoke("discord-notify", {
         body: { type: "nova_operacao", nome: client.nome, responsavel, status: "pendente" },
       }).catch(console.error);
@@ -219,6 +221,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await supabase.from("operations").update({ status }).eq("id", id);
     const desc = logAlterarStatusOperacao({ responsavel: getUserName(), nomeCliente: client?.nome || "---", statusAnterior: op?.status || "---", statusNovo: status });
     await registrarLog({ ...logBase(), action: "status", entity: "operação", entityId: id, description: desc, beforeData: { status: op?.status }, afterData: { status } });
+  }, [user, operations, clients, getUserName, logBase]);
+
+  const updateOperationPix = useCallback(async (id: string, pix: string | null) => {
+    if (!user) return;
+    const op = operations.find(o => o.id === id);
+    if (!op) return;
+    if (op.status === "concluido" || op.status === "cancelado") {
+      console.warn("PIX bloqueado: operação concluída/cancelada");
+      return;
+    }
+    const cleaned = pix && /^\d+$/.test(pix) ? pix : null;
+    const { error } = await supabase.from("operations").update({ pix: cleaned } as any).eq("id", id);
+    if (error) { console.error("Erro ao atualizar PIX:", error.message); return; }
+    const client = clients.find(c => c.id === op.clientId);
+    const desc = `${getUserName()} alterou o PIX da operação de ${client?.nome || "---"} de "${op.pix ?? "---"}" para "${cleaned ?? "---"}"`;
+    await registrarLog({ ...logBase(), action: "editar", entity: "operação", entityId: id, description: desc, beforeData: { pix: op.pix }, afterData: { pix: cleaned } });
   }, [user, operations, clients, getUserName, logBase]);
 
   // SOFT DELETE da operação
