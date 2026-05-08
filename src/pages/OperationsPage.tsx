@@ -8,14 +8,71 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Check, X, Clock, Trash2 } from "lucide-react";
-import type { OperationStatus } from "@/types";
+import { Plus, Check, X, Clock, Trash2, Lock, Pencil, Save } from "lucide-react";
+import type { Operation, OperationStatus } from "@/types";
 
 const statusConfig: Record<OperationStatus, { label: string; color: string; icon: typeof Check }> = {
   pendente: { label: "Pendente", color: "bg-warning/15 text-warning", icon: Clock },
   concluido: { label: "Concluído", color: "bg-success/15 text-success", icon: Check },
   cancelado: { label: "Cancelado", color: "bg-destructive/15 text-destructive", icon: X },
 };
+
+// Apenas dígitos
+const onlyDigits = (v: string) => v.replace(/\D/g, "");
+
+function PixInlineEditor({ op }: { op: Operation }) {
+  const { updateOperationPix } = useApp();
+  const locked = op.status === "concluido" || op.status === "cancelado";
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(op.pix ?? "");
+
+  if (locked) {
+    return (
+      <span className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground">
+        <Lock className="h-3 w-3" />
+        {op.pix || "—"}
+      </span>
+    );
+  }
+
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        onClick={() => { setValue(op.pix ?? ""); setEditing(true); }}
+        className="inline-flex items-center gap-1 font-mono text-xs hover:text-primary transition-colors"
+      >
+        <Pencil className="h-3 w-3 opacity-60" />
+        {op.pix || <span className="text-muted-foreground italic">adicionar</span>}
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <Input
+        autoFocus
+        value={value}
+        onChange={(e) => setValue(onlyDigits(e.target.value))}
+        inputMode="numeric"
+        pattern="[0-9]*"
+        className="h-7 w-32 text-xs font-mono"
+        placeholder="Somente números"
+      />
+      <Button
+        size="sm"
+        variant="ghost"
+        className="h-7 px-2"
+        onClick={async () => { await updateOperationPix(op.id, value || null); setEditing(false); }}
+      >
+        <Save className="h-3 w-3" />
+      </Button>
+      <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setEditing(false)}>
+        <X className="h-3 w-3" />
+      </Button>
+    </div>
+  );
+}
 
 export default function OperationsPage() {
   const { operations, clients, addOperation, updateOperationStatus, deleteOperation, getUserName } = useApp();
@@ -24,11 +81,15 @@ export default function OperationsPage() {
   const [clientId, setClientId] = useState("");
   const [valorBruto, setValorBruto] = useState("");
   const [responsavel, setResponsavel] = useState("");
+  const [pix, setPix] = useState("");
 
-  // Auto-fill responsável with logged user name
+  // Busca / filtros
+  const [search, setSearch] = useState("");
+  const [pixFilter, setPixFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | OperationStatus>("all");
+
   const autoResponsavel = getUserName();
 
-  // Simulator
   const { config, getClientRate } = useApp();
   const preview = useMemo(() => {
     const client = clients.find(c => c.id === clientId);
@@ -42,13 +103,27 @@ export default function OperationsPage() {
 
   function handleAdd() {
     if (!clientId || !valorBruto || Number(valorBruto) <= 0) return;
-    // Dev can override responsável, otherwise use auto
     const finalResponsavel = isDev && responsavel.trim() ? responsavel.trim() : autoResponsavel;
-    addOperation({ clientId, valorBruto: Number(valorBruto), responsavel: finalResponsavel });
-    setClientId(""); setValorBruto(""); setResponsavel(""); setOpen(false);
+    addOperation({ clientId, valorBruto: Number(valorBruto), responsavel: finalResponsavel, pix: pix || null });
+    setClientId(""); setValorBruto(""); setResponsavel(""); setPix(""); setOpen(false);
   }
 
-  const sorted = [...operations].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+  const sorted = useMemo(() => {
+    let list = [...operations].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter(op => {
+        const c = clients.find(cl => cl.id === op.clientId);
+        return (c?.nome.toLowerCase().includes(q)) || (op.pix ?? "").includes(q);
+      });
+    }
+    if (pixFilter.trim()) {
+      const pf = onlyDigits(pixFilter);
+      if (pf) list = list.filter(op => (op.pix ?? "").includes(pf));
+    }
+    if (statusFilter !== "all") list = list.filter(op => op.status === statusFilter);
+    return list;
+  }, [operations, clients, search, pixFilter, statusFilter]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -73,6 +148,17 @@ export default function OperationsPage() {
               <div>
                 <Label>Valor Bruto (R$)</Label>
                 <Input type="number" inputMode="decimal" value={valorBruto} onChange={e => setValorBruto(e.target.value)} placeholder="0.00" />
+              </div>
+              <div>
+                <Label>PIX (opcional)</Label>
+                <Input
+                  value={pix}
+                  onChange={e => setPix(onlyDigits(e.target.value))}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="Somente números"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Aceita apenas dígitos. Bloqueia após conclusão.</p>
               </div>
               <div>
                 <Label>Responsável</Label>
@@ -101,8 +187,34 @@ export default function OperationsPage() {
         </Dialog>
       </div>
 
+      {/* Filtros */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <Input
+          placeholder="Buscar cliente ou PIX..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="sm:max-w-xs"
+        />
+        <Input
+          placeholder="Filtrar por PIX (números)"
+          value={pixFilter}
+          onChange={e => setPixFilter(onlyDigits(e.target.value))}
+          inputMode="numeric"
+          className="sm:max-w-xs font-mono"
+        />
+        <Select value={statusFilter} onValueChange={v => setStatusFilter(v as any)}>
+          <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos status</SelectItem>
+            <SelectItem value="pendente">Pendente</SelectItem>
+            <SelectItem value="concluido">Concluído</SelectItem>
+            <SelectItem value="cancelado">Cancelado</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {sorted.length === 0 ? (
-        <div className="glass-card rounded-lg p-8 text-center text-muted-foreground">Nenhuma operação registrada.</div>
+        <div className="glass-card rounded-lg p-8 text-center text-muted-foreground">Nenhuma operação encontrada.</div>
       ) : (
         <>
           {/* Mobile: cards */}
@@ -142,6 +254,10 @@ export default function OperationsPage() {
                       <div className="text-[10px] text-muted-foreground uppercase">Ao Cliente</div>
                       <div className="font-mono">{formatCurrency(op.valorCliente)}</div>
                     </div>
+                    <div className="bg-secondary/20 rounded p-2 col-span-2">
+                      <div className="text-[10px] text-muted-foreground uppercase mb-1">PIX</div>
+                      <PixInlineEditor op={op} />
+                    </div>
                   </div>
                   <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/30">
                     <span className="text-[11px] text-muted-foreground truncate">{op.responsavel}</span>
@@ -176,6 +292,7 @@ export default function OperationsPage() {
                     <th className="text-right p-3">Taxa</th>
                     <th className="text-right p-3">Lucro Líq.</th>
                     <th className="text-right p-3">Ao Cliente</th>
+                    <th className="text-left p-3">PIX</th>
                     <th className="text-center p-3">Status</th>
                     <th className="text-left p-3">Responsável</th>
                     <th className="text-left p-3">Data</th>
@@ -195,6 +312,7 @@ export default function OperationsPage() {
                         <td className="p-3 text-right font-mono">{formatPercent(op.taxaPercentual)}</td>
                         <td className="p-3 text-right font-mono font-semibold">{formatCurrency(op.lucroLiquido)}</td>
                         <td className="p-3 text-right font-mono">{formatCurrency(op.valorCliente)}</td>
+                        <td className="p-3"><PixInlineEditor op={op} /></td>
                         <td className="p-3 text-center">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>
                             <StatusIcon className="h-3 w-3" /> {sc.label}
