@@ -133,76 +133,76 @@ export default function Dashboard() {
   }, [filteredOperations, filtros, clients]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold">Dashboard</h1>
         
         {/* Alternador de visualização */}
-        <Tabs value={chartView} onValueChange={(v) => setChartView(v as "line" | "bar")}>
-          <TabsList className="bg-secondary">
-            <TabsTrigger value="line" className="gap-2">
+        <Tabs value={chartView} onValueChange={(v) => setChartView(v as "line" | "bar")} className="w-full sm:w-auto">
+          <TabsList className="bg-secondary w-full sm:w-auto">
+            <TabsTrigger value="line" className="gap-2 flex-1 sm:flex-none">
               <LineChartIcon size={16} /> Linhas
             </TabsTrigger>
-            <TabsTrigger value="bar" className="gap-2">
+            <TabsTrigger value="bar" className="gap-2 flex-1 sm:flex-none">
               <BarChartIcon size={16} /> Colunas
             </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
-      {/* TODOS OS FILTROS RECUPERADOS */}
-      <div className="flex flex-wrap gap-3 bg-secondary/10 p-4 rounded-xl border border-white/5">
-        <select className="bg-secondary p-2 rounded text-sm outline-none" value={filtros.mes} onChange={(e) => setFiltros({ ...filtros, mes: e.target.value })}>
+      {/* FILTROS - grid responsivo */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 bg-secondary/10 p-3 sm:p-4 rounded-xl border border-white/5">
+        <select className="bg-secondary p-2 rounded text-sm outline-none min-w-0 w-full" value={filtros.mes} onChange={(e) => setFiltros({ ...filtros, mes: e.target.value })}>
           <option value="ALL">Todos os meses</option>
           {["01","02","03","04","05","06","07","08","09","10","11","12"].map(m => (
             <option key={m} value={m}>{new Date(2000, Number(m)-1).toLocaleString('pt-BR', { month: 'short' })}</option>
           ))}
         </select>
 
-        <select className="bg-secondary p-2 rounded text-sm outline-none" value={filtros.periodo} onChange={(e) => setFiltros({ ...filtros, periodo: e.target.value })}>
+        <select className="bg-secondary p-2 rounded text-sm outline-none min-w-0 w-full" value={filtros.periodo} onChange={(e) => setFiltros({ ...filtros, periodo: e.target.value })}>
           <option value="7d">7 dias</option>
           <option value="30d">30 dias</option>
           <option value="ALL">Todo o tempo</option>
         </select>
 
-        <select className="bg-secondary p-2 rounded text-sm outline-none" value={filtros.agrupamento} onChange={(e) => setFiltros({ ...filtros, agrupamento: e.target.value })}>
+        <select className="bg-secondary p-2 rounded text-sm outline-none min-w-0 w-full" value={filtros.agrupamento} onChange={(e) => setFiltros({ ...filtros, agrupamento: e.target.value })}>
           <option value="dia">Por dia</option>
           <option value="mes">Por mês</option>
           <option value="empresa">Por empresa</option>
         </select>
 
-        <select className="bg-secondary p-2 rounded text-sm outline-none" value={filtros.tipo} onChange={(e) => setFiltros({ ...filtros, tipo: e.target.value })}>
+        <select className="bg-secondary p-2 rounded text-sm outline-none min-w-0 w-full" value={filtros.tipo} onChange={(e) => setFiltros({ ...filtros, tipo: e.target.value })}>
           <option value="ALL">Todos (PF/PJ)</option>
           <option value="PJ">PJ</option>
           <option value="PF">PF</option>
         </select>
 
-        <select className="bg-secondary p-2 rounded text-sm outline-none max-w-[200px]" value={filtros.clienteId} onChange={(e) => setFiltros({ ...filtros, clienteId: e.target.value })}>
+        <select className="bg-secondary p-2 rounded text-sm outline-none min-w-0 w-full col-span-2 sm:col-span-1" value={filtros.clienteId} onChange={(e) => setFiltros({ ...filtros, clienteId: e.target.value })}>
           <option value="ALL">Todos os clientes</option>
           {clients.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
         </select>
       </div>
 
       {/* ÁREA DO GRÁFICO DINÂMICO */}
-      <div className="glass-card rounded-2xl p-6 border border-white/5 bg-gradient-to-b from-white/5 to-transparent">
-        <div className="h-[350px] w-full">
+      <div className="glass-card rounded-2xl p-3 sm:p-6 border border-white/5 bg-gradient-to-b from-white/5 to-transparent">
+        <div className="h-[250px] sm:h-[350px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             {chartView === "line" ? (
-              <LineChart data={chartData}>
+              <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(260,12%,18%)" vertical={false} />
-                <XAxis dataKey="label" stroke="#666" fontSize={12} tickLine={false} axisLine={false} dy={10} />
-                <YAxis tickFormatter={formatCompact} stroke="#666" fontSize={12} tickLine={false} axisLine={false} />
+                <XAxis dataKey="label" stroke="#666" fontSize={11} tickLine={false} axisLine={false} dy={10} />
+                <YAxis tickFormatter={formatCompact} stroke="#666" fontSize={11} tickLine={false} axisLine={false} width={50} />
                 <Tooltip 
                   contentStyle={{ background: "#121212", border: "1px solid #333", borderRadius: "12px" }}
                   formatter={(v: number) => [formatCurrency(v), "Total"]}
                 />
-                <Line type="monotone" dataKey="total" stroke="hsl(270,70%,55%)" strokeWidth={4} dot={{ r: 4, fill: "hsl(270,70%,55%)", strokeWidth: 2, stroke: "#121212" }} animationDuration={1500} />
+                <Line type="monotone" dataKey="total" stroke="hsl(270,70%,55%)" strokeWidth={3} dot={{ r: 3, fill: "hsl(270,70%,55%)", strokeWidth: 2, stroke: "#121212" }} animationDuration={1500} />
               </LineChart>
             ) : (
-              <BarChart data={chartData}>
+              <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(260,12%,18%)" vertical={false} />
-                <XAxis dataKey="label" stroke="#666" fontSize={12} tickLine={false} axisLine={false} dy={10} />
-                <YAxis tickFormatter={formatCompact} stroke="#666" fontSize={12} tickLine={false} axisLine={false} />
+                <XAxis dataKey="label" stroke="#666" fontSize={11} tickLine={false} axisLine={false} dy={10} />
+                <YAxis tickFormatter={formatCompact} stroke="#666" fontSize={11} tickLine={false} axisLine={false} width={50} />
                 <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: "#121212", border: "1px solid #333", borderRadius: "12px" }} formatter={(v: number) => [formatCurrency(v), "Total"]} />
                 <Bar dataKey="total" fill="hsl(270,70%,55%)" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -211,8 +211,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPIs DINÂMICOS */}
-      <div className="flex flex-wrap gap-4">
+      {/* KPIs - grid responsivo */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <KpiCard title="Movimentado" value={formatCurrency(kpiStats.totalMovimentado)} icon={DollarSign} />
         <KpiCard title="Lucro Bruto" value={formatCurrency(kpiStats.lucroBrutoTotal)} icon={TrendingUp} variant="success" />
         <KpiCard title="Custo Maq." value={formatCurrency(kpiStats.totalMaquina)} icon={Cpu} variant="warning" />
