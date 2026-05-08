@@ -51,14 +51,14 @@ export default function OperationsPage() {
   const sorted = [...operations].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Operações</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold">Operações</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Nova Operação</Button>
+            <Button className="w-full sm:w-auto"><Plus className="mr-2 h-4 w-4" /> Nova Operação</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg w-[calc(100vw-2rem)]">
             <DialogHeader><DialogTitle>Registrar Operação</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div>
@@ -72,7 +72,7 @@ export default function OperationsPage() {
               </div>
               <div>
                 <Label>Valor Bruto (R$)</Label>
-                <Input type="number" value={valorBruto} onChange={e => setValorBruto(e.target.value)} placeholder="0.00" />
+                <Input type="number" inputMode="decimal" value={valorBruto} onChange={e => setValorBruto(e.target.value)} placeholder="0.00" />
               </div>
               <div>
                 <Label>Responsável</Label>
