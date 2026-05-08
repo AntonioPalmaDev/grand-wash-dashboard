@@ -23,8 +23,9 @@ interface AppContextType {
   addClient: (c: Omit<Client, "id" | "createdAt">) => Promise<void>;
   updateClient: (id: string, c: Partial<Client>) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
-  addOperation: (o: { clientId: string; valorBruto: number; responsavel?: string }) => Promise<void>;
+  addOperation: (o: { clientId: string; valorBruto: number; responsavel?: string; pix?: string | null }) => Promise<void>;
   updateOperationStatus: (id: string, status: OperationStatus) => Promise<void>;
+  updateOperationPix: (id: string, pix: string | null) => Promise<void>;
   deleteOperation: (id: string) => Promise<void>;
   updateConfig: (c: AppConfig) => Promise<void>;
   getStats: () => DashboardStats;
