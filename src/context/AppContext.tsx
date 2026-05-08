@@ -47,6 +47,7 @@ function mapOperation(r: any): Operation {
     custoMaquina: Number(r.custo_maquina), lucroLiquido: Number(r.lucro_liquido),
     valorCliente: Number(r.valor_cliente), status: r.status as OperationStatus,
     responsavel: r.responsavel, data: r.data, createdAt: r.created_at,
+    pix: (r as any).pix ?? null,
   };
 }
 
