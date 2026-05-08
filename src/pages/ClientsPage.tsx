@@ -158,7 +158,7 @@ export default function ClientsPage() {
 
       {/* MODAL DE EDIÇÃO */}
 <Dialog open={!!editingClient} onOpenChange={(o) => !o && setEditingClient(null)}>
-  <DialogContent>
+  <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
     <DialogHeader>
       <DialogTitle>Editar Cliente</DialogTitle>
     </DialogHeader>
