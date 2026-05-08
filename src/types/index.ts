@@ -23,6 +23,7 @@ export interface Operation {
   responsavel: string;
   data: string;
   createdAt: string;
+  pix?: string | null;
   tipo?: string; // campo opcional para compatibilidade de filtros
 }
 

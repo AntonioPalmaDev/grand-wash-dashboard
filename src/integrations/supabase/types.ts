@@ -126,6 +126,7 @@ export type Database = {
           id: string
           lucro_bruto: number
           lucro_liquido: number
+          pix: string | null
           responsavel: string
           status: string
           taxa_percentual: number
@@ -142,6 +143,7 @@ export type Database = {
           id?: string
           lucro_bruto: number
           lucro_liquido: number
+          pix?: string | null
           responsavel?: string
           status?: string
           taxa_percentual: number
@@ -158,6 +160,7 @@ export type Database = {
           id?: string
           lucro_bruto?: number
           lucro_liquido?: number
+          pix?: string | null
           responsavel?: string
           status?: string
           taxa_percentual?: number
