@@ -287,7 +287,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [operations]);
 
   return (
-    <AppContext.Provider value={{ clients, operations, config, loading, addClient, updateClient, deleteClient, addOperation, updateOperationStatus, deleteOperation, updateConfig, getStats, getClientStats, getClientRate, getUserName }}>
+    <AppContext.Provider value={{ clients, operations, config, loading, addClient, updateClient, deleteClient, addOperation, updateOperationStatus, updateOperationPix, deleteOperation, updateConfig, getStats, getClientStats, getClientRate, getUserName }}>
       {children}
     </AppContext.Provider>
   );
