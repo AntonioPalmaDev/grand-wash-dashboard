@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, ArrowLeftRight, History, Settings, DollarSign, Trophy, LogOut, FileText, ShieldCheck, RotateCcw, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Users, ArrowLeftRight, History, Settings, DollarSign, Trophy, LogOut, FileText, ShieldCheck, RotateCcw, ClipboardList, PieChart } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/context/AuthContext";
 import { useRole } from "@/hooks/useRole";
@@ -27,6 +27,7 @@ const baseItems = [
 ];
 
 const devItems = [
+  { title: "Painel Financeiro", url: "/painel-financeiro", icon: PieChart },
   { title: "Usuários", url: "/usuarios", icon: ShieldCheck },
   { title: "Logs", url: "/logs", icon: FileText },
   { title: "Restaurações", url: "/restauracoes", icon: RotateCcw },
