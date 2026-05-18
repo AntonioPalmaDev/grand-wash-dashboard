@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   DollarSign, TrendingUp, TrendingDown, Wallet, Activity, Users, Calendar,
   CheckCircle2, Clock, XCircle, Trophy, AlertTriangle, Target,
-  FileSpreadsheet, FileText, Download, ShieldAlert,
+  FileSpreadsheet, FileText, Download, ShieldAlert, Image as ImageIcon, FileImage,
 } from "lucide-react";
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
