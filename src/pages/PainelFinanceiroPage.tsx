@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { toast } from "@/hooks/use-toast";
 import { useApp } from "@/context/AppContext";
 import { useRole } from "@/hooks/useRole";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
@@ -10,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   DollarSign, TrendingUp, TrendingDown, Wallet, Activity, Users, Calendar,
   CheckCircle2, Clock, XCircle, Trophy, AlertTriangle, Target,
-  FileSpreadsheet, FileText, Download, ShieldAlert,
+  FileSpreadsheet, FileText, Download, ShieldAlert, Image as ImageIcon, FileImage,
 } from "lucide-react";
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -320,6 +321,91 @@ export default function PainelFinanceiroPage() {
     URL.revokeObjectURL(url);
   };
 
+  // ====== Captura visual (PDF/PNG/JPEG) =========================
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  const [capturing, setCapturing] = useState(false);
+
+  const snapshotCanvas = async () => {
+    const el = dashboardRef.current;
+    if (!el) throw new Error("Dashboard não encontrado");
+    const html2canvas = (await import("html2canvas")).default;
+    // Aguardar fontes para garantir render correto
+    if ((document as any).fonts?.ready) {
+      try { await (document as any).fonts.ready; } catch {}
+    }
+    const bg = getComputedStyle(document.body).backgroundColor || "#0d0a14";
+    return await html2canvas(el, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: bg,
+      windowWidth: el.scrollWidth,
+      windowHeight: el.scrollHeight,
+      scrollX: 0,
+      scrollY: -window.scrollY,
+      logging: false,
+    });
+  };
+
+  const runCapture = async (fn: (c: HTMLCanvasElement) => Promise<void> | void) => {
+    if (capturing) return;
+    setCapturing(true);
+    try {
+      const canvas = await snapshotCanvas();
+      await fn(canvas);
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Falha ao exportar", description: e?.message ?? "Tente novamente", variant: "destructive" });
+    } finally {
+      setCapturing(false);
+    }
+  };
+
+  const exportPNG = () => runCapture(async (canvas) => {
+    canvas.toBlob((blob) => {
+      if (blob) triggerDownload(blob, `resumo-financeiro-${Date.now()}.png`);
+    }, "image/png");
+  });
+
+  const exportJPEG = () => runCapture(async (canvas) => {
+    canvas.toBlob((blob) => {
+      if (blob) triggerDownload(blob, `resumo-financeiro-${Date.now()}.jpg`);
+    }, "image/jpeg", 0.95);
+  });
+
+  const exportPDFImage = () => runCapture(async (canvas) => {
+    const { default: jsPDF } = await import("jspdf");
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+    const isLandscape = canvas.width >= canvas.height;
+    const pdf = new jsPDF({
+      orientation: isLandscape ? "landscape" : "portrait",
+      unit: "mm",
+      format: "a4",
+      compress: true,
+    });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const imgW = pageW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+
+    if (imgH <= pageH) {
+      pdf.addImage(imgData, "JPEG", 0, 0, imgW, imgH, undefined, "FAST");
+    } else {
+      // Múltiplas páginas: desloca a mesma imagem para cobrir todo o conteúdo
+      let heightLeft = imgH;
+      let position = 0;
+      pdf.addImage(imgData, "JPEG", 0, position, imgW, imgH, undefined, "FAST");
+      heightLeft -= pageH;
+      while (heightLeft > 0) {
+        position = heightLeft - imgH;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, imgW, imgH, undefined, "FAST");
+        heightLeft -= pageH;
+      }
+    }
+    pdf.save(`resumo-financeiro-${Date.now()}.pdf`);
+  });
+
+
   // Gate de acesso (admin/dev)
   if (roleLoading) {
     return <div className="space-y-4"><Skeleton className="h-8 w-64" /><Skeleton className="h-32 w-full" /></div>;
@@ -336,18 +422,23 @@ export default function PainelFinanceiroPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
-      {/* Header */}
+      {/* Header (fora da captura) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Resumo Financeiro Geral</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">Painel administrativo consolidado de todas as operações da empresa</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={exportCSV}><Download className="h-4 w-4" /> CSV</Button>
-          <Button size="sm" variant="outline" onClick={exportXLSX}><FileSpreadsheet className="h-4 w-4" /> Excel</Button>
-          <Button size="sm" onClick={exportPDF}><FileText className="h-4 w-4" /> PDF</Button>
+          <Button size="sm" variant="outline" onClick={exportCSV} disabled={capturing}><Download className="h-4 w-4" /> CSV</Button>
+          <Button size="sm" variant="outline" onClick={exportXLSX} disabled={capturing}><FileSpreadsheet className="h-4 w-4" /> Excel</Button>
+          <Button size="sm" variant="outline" onClick={exportPNG} disabled={capturing}><ImageIcon className="h-4 w-4" /> PNG</Button>
+          <Button size="sm" variant="outline" onClick={exportJPEG} disabled={capturing}><FileImage className="h-4 w-4" /> JPEG</Button>
+          <Button size="sm" onClick={exportPDFImage} disabled={capturing}><FileText className="h-4 w-4" /> {capturing ? "Gerando..." : "PDF"}</Button>
         </div>
       </div>
+
+      {/* Área capturada */}
+      <div ref={dashboardRef} className="space-y-4 sm:space-y-6 bg-background p-2 sm:p-3 rounded-xl">
 
       {/* Filtros de período (presets) */}
       <div className="glass-card rounded-xl p-3 sm:p-4 space-y-3">
@@ -548,6 +639,7 @@ export default function PainelFinanceiroPage() {
             </table>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
