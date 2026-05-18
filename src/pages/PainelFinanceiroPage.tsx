@@ -422,18 +422,23 @@ export default function PainelFinanceiroPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
-      {/* Header */}
+      {/* Header (fora da captura) */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Resumo Financeiro Geral</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">Painel administrativo consolidado de todas as operações da empresa</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={exportCSV}><Download className="h-4 w-4" /> CSV</Button>
-          <Button size="sm" variant="outline" onClick={exportXLSX}><FileSpreadsheet className="h-4 w-4" /> Excel</Button>
-          <Button size="sm" onClick={exportPDF}><FileText className="h-4 w-4" /> PDF</Button>
+          <Button size="sm" variant="outline" onClick={exportCSV} disabled={capturing}><Download className="h-4 w-4" /> CSV</Button>
+          <Button size="sm" variant="outline" onClick={exportXLSX} disabled={capturing}><FileSpreadsheet className="h-4 w-4" /> Excel</Button>
+          <Button size="sm" variant="outline" onClick={exportPNG} disabled={capturing}><ImageIcon className="h-4 w-4" /> PNG</Button>
+          <Button size="sm" variant="outline" onClick={exportJPEG} disabled={capturing}><FileImage className="h-4 w-4" /> JPEG</Button>
+          <Button size="sm" onClick={exportPDFImage} disabled={capturing}><FileText className="h-4 w-4" /> {capturing ? "Gerando..." : "PDF"}</Button>
         </div>
       </div>
+
+      {/* Área capturada */}
+      <div ref={dashboardRef} className="space-y-4 sm:space-y-6 bg-background p-2 sm:p-3 rounded-xl">
 
       {/* Filtros de período (presets) */}
       <div className="glass-card rounded-xl p-3 sm:p-4 space-y-3">
