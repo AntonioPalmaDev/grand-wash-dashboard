@@ -640,6 +640,7 @@ export default function PainelFinanceiroPage() {
           </div>
         )}
       </div>
+      </div>
     </div>
   );
 }
