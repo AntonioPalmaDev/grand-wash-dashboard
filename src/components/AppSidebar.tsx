@@ -1,7 +1,15 @@
-import { LayoutDashboard, Users, ArrowLeftRight, History, Settings, DollarSign, Trophy, LogOut, FileText, ShieldCheck, RotateCcw, ClipboardList, PieChart } from "lucide-react";
+import { LayoutDashboard, Users, ArrowLeftRight, History, Settings, DollarSign, Trophy, LogOut, FileText, ShieldCheck, RotateCcw, ClipboardList, PieChart, Building2, ChevronDown, Plus } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/context/AuthContext";
+import { useCompany } from "@/context/CompanyContext";
 import { useRole } from "@/hooks/useRole";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +45,7 @@ const devItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const { signOut, user } = useAuth();
+  const { activeCompany, availableCompanies, switchCompany } = useCompany();
   const { role, isDev } = useRole();
   const collapsed = state === "collapsed";
 
@@ -46,12 +55,42 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent className="flex flex-col h-full">
         <div className="p-4">
-          {!collapsed && (
-            <h1 className="text-lg font-bold gradient-text tracking-tight">
-              <img src="zerofoco4.png" alt="Zero Foco" className="h-10 w-10 inline-block mr-2" />
-              Zero Foco
-            </h1>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton size="lg" className="hover:bg-accent transition-colors">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  {activeCompany?.logo ? (
+                    <img src={activeCompany.logo} alt={activeCompany.name} className="h-6 w-6 object-contain" />
+                  ) : (
+                    <Building2 className="size-4" />
+                  )}
+                </div>
+                {!collapsed && (
+                  <>
+                    <div className="flex flex-col gap-0.5 leading-none ml-2 overflow-hidden">
+                      <span className="font-semibold truncate">{activeCompany?.name || "Empresa"}</span>
+                      <span className="text-xs text-muted-foreground">Trocar ecossistema</span>
+                    </div>
+                    <ChevronDown className="ml-auto size-4 text-muted-foreground" />
+                  </>
+                )}
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="start">
+              <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Minhas Empresas</div>
+              {availableCompanies.map((c) => (
+                <DropdownMenuItem key={c.id} onClick={() => switchCompany(c.id)} className="flex items-center gap-2 cursor-pointer">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: c.primaryColor }} />
+                  <span className={c.id === activeCompany?.id ? "font-bold" : ""}>{c.name}</span>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => window.location.href = '/selecao-empresa'} className="flex items-center gap-2 cursor-pointer text-primary">
+                <LayoutDashboard className="size-4" />
+                <span>Central de Empresas</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <SidebarGroup className="flex-1">
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
