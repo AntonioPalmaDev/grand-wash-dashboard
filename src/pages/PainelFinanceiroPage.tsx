@@ -159,7 +159,7 @@ export default function PainelFinanceiroPage() {
       const responsibleMatch = responsibleFilter === "all" || op.responsavel === responsibleFilter;
       
       const client = clients.find(c => c.id === op.clientId);
-      const typeMatch = typeFilter === "all" || (client?.tipo?.toLowerCase() === typeFilter.toLowerCase());
+      const typeMatch = typeFilter === "all" || (client?.tipo?.toUpperCase() === typeFilter.toUpperCase());
 
       return dateMatch && statusMatch && clientMatch && responsibleMatch && typeMatch;
     });
@@ -460,7 +460,7 @@ export default function PainelFinanceiroPage() {
               <SelectItem value="30d">Últimos 30 dias</SelectItem>
               <SelectItem value="thisMonth">Este Mês</SelectItem>
               <SelectItem value="lastMonth">Mês Passado</SelectItem>
-              <SelectItem value="all">Tudo</SelectItem>
+              <SelectItem value="all">Todo o período</SelectItem>
               <SelectItem value="custom">Personalizado</SelectItem>
             </SelectContent>
           </Select>
@@ -544,9 +544,9 @@ export default function PainelFinanceiroPage() {
             <SelectValue placeholder="Tipo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos Tipos</SelectItem>
-            <SelectItem value="pf">PF</SelectItem>
-            <SelectItem value="pj">PJ</SelectItem>
+            <SelectItem value="all">Todos os Tipos</SelectItem>
+            <SelectItem value="PF">PF</SelectItem>
+            <SelectItem value="PJ">PJ</SelectItem>
           </SelectContent>
         </Select>
       </div>
