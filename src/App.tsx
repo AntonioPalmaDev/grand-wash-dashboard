@@ -47,7 +47,8 @@ function ProtectedApp() {
   // if (userStatus !== "aprovado") return <PendingApprovalPage />;
 
   // Força preenchimento do Nome do Personagem para usuários antigos
-  if (!nomePersonagem || !nomePersonagem.trim()) return <CompletePersonagemPage />;
+  // Comentado temporariamente para remover restrição de perfil completo
+  // if (!nomePersonagem || !nomePersonagem.trim()) return <CompletePersonagemPage />;
 
   return (
     <CompanyProvider>
