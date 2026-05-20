@@ -31,7 +31,7 @@ export default function Dashboard() {
   // Estado para os filtros e para a visualização do gráfico
   const [chartView, setChartView] = useState<"line" | "bar">("line");
   const [filtros, setFiltros] = useState({
-    periodo: "30d",
+    periodo: "ALL",
     agrupamento: "dia",
     tipo: "ALL",
     clienteId: "ALL",
@@ -156,7 +156,7 @@ export default function Dashboard() {
         <select className="bg-secondary p-2 rounded text-sm outline-none min-w-0 w-full" value={filtros.periodo} onChange={(e) => setFiltros({ ...filtros, periodo: e.target.value })}>
           <option value="7d">7 dias</option>
           <option value="30d">30 dias</option>
-          <option value="ALL">Todo o tempo</option>
+          <option value="ALL">Todo o período</option>
         </select>
 
         <select className="bg-secondary p-2 rounded text-sm outline-none min-w-0 w-full" value={filtros.agrupamento} onChange={(e) => setFiltros({ ...filtros, agrupamento: e.target.value })}>
