@@ -45,6 +45,10 @@ const masterItems = [
   { title: "Admin Master", url: "/admin-master", icon: ShieldCheck },
 ];
 
+const adminItems = [
+  { title: "Usuários", url: "/usuarios", icon: Users },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const { signOut, user, isMasterAdmin } = useAuth();
@@ -54,6 +58,7 @@ export function AppSidebar() {
 
   const items = [
     ...baseItems, 
+    ...(isDev || isMasterAdmin ? adminItems : []),
     ...(isDev ? devItems : []),
     ...(isMasterAdmin ? masterItems : [])
   ];
