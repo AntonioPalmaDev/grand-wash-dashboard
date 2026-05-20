@@ -247,18 +247,20 @@ export default function PainelFinanceiroPage() {
   }, [filteredData]);
 
   const topClients = useMemo(() => {
-    const clientStats: Record<string, { lucro: number; volume: number; name: string }> = {};
+    const clientStats: Record<string, { lucro: number; volume: number; name: string; operations: number }> = {};
     
     filteredData.forEach(op => {
       if (!clientStats[op.clientId]) {
         clientStats[op.clientId] = { 
           lucro: 0, 
           volume: 0, 
-          name: clients.find(c => c.id === op.clientId)?.nome || "Desconhecido" 
+          name: clients.find(c => c.id === op.clientId)?.nome || "Desconhecido",
+          operations: 0
         };
       }
       clientStats[op.clientId].lucro += op.lucroLiquido;
       clientStats[op.clientId].volume += op.valorBruto;
+      clientStats[op.clientId].operations += 1;
     });
 
     return Object.entries(clientStats)
