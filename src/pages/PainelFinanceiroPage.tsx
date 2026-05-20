@@ -640,7 +640,7 @@ export default function PainelFinanceiroPage() {
                       fontSize={11} 
                       tickLine={false} 
                       axisLine={false} 
-                      tickFormatter={v => `R$ ${v / 1000}k`}
+                      tickFormatter={formatShortCurrency}
                       tick={{ fill: '#64748b' }}
                     />
                     <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#ffffff20', strokeWidth: 1 }} />
