@@ -72,14 +72,8 @@ export default function Dashboard() {
   }, [operations, filtros, clients]);
 
   // 2. KPIs DINÂMICOS
-  const kpiStats = useMemo(() => ({
-    totalMovimentado: filteredOperations.reduce((s, op) => s + op.valorBruto, 0),
-    lucroBrutoTotal: filteredOperations.reduce((s, op) => s + op.lucroBruto, 0),
-    totalMaquina: filteredOperations.reduce((s, op) => s + op.custoMaquina, 0),
-    lucroLiquidoTotal: filteredOperations.reduce((s, op) => s + op.lucroLiquido, 0),
-    totalRepassado: filteredOperations.reduce((s, op) => s + op.valorCliente, 0),
-    totalOperacoes: filteredOperations.length,
-  }), [filteredOperations]);
+  const { getStats } = useApp();
+  const kpiStats = useMemo(() => getStats(filteredOperations), [getStats, filteredOperations]);
 
   // 3. DADOS DO GRÁFICO
   const chartData = useMemo(() => {
