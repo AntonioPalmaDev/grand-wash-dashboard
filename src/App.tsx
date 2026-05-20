@@ -19,7 +19,6 @@ import AuthPage from "@/pages/AuthPage";
 import PendingApprovalPage from "@/pages/PendingApprovalPage";
 import CompletePersonagemPage from "@/pages/CompletePersonagemPage";
 import RestorePage from "@/pages/RestorePage";
-import ReportsPage from "@/pages/ReportsPage";
 import PainelFinanceiroPage from "@/pages/PainelFinanceiroPage";
 import NotFound from "@/pages/NotFound";
 
@@ -60,7 +59,6 @@ function ProtectedApp() {
           <Route path="/usuarios" element={<UsersPage />} />
           <Route path="/logs" element={<AuditLogsPage />} />
           <Route path="/restauracoes" element={<RestorePage />} />
-          <Route path="/laudos" element={<ReportsPage />} />
           <Route path="/painel-financeiro" element={<PainelFinanceiroPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
