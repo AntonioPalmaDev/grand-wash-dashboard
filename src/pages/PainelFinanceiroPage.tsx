@@ -5,30 +5,23 @@ import {
   FileSpreadsheet, 
   Filter, 
   TrendingUp, 
-  TrendingDown, 
   AlertCircle,
   Activity,
   DollarSign,
   Users,
   PieChart,
   Calendar,
-  Search,
-  ChevronDown,
-  LayoutGrid,
-  History,
-  Info,
-  ArrowRight,
   ImageIcon,
   FileImage
 } from "lucide-react";
-import { format, subDays, startOfMonth, endOfMonth, isWithinInterval, startOfDay, endOfDay, subMonths } from "date-fns";
+import { format, subDays, startOfMonth, endOfMonth, startOfDay, endOfDay, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useApp } from "@/context/AppContext";
 import { formatCurrency } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -59,7 +52,6 @@ import {
 import { KpiCard } from "@/components/KpiCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
@@ -98,7 +90,7 @@ export default function PainelFinanceiroPage() {
       const dateMatch = !start || (opDate >= start && opDate <= end!);
       const statusMatch = statusFilter === "all" || op.status === statusFilter;
       const clientMatch = clientFilter === "all" || op.clientId === clientFilter;
-      const responsibleMatch = responsibleFilter === "all" || op.responsavelId === responsibleFilter;
+      const responsibleMatch = responsibleFilter === "all" || op.responsavel === responsibleFilter;
       
       const client = clients.find(c => c.id === op.clientId);
       const typeMatch = typeFilter === "all" || (client?.tipo === typeFilter);
@@ -133,7 +125,7 @@ export default function PainelFinanceiroPage() {
 
   const metrics = useMemo(() => {
     const totalMov = filteredData.reduce((acc, op) => acc + op.valorBruto, 0);
-    const totalNet = filteredData.reduce((acc, op) => acc + op.valorLiquido, 0);
+    const totalNet = filteredData.reduce((acc, op) => acc + op.lucroLiquido, 0);
     const totalOps = filteredData.length;
     const avgTicket = totalOps > 0 ? totalMov / totalOps : 0;
     const margin = totalMov > 0 ? (totalNet / totalMov) * 100 : 0;
@@ -144,7 +136,7 @@ export default function PainelFinanceiroPage() {
 
   const prevMetrics = useMemo(() => {
     const totalMov = prevPeriodData.reduce((acc, op) => acc + op.valorBruto, 0);
-    const totalNet = prevPeriodData.reduce((acc, op) => acc + op.valorLiquido, 0);
+    const totalNet = prevPeriodData.reduce((acc, op) => acc + op.lucroLiquido, 0);
     const totalOps = prevPeriodData.length;
     return { totalMov, totalNet, totalOps };
   }, [prevPeriodData]);
@@ -164,7 +156,7 @@ export default function PainelFinanceiroPage() {
     filteredData.forEach(op => {
       const day = format(new Date(op.data), "dd/MM");
       if (!daily[day]) daily[day] = { date: day, lucro: 0, volume: 0 };
-      daily[day].lucro += op.valorLiquido;
+      daily[day].lucro += op.lucroLiquido;
       daily[day].volume += op.valorBruto;
     });
 
@@ -192,7 +184,7 @@ export default function PainelFinanceiroPage() {
   const topClients = useMemo(() => {
     const clientTotals: Record<string, number> = {};
     filteredData.forEach(op => {
-      clientTotals[op.clientId] = (clientTotals[op.clientId] || 0) + op.valorLiquido;
+      clientTotals[op.clientId] = (clientTotals[op.clientId] || 0) + op.lucroLiquido;
     });
 
     return Object.entries(clientTotals)
@@ -209,12 +201,11 @@ export default function PainelFinanceiroPage() {
     setCapturing(true);
     try {
       await document.fonts.ready;
-      // Pequeno delay para garantir renderização de gráficos
       await new Promise(r => setTimeout(r, 500));
       const canvas = await html2canvas(dashboardRef.current, {
         scale: 2,
         useCORS: true,
-        backgroundColor: "#030712", // dark theme background
+        backgroundColor: "#030712",
         logging: false
       });
       return canvas;
@@ -266,9 +257,9 @@ export default function PainelFinanceiroPage() {
     const rows = filteredData.map(op => [
       format(new Date(op.data), "dd/MM/yyyy"),
       clients.find(c => c.id === op.clientId)?.nome || "",
-      op.responsavelId || "",
+      op.responsavel || "",
       op.valorBruto,
-      op.valorLiquido,
+      op.lucroLiquido,
       op.status
     ]);
     
@@ -286,7 +277,7 @@ export default function PainelFinanceiroPage() {
       Cliente: clients.find(c => c.id === op.clientId)?.nome || "",
       Status: op.status,
       "Valor Bruto": op.valorBruto,
-      "Valor Líquido": op.valorLiquido
+      "Valor Líquido": op.lucroLiquido
     })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Relatório");
@@ -405,21 +396,21 @@ export default function PainelFinanceiroPage() {
             value={formatCurrency(metrics.totalMov)}
             icon={DollarSign}
             description={`${gMov >= 0 ? "↑" : "↓"} ${Math.abs(gMov).toFixed(1)}% vs anterior`}
-            trend={gMov >= 0 ? "up" : "down"}
+            variant={gMov >= 0 ? "success" : "destructive"}
           />
           <KpiCard
             title="Lucro Líquido"
             value={formatCurrency(metrics.totalNet)}
             icon={TrendingUp}
             description={`${gNet >= 0 ? "↑" : "↓"} ${Math.abs(gNet).toFixed(1)}% vs anterior`}
-            trend={gNet >= 0 ? "up" : "down"}
+            variant={gNet >= 0 ? "success" : "destructive"}
           />
           <KpiCard
             title="Total Operações"
             value={metrics.totalOps.toString()}
             icon={Activity}
             description={`${gOps >= 0 ? "↑" : "↓"} ${Math.abs(gOps).toFixed(1)}% vs anterior`}
-            trend={gOps >= 0 ? "up" : "down"}
+            variant={gOps >= 0 ? "success" : "destructive"}
           />
           <KpiCard
             title="Clientes Ativos"
