@@ -759,42 +759,47 @@ export default function PainelFinanceiroPage() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <Briefcase className="h-5 w-5 text-blue-500" />
-                    Performance por Responsável
+                    <TrendingUp className="h-5 w-5 text-green-500" />
+                    Lucro por Período
                   </CardTitle>
-                  <CardDescription>Lucratividade por agente no período</CardDescription>
+                  <CardDescription>Evolução do lucro líquido diário</CardDescription>
                 </div>
               </CardHeader>
               <CardContent className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={performanceByResponsible} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#ffffff10" />
-                    <XAxis type="number" hide />
-                    <YAxis 
-                      dataKey="name" 
-                      type="category" 
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="colorWaveLucro" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff10" />
+                    <XAxis 
+                      dataKey="date" 
                       stroke="#94a3b8" 
-                      fontSize={11} 
-                      width={100} 
-                      axisLine={false}
+                      fontSize={10} 
+                      axisLine={false} 
+                      tickLine={false} 
+                    />
+                    <YAxis 
+                      stroke="#94a3b8" 
+                      fontSize={10} 
+                      axisLine={false} 
                       tickLine={false}
+                      tickFormatter={formatShortCurrency}
                     />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar 
+                    <Area 
+                      type="monotone" 
                       dataKey="lucro" 
                       name="Lucro Líquido" 
-                      fill="#3b82f6" 
-                      radius={[0, 4, 4, 0]} 
-                      barSize={20}
+                      stroke="#22c55e" 
+                      fillOpacity={1} 
+                      fill="url(#colorWaveLucro)" 
+                      strokeWidth={3}
                     />
-                    <Bar 
-                      dataKey="volume" 
-                      name="Volume Bruto" 
-                      fill="#1e293b" 
-                      radius={[0, 4, 4, 0]} 
-                      barSize={10}
-                    />
-                  </BarChart>
+                  </AreaChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -809,34 +814,37 @@ export default function PainelFinanceiroPage() {
             <Card className="border-white/5 bg-slate-950/50 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-lg font-bold flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-orange-500" />
-                  Carga Operacional (Horário)
+                  <Activity className="h-5 w-5 text-blue-500" />
+                  Operações por Dia
                 </CardTitle>
-                <CardDescription>Volume de transações por hora do dia</CardDescription>
+                <CardDescription>Volume de transações diárias</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={operationalVolume}>
-                    <defs>
-                      <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
+                  <BarChart data={operationalVolume}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff10" />
-                    <XAxis dataKey="hour" stroke="#94a3b8" fontSize={10} axisLine={false} tickLine={false} />
-                    <YAxis hide />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="#94a3b8" 
+                      fontSize={10} 
+                      axisLine={false} 
+                      tickLine={false} 
+                    />
+                    <YAxis 
+                      stroke="#94a3b8" 
+                      fontSize={10} 
+                      axisLine={false} 
+                      tickLine={false} 
+                    />
                     <Tooltip content={<CustomTooltip />} />
-                    <Area 
-                      type="monotone" 
+                    <Bar 
                       dataKey="count" 
                       name="Operações" 
-                      stroke="#f97316" 
-                      fillOpacity={1} 
-                      fill="url(#colorCount)" 
-                      strokeWidth={2}
+                      fill="#3b82f6" 
+                      radius={[4, 4, 0, 0]} 
+                      barSize={20}
                     />
-                  </AreaChart>
+                  </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
