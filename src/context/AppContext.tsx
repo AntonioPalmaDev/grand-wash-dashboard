@@ -70,8 +70,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       userId: user?.id ?? "",
       userEmail: user?.email ?? "",
       nomePersonagem: nomePersonagem ?? null,
+      companyId: activeCompany?.id ?? null,
     }),
-    [user, nomePersonagem]
+    [user, nomePersonagem, activeCompany]
   );
 
   // Carregamento Inicial — filtra registros deletados (soft delete)
