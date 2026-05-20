@@ -10,6 +10,8 @@ interface AuthContextType {
   loading: boolean;
   userStatus: UserStatus;
   nomePersonagem: string | null;
+  isMasterAdmin: boolean;
+  companyId: string | null;
   signUp: (email: string, password: string, nomePersonagem: string) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -25,15 +27,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [userStatus, setUserStatus] = useState<UserStatus>(null);
   const [nomePersonagem, setNomePersonagem] = useState<string | null>(null);
+  const [isMasterAdmin, setIsMasterAdmin] = useState(false);
+  const [companyId, setCompanyId] = useState<string | null>(null);
 
   async function fetchProfile(userId: string) {
     const { data } = await supabase
       .from("profiles")
-      .select("status, nome_personagem")
+      .select("status, nome_personagem, is_master_admin, company_id")
       .eq("user_id", userId)
       .single();
     setUserStatus((data?.status as UserStatus) ?? "pendente");
     setNomePersonagem((data?.nome_personagem as string | null) ?? null);
+    setIsMasterAdmin(data?.is_master_admin ?? false);
+    setCompanyId(data?.company_id ?? null);
   }
 
   const refreshStatus = async () => {
@@ -52,6 +58,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setUserStatus(null);
         setNomePersonagem(null);
+        setIsMasterAdmin(false);
+        setCompanyId(null);
         setLoading(false);
       }
     });
@@ -101,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, userStatus, nomePersonagem, signUp, signIn, signOut, refreshStatus, refreshPersonagem }}>
+    <AuthContext.Provider value={{ user, session, loading, userStatus, nomePersonagem, isMasterAdmin, companyId, signUp, signIn, signOut, refreshStatus, refreshPersonagem }}>
       {children}
     </AuthContext.Provider>
   );
