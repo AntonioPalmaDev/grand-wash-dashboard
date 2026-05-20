@@ -859,51 +859,78 @@ export default function PainelFinanceiroPage() {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
+            className="lg:col-span-4"
           >
-            <Card className="border-white/5 bg-slate-950/50 backdrop-blur-sm h-full">
-              <CardHeader className="flex flex-row items-center justify-between">
+            <Card className="border-white/5 bg-slate-950/50 backdrop-blur-sm">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
                   <CardTitle className="text-lg font-bold flex items-center gap-2">
                     <Trophy className="h-5 w-5 text-yellow-500" />
                     Top 10 Clientes
                   </CardTitle>
-                  <CardDescription>Principais parceiros por lucro</CardDescription>
+                  <CardDescription>Principais parceiros por rentabilidade</CardDescription>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {topClients.map((client, index) => (
-                    <motion.div 
-                      key={client.id} 
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 * index }}
-                      className="flex items-center justify-between p-2 rounded-xl hover:bg-white/5 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shadow-lg",
-                          index === 0 ? "bg-gradient-to-br from-yellow-400 to-amber-600 text-yellow-950" : 
-                          index === 1 ? "bg-gradient-to-br from-slate-200 to-slate-400 text-slate-800" :
-                          index === 2 ? "bg-gradient-to-br from-amber-600 to-orange-800 text-amber-50" : "bg-slate-800 text-slate-400"
-                        )}>
-                          #{index + 1}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-bold truncate max-w-[120px] text-slate-200">{client.name}</span>
-                          <span className="text-[10px] text-muted-foreground">Vol: {formatCurrency(client.volume)}</span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-sm font-black text-green-400">{formatCurrency(client.lucro)}</span>
-                      </div>
-                    </motion.div>
-                  ))}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-left text-[10px] font-bold text-muted-foreground uppercase tracking-wider border-b border-white/5">
+                        <th className="pb-3 pl-2">Rank</th>
+                        <th className="pb-3">Cliente</th>
+                        <th className="pb-3 text-center">Operações</th>
+                        <th className="pb-3 text-right">Valor Movimentado</th>
+                        <th className="pb-3 text-right pr-2">Lucro Gerado</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {topClients.map((client, index) => (
+                        <motion.tr 
+                          key={client.id}
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.05 * index }}
+                          className="group hover:bg-white/5 transition-colors"
+                        >
+                          <td className="py-4 pl-2">
+                            <div className={cn(
+                              "w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shadow-lg",
+                              index === 0 ? "bg-gradient-to-br from-yellow-400 to-amber-600 text-yellow-950" : 
+                              index === 1 ? "bg-gradient-to-br from-slate-200 to-slate-400 text-slate-800" :
+                              index === 2 ? "bg-gradient-to-br from-amber-600 to-orange-800 text-amber-50" : "bg-slate-800 text-slate-400"
+                            )}>
+                              {index + 1}
+                            </div>
+                          </td>
+                          <td className="py-4">
+                            <span className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">
+                              {client.name}
+                            </span>
+                          </td>
+                          <td className="py-4 text-center">
+                            <span className="text-sm font-medium text-slate-400">
+                              {client.operations}
+                            </span>
+                          </td>
+                          <td className="py-4 text-right">
+                            <span className="text-sm font-medium text-slate-300">
+                              {formatCurrency(client.volume)}
+                            </span>
+                          </td>
+                          <td className="py-4 text-right pr-2">
+                            <span className="text-sm font-black text-green-400">
+                              {formatCurrency(client.lucro)}
+                            </span>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                  </table>
                   {topClients.length === 0 && (
                     <p className="text-center text-muted-foreground py-8">Nenhum dado disponível.</p>
                   )}
@@ -911,7 +938,9 @@ export default function PainelFinanceiroPage() {
               </CardContent>
             </Card>
           </motion.div>
+        </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
