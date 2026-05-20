@@ -35,7 +35,6 @@ const baseItems = [
 ];
 
 const devItems = [
-  
   { title: "Painel Financeiro", url: "/painel-financeiro", icon: PieChart },
   { title: "Logs", url: "/logs", icon: FileText },
   { title: "Restaurações", url: "/restauracoes", icon: RotateCcw },
@@ -44,6 +43,10 @@ const devItems = [
 
 const masterItems = [
   { title: "Admin Master", url: "/admin-master", icon: ShieldCheck },
+];
+
+const adminItems = [
+  { title: "Usuários", url: "/usuarios", icon: Users },
 ];
 
 export function AppSidebar() {
@@ -55,6 +58,7 @@ export function AppSidebar() {
 
   const items = [
     ...baseItems, 
+    ...(isDev || isMasterAdmin ? adminItems : []),
     ...(isDev ? devItems : []),
     ...(isMasterAdmin ? masterItems : [])
   ];
