@@ -675,42 +675,63 @@ export default function PainelFinanceiroPage() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
+            className="h-full"
           >
-            <Card className="border-white/5 bg-slate-950/50 backdrop-blur-sm h-full overflow-hidden">
-              <CardHeader>
+            <Card className="border-white/5 bg-slate-950/50 backdrop-blur-sm h-full overflow-hidden flex flex-col">
+              <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-bold flex items-center gap-2">
                   <PieChart className="h-5 w-5 text-purple-500" />
                   Status Global
                 </CardTitle>
                 <CardDescription>Distribuição por status</CardDescription>
               </CardHeader>
-              <CardContent className="h-[300px] flex flex-col justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RePieChart>
-                    <Pie
-                      data={statusPieData}
-                      innerRadius={70}
-                      outerRadius={95}
-                      paddingAngle={8}
-                      dataKey="value"
-                      animationBegin={400}
-                      animationDuration={1500}
-                    >
-                      {statusPieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                  </RePieChart>
-                </ResponsiveContainer>
-                <div className="grid grid-cols-1 gap-2 mt-4">
+              <CardContent className="flex-1 flex flex-col justify-between pt-0 pb-6">
+                <div className="relative h-[220px] w-full mt-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RePieChart>
+                      <Pie
+                        data={statusPieData}
+                        innerRadius="65%"
+                        outerRadius="90%"
+                        paddingAngle={5}
+                        dataKey="value"
+                        animationBegin={400}
+                        animationDuration={1500}
+                        cx="50%"
+                        cy="50%"
+                        stroke="none"
+                      >
+                        {statusPieData.map((entry, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={entry.color} 
+                            style={{ filter: `drop-shadow(0 0 6px ${entry.color}40)` }}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </RePieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Total</span>
+                    <span className="text-2xl font-black text-white leading-none">{metrics.totalOps}</span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-2 mt-4 px-1">
                   {statusPieData.map(s => (
-                    <div key={s.name} className="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5">
+                    <div key={s.name} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all duration-300 group">
                       <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />
-                        <span className="text-xs font-medium text-slate-300">{s.name}</span>
+                        <div 
+                          className="w-2 h-2 rounded-full shadow-lg transition-transform group-hover:scale-125" 
+                          style={{ backgroundColor: s.color, boxShadow: `0 0 10px ${s.color}60` }} 
+                        />
+                        <span className="text-[11px] font-bold text-slate-300">{s.name}</span>
                       </div>
-                      <span className="text-xs font-bold">{s.value} ops</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-black text-white">{s.value}</span>
+                        <span className="text-[10px] text-muted-foreground font-medium italic">ops</span>
+                      </div>
                     </div>
                   ))}
                 </div>
