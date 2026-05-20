@@ -1,6 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/hooks/useRole";
+import { useCompany } from "@/context/CompanyContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,21 +35,25 @@ const actionColors: Record<string, string> = {
 
 export default function AuditLogsPage() {
   const { isDev } = useRole();
+  const { activeCompany } = useCompany();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!activeCompany) return;
     async function fetchLogs() {
-      const { data } = await supabase
-        .from("audit_logs")
+      setLoading(true);
+      const { data } = await (supabase
+        .from("audit_logs") as any)
         .select("*")
+        .eq("company_id", activeCompany.id)
         .order("created_at", { ascending: false })
         .limit(200);
       if (data) setLogs(data as AuditLog[]);
       setLoading(false);
     }
     fetchLogs();
-  }, []);
+  }, [activeCompany]);
 
   async function handleDelete(id: string) {
     const { error } = await supabase.from("audit_logs").delete().eq("id", id);

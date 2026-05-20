@@ -27,8 +27,11 @@ interface Profile {
   created_at: string;
 }
 
+import { useCompany } from "@/context/CompanyContext";
+
 export default function UsersPage() {
   const { user } = useAuth();
+  const { activeCompany } = useCompany();
   const { isDev } = useRole();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +56,9 @@ export default function UsersPage() {
   const getMyName = () => myName || user?.email || "Sistema";
 
   async function fetchProfiles() {
-    const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
+    const query = supabase.from("profiles").select("*").order("created_at", { ascending: false });
+    if (activeCompany) query.eq("company_id", activeCompany.id);
+    const { data } = await query;
     if (data) setProfiles(data as Profile[]);
     setLoading(false);
   }
@@ -65,13 +70,16 @@ export default function UsersPage() {
     if (error) { toast.error(error.message); return; }
     if (data.user) {
       if (role === "desenvolvedor") {
-        await supabase.from("profiles").update({ role, nome }).eq("user_id", data.user.id);
-        await supabase.from("user_roles").upsert({ user_id: data.user.id, role });
+        await supabase.from("profiles").update({ role, nome, company_id: activeCompany?.id }).eq("user_id", data.user.id);
+        await supabase.from("user_roles").upsert({ user_id: data.user.id, role, company_id: activeCompany?.id });
       } else if (nome) {
-        await supabase.from("profiles").update({ nome }).eq("user_id", data.user.id);
+        await supabase.from("profiles").update({ nome, company_id: activeCompany?.id }).eq("user_id", data.user.id);
+      }
+      if (activeCompany) {
+        await supabase.from("user_companies").insert({ user_id: data.user.id, company_id: activeCompany.id });
       }
       const desc = logCriarUsuario({ responsavel: getMyName(), nomeUsuario: nome || email, email });
-      await registrarLog({ userId: user.id, userEmail: user.email || "", action: "criar", entity: "usuário", entityId: data.user.id, description: desc, afterData: { nome, email, role } });
+      await registrarLog({ userId: user.id, userEmail: user.email || "", companyId: activeCompany?.id, action: "criar", entity: "usuário", entityId: data.user.id, description: desc, afterData: { nome, email, role } });
     }
     toast.success("Usuário criado com sucesso");
     setOpen(false); setNome(""); setEmail(""); setPassword(""); setRoleValue("gestao");
@@ -84,7 +92,7 @@ export default function UsersPage() {
     const { error } = await supabase.from("profiles").update({ status: "aprovado" }).eq("user_id", userId);
     if (error) { toast.error("Erro ao aprovar usuário"); return; }
     const desc = logAlterarStatusUsuario({ responsavel: getMyName(), nomeUsuario: profile?.nome || profile?.email || "---", statusAnterior: profile?.status || "---", statusNovo: "aprovado" });
-    await registrarLog({ userId: user.id, userEmail: user.email || "", action: "status", entity: "usuário", entityId: userId, description: desc, beforeData: { status: profile?.status }, afterData: { status: "aprovado" } });
+    await registrarLog({ userId: user.id, userEmail: user.email || "", companyId: activeCompany?.id, action: "status", entity: "usuário", entityId: userId, description: desc, beforeData: { status: profile?.status }, afterData: { status: "aprovado" } });
     toast.success("Usuário aprovado!");
     fetchProfiles();
   }
@@ -95,7 +103,7 @@ export default function UsersPage() {
     const { error } = await supabase.from("profiles").update({ status: "rejeitado", motivo_rejeicao: motivo || null }).eq("user_id", rejectUserId);
     if (error) { toast.error("Erro ao rejeitar usuário"); return; }
     const desc = logAlterarStatusUsuario({ responsavel: getMyName(), nomeUsuario: profile?.nome || profile?.email || "---", statusAnterior: profile?.status || "---", statusNovo: "rejeitado" });
-    await registrarLog({ userId: user.id, userEmail: user.email || "", action: "status", entity: "usuário", entityId: rejectUserId, description: desc, beforeData: { status: profile?.status }, afterData: { status: "rejeitado", motivo } });
+    await registrarLog({ userId: user.id, userEmail: user.email || "", companyId: activeCompany?.id, action: "status", entity: "usuário", entityId: rejectUserId, description: desc, beforeData: { status: profile?.status }, afterData: { status: "rejeitado", motivo } });
     toast.success("Usuário rejeitado");
     setRejectOpen(false); setMotivo(""); setRejectUserId("");
     fetchProfiles();
@@ -112,7 +120,7 @@ export default function UsersPage() {
     await supabase.from("user_roles").delete().eq("user_id", userId);
     await supabase.from("user_roles").insert({ user_id: userId, role: newRole });
     const desc = logAlterarRoleUsuario({ responsavel: getMyName(), nomeUsuario: profile?.nome || profile?.email || "---", roleAnterior: profile?.role || "---", roleNova: newRole });
-    await registrarLog({ userId: user.id, userEmail: user.email || "", action: "editar", entity: "usuário", entityId: userId, description: desc, beforeData: { role: profile?.role }, afterData: { role: newRole } });
+    await registrarLog({ userId: user.id, userEmail: user.email || "", companyId: activeCompany?.id, action: "editar", entity: "usuário", entityId: userId, description: desc, beforeData: { role: profile?.role }, afterData: { role: newRole } });
     toast.success("Role atualizada");
     fetchProfiles();
   }
@@ -123,7 +131,7 @@ export default function UsersPage() {
     const { error } = await supabase.from("profiles").update({ status: newStatus }).eq("user_id", userId);
     if (error) { toast.error("Erro ao alterar status"); return; }
     const desc = logAlterarStatusUsuario({ responsavel: getMyName(), nomeUsuario: profile?.nome || profile?.email || "---", statusAnterior: profile?.status || "---", statusNovo: newStatus });
-    await registrarLog({ userId: user.id, userEmail: user.email || "", action: "status", entity: "usuário", entityId: userId, description: desc, beforeData: { status: profile?.status }, afterData: { status: newStatus } });
+    await registrarLog({ userId: user.id, userEmail: user.email || "", companyId: activeCompany?.id, action: "status", entity: "usuário", entityId: userId, description: desc, beforeData: { status: profile?.status }, afterData: { status: newStatus } });
     toast.success(`Status alterado para ${newStatus}`);
     fetchProfiles();
   }
