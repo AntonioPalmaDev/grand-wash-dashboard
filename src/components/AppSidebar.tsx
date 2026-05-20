@@ -35,7 +35,6 @@ const baseItems = [
 ];
 
 const devItems = [
-  { title: "Usuários", url: "/usuarios", icon: Users },
   { title: "Painel Financeiro", url: "/painel-financeiro", icon: PieChart },
   { title: "Logs", url: "/logs", icon: FileText },
   { title: "Restaurações", url: "/restauracoes", icon: RotateCcw },
