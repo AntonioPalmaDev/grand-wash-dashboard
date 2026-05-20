@@ -91,17 +91,23 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <div className="bg-slate-950/90 backdrop-blur-md border border-white/10 p-4 rounded-xl shadow-2xl">
         <p className="text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wider">{label}</p>
         <div className="space-y-1.5">
-          {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color || entry.fill }} />
-                <span className="text-xs font-medium text-slate-300">{entry.name}:</span>
+          {payload.map((entry: any, index: number) => {
+            const isCount = entry.dataKey === 'count' || entry.name === 'Operações' || entry.name === 'value' && typeof entry.value === 'number' && entry.value < 1000 && !entry.name.toLowerCase().includes('lucro') && !entry.name.toLowerCase().includes('volume');
+            
+            return (
+              <div key={index} className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color || entry.fill }} />
+                  <span className="text-xs font-medium text-slate-300">{entry.name}:</span>
+                </div>
+                <span className="text-sm font-bold" style={{ color: entry.color || entry.fill }}>
+                  {typeof entry.value === 'number' 
+                    ? (isCount ? entry.value : formatCurrency(entry.value)) 
+                    : entry.value}
+                </span>
               </div>
-              <span className="text-sm font-bold" style={{ color: entry.color || entry.fill }}>
-                {typeof entry.value === 'number' ? formatCurrency(entry.value) : entry.value}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
