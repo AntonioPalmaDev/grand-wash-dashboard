@@ -77,12 +77,6 @@ import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import { motion, AnimatePresence } from "framer-motion";
-import { KpiCard } from "@/components/KpiCard";
-import { Skeleton } from "@/components/ui/skeleton";
-import jsPDF from "jspdf";
-import * as XLSX from "xlsx";
-import { toast } from "sonner";
-import html2canvas from "html2canvas";
 
 export default function PainelFinanceiroPage() {
   const { operations, clients, loading } = useApp();
