@@ -20,7 +20,8 @@ import {
   BarChart3,
   Layers,
   Briefcase,
-  Zap
+  Zap,
+  Target
 } from "lucide-react";
 import { 
   format, 
@@ -587,10 +588,48 @@ export default function PainelFinanceiroPage() {
           </motion.div>
           <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
             <KpiCard
+              title="Ticket Médio"
+              value={formatCurrency(metrics.avgTicket)}
+              icon={Zap}
+              description="Valor médio por op."
+              variant="default"
+            />
+          </motion.div>
+
+          <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+            <KpiCard
+              title="Margem Operacional"
+              value={`${metrics.margin.toFixed(1)}%`}
+              icon={BarChart3}
+              description={metrics.margin > 15 ? "Eficiência excelente" : "Eficiência estável"}
+              variant={metrics.margin > 15 ? "success" : "default"}
+            />
+          </motion.div>
+          <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+            <KpiCard
+              title="Status de Crescimento"
+              value={`${gNet >= 0 ? "+" : ""}${gNet.toFixed(1)}%`}
+              icon={TrendingUp}
+              description={gNet >= 0 ? "Tendência de alta" : "Tendência de baixa"}
+              variant={gNet >= 0 ? "success" : "destructive"}
+            />
+          </motion.div>
+          <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+            <KpiCard
+              title="Projeção"
+              value={gNet > 10 ? "Alta Forte" : gNet > 0 ? "Estável" : "Revisão"}
+              icon={Target}
+              description="Baseado no histórico"
+              variant="default"
+            />
+          </motion.div>
+          <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+            <KpiCard
               title="Clientes Ativos"
               value={metrics.activeClients.toString()}
               icon={Users}
-              description="Participando no período"
+              description="No período atual"
+              variant="default"
             />
           </motion.div>
         </div>
