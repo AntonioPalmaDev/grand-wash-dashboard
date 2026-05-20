@@ -124,7 +124,7 @@ export default function PainelFinanceiroPage() {
   const [dateRange, setDateRange] = useState<"today" | "yesterday" | "7d" | "30d" | "thisMonth" | "lastMonth" | "all" | "custom">("all");
   const [customStartDate, setCustomStartDate] = useState<string>("");
   const [customEndDate, setCustomEndDate] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("Concluído");
+  const [statusFilter, setStatusFilter] = useState<string>("concluido");
   const [clientFilter, setClientFilter] = useState<string>("all");
   const [responsibleFilter, setResponsibleFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
