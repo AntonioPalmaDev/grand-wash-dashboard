@@ -27,7 +27,7 @@ const baseItems = [
 ];
 
 const devItems = [
-  { title: "Painel Financeiro", url: "/painel-financeiro", icon: PieChart },
+  
   { title: "Usuários", url: "/usuarios", icon: ShieldCheck },
   { title: "Logs", url: "/logs", icon: FileText },
   { title: "Restaurações", url: "/restauracoes", icon: RotateCcw },
