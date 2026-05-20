@@ -28,7 +28,7 @@ import NotFound from "@/pages/NotFound";
 const queryClient = new QueryClient();
 
 function ProtectedApp() {
-  const { user, loading, userStatus, nomePersonagem, isMasterAdmin } = useAuth();
+  const { user, loading, userStatus, nomePersonagem } = useAuth();
 
   if (loading) {
     return (
@@ -57,6 +57,7 @@ function ProtectedApp() {
 
 function CompanyWrapper() {
   const { activeCompany, loading } = useCompany();
+  const { isMasterAdmin } = useAuth();
 
   if (loading) {
     return (
