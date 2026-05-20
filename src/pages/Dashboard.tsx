@@ -1,5 +1,5 @@
 import { useApp } from "@/context/AppContext";
-import { formatCurrency, formatDateOnly } from "@/lib/format";
+import { formatCurrency, formatDateOnly, formatPercent } from "@/lib/format"; from "@/lib/format";
 import { KpiCard } from "@/components/KpiCard";
 import {
   DollarSign,
@@ -212,12 +212,16 @@ export default function Dashboard() {
       </div>
 
       {/* KPIs - grid responsivo */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <KpiCard title="Movimentado" value={formatCurrency(kpiStats.totalMovimentado)} icon={DollarSign} />
-        <KpiCard title="Lucro Bruto" value={formatCurrency(kpiStats.lucroBrutoTotal)} icon={TrendingUp} variant="success" />
-        <KpiCard title="Custo Maq." value={formatCurrency(kpiStats.totalMaquina)} icon={Cpu} variant="warning" />
         <KpiCard title="Lucro Líquido" value={formatCurrency(kpiStats.lucroLiquidoTotal)} icon={Wallet} variant="primary" />
-        <KpiCard title="Repassado" value={formatCurrency(kpiStats.totalRepassado)} icon={ArrowUpRight} />
+        <KpiCard 
+          title="Margem Operacional" 
+          value={formatPercent(kpiStats.totalMovimentado > 0 ? (kpiStats.lucroLiquidoTotal / kpiStats.totalMovimentado) * 100 : 0)} 
+          icon={TrendingUp} 
+          variant="success" 
+        />
+        <KpiCard title="Ticket Médio" value={formatCurrency(kpiStats.totalOperacoes > 0 ? kpiStats.totalMovimentado / kpiStats.totalOperacoes : 0)} icon={ArrowUpRight} />
         <KpiCard title="Operações" value={String(kpiStats.totalOperacoes)} icon={BarChart3} />
       </div>
     </div>
