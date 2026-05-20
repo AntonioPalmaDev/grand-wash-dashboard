@@ -30,7 +30,7 @@ interface Profile {
 import { useCompany } from "@/context/CompanyContext";
 
 export default function UsersPage() {
-  const { user } = useAuth();
+  const { user, isMasterAdmin } = useAuth();
   const { activeCompany } = useCompany();
   const { isDev } = useRole();
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -140,10 +140,10 @@ export default function UsersPage() {
   const approvedProfiles = profiles.filter(p => p.status === "aprovado");
   const rejectedProfiles = profiles.filter(p => p.status === "rejeitado");
 
-  if (!isDev) {
+  if (!isDev && !isMasterAdmin) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Acesso restrito a Desenvolvedores</p>
+        <p className="text-muted-foreground">Acesso restrito a Administradores</p>
       </div>
     );
   }
