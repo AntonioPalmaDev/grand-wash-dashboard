@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, TrendingUp, Users, ArrowLeftRight, DollarSign } from "lucide-react";
 import { KpiCard } from "@/components/KpiCard";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/format";
 
 interface CompanyStats {
   id: string;
@@ -113,7 +113,7 @@ const AdminMasterPage = () => {
           value={formatCurrency(stats.totalGlobalLucro)}
           icon={DollarSign}
           description="Lucro líquido total de todas as empresas"
-          trend="+12% em relação ao mês anterior"
+          variant="primary"
         />
         <KpiCard
           title="Operações Totais"
