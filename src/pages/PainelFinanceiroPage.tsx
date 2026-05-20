@@ -159,7 +159,7 @@ export default function PainelFinanceiroPage() {
       const responsibleMatch = responsibleFilter === "all" || op.responsavel === responsibleFilter;
       
       const client = clients.find(c => c.id === op.clientId);
-      const typeMatch = typeFilter === "all" || (client?.tipo === typeFilter);
+      const typeMatch = typeFilter === "all" || (client?.tipo?.toLowerCase() === typeFilter.toLowerCase());
 
       return dateMatch && statusMatch && clientMatch && responsibleMatch && typeMatch;
     });
