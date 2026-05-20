@@ -3,12 +3,14 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { supabase } from "@/integrations/supabase/client";
 import { Company } from "@/types";
 import { useAuth } from "./AuthContext";
+import { useLocation } from "react-router-dom";
 
 interface CompanyContextType {
   activeCompany: Company | null;
   availableCompanies: Company[];
   loading: boolean;
-  switchCompany: (companyId: string) => void;
+  isGlobalMode: boolean;
+  switchCompany: (companyId: string | null) => void;
   createCompany: (name: string, primaryColor?: string) => Promise<{ data: any; error: any }>;
   refreshCompanies: () => Promise<void>;
 }
@@ -30,9 +32,12 @@ function mapCompany(r: any): Company {
 
 export function CompanyProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  const location = useLocation();
   const [activeCompany, setActiveCompany] = useState<Company | null>(null);
   const [availableCompanies, setAvailableCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const isGlobalMode = location.pathname.startsWith("/admin");
 
   const refreshCompanies = useCallback(async () => {
     if (!user) {
@@ -51,19 +56,19 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
       const mapped = data.map(mapCompany);
       setAvailableCompanies(mapped);
       
-      // Tenta recuperar empresa salva ou usa a primeira disponível
       const savedId = localStorage.getItem("active_company_id");
-      const found = mapped.find(c => c.id === savedId) || mapped[0];
-      if (found) {
+      const found = mapped.find(c => c.id === savedId) || null;
+      
+      if (!isGlobalMode && found) {
         setActiveCompany(found);
-        // Aplica as cores da empresa ao CSS root
         document.documentElement.style.setProperty('--primary', hexToHSL(found.primaryColor));
+      } else {
+        setActiveCompany(null);
       }
     }
     setLoading(false);
-  }, [user]);
+  }, [user, isGlobalMode]);
 
-  // Helper para converter Hex para HSL (formato esperado pelo Shadcn/Tailwind)
   const hexToHSL = (hex: string) => {
     let r = 0, g = 0, b = 0;
     if (hex.length === 4) {
@@ -96,46 +101,38 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     refreshCompanies();
   }, [refreshCompanies]);
 
-  const switchCompany = useCallback((companyId: string) => {
+  const switchCompany = useCallback((companyId: string | null) => {
+    if (!companyId) {
+      setActiveCompany(null);
+      localStorage.removeItem("active_company_id");
+      window.location.href = "/admin";
+      return;
+    }
+
     const company = availableCompanies.find(c => c.id === companyId);
     if (company) {
       setActiveCompany(company);
       localStorage.setItem("active_company_id", companyId);
-      // Recarrega a página para resetar todos os contextos com o novo ID
-      window.location.reload();
+      window.location.href = "/";
     }
   }, [availableCompanies]);
 
   const createCompany = async (name: string, primaryColor: string = "#0EA5E9") => {
     if (!user) return { data: null, error: "Usuário não autenticado" };
-
     const slug = name.toLowerCase().trim().replace(/\s+/g, '-');
-    
-    // 1. Criar a empresa
     const { data: company, error: companyError } = await supabase
       .from("companies")
       .insert({ name, slug, primary_color: primaryColor })
       .select()
       .single();
-
     if (companyError) return { data: null, error: companyError };
-
-    // 2. Vincular o usuário à empresa
-    const { error: linkError } = await supabase
-      .from("user_companies")
-      .insert({ user_id: user.id, company_id: company.id });
-
-    if (linkError) return { data: null, error: linkError };
-
-    // 3. Vincular no perfil (opcional se usarmos user_companies para tudo)
-    await supabase.from("profiles").update({ company_id: company.id }).eq("user_id", user.id);
-
+    await supabase.from("user_companies").insert({ user_id: user.id, company_id: company.id });
     await refreshCompanies();
     return { data: company, error: null };
   };
 
   return (
-    <CompanyContext.Provider value={{ activeCompany, availableCompanies, loading, switchCompany, createCompany, refreshCompanies }}>
+    <CompanyContext.Provider value={{ activeCompany, availableCompanies, loading, isGlobalMode, switchCompany, createCompany, refreshCompanies }}>
       {children}
     </CompanyContext.Provider>
   );
@@ -146,3 +143,4 @@ export function useCompany() {
   if (!ctx) throw new Error("useCompany must be used within CompanyProvider");
   return ctx;
 }
+
