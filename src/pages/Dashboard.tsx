@@ -1,5 +1,5 @@
 import { useApp } from "@/context/AppContext";
-import { formatCurrency, formatDateOnly, formatPercent } from "@/lib/format"; from "@/lib/format";
+import { formatCurrency, formatDateOnly, formatPercent } from "@/lib/format";
 import { KpiCard } from "@/components/KpiCard";
 import {
   DollarSign,
