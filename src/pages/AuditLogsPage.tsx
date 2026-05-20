@@ -43,8 +43,8 @@ export default function AuditLogsPage() {
     if (!activeCompany) return;
     async function fetchLogs() {
       setLoading(true);
-      const { data } = await supabase
-        .from("audit_logs")
+      const { data } = await (supabase
+        .from("audit_logs") as any)
         .select("*")
         .eq("company_id", activeCompany.id)
         .order("created_at", { ascending: false })
