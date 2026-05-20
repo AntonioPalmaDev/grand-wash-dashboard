@@ -5,8 +5,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { AppProvider } from "@/context/AppContext";
+import { CompanyProvider, useCompany } from "@/context/CompanyContext";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
+import CompanySelectionPage from "@/pages/CompanySelectionPage";
 import ClientsPage from "@/pages/ClientsPage";
 import OperationsPage from "@/pages/OperationsPage";
 import HistoryPage from "@/pages/HistoryPage";
@@ -46,6 +48,28 @@ function ProtectedApp() {
   if (!nomePersonagem || !nomePersonagem.trim()) return <CompletePersonagemPage />;
 
   return (
+    <CompanyProvider>
+      <CompanyWrapper />
+    </CompanyProvider>
+  );
+}
+
+function CompanyWrapper() {
+  const { activeCompany, loading } = useCompany();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground text-sm animate-pulse">Carregando ecossistema...</p>
+      </div>
+    );
+  }
+
+  if (!activeCompany) {
+    return <CompanySelectionPage />;
+  }
+
+  return (
     <AppProvider>
       <AppLayout>
         <Routes>
@@ -60,6 +84,7 @@ function ProtectedApp() {
           <Route path="/logs" element={<AuditLogsPage />} />
           <Route path="/restauracoes" element={<RestorePage />} />
           <Route path="/painel-financeiro" element={<PainelFinanceiroPage />} />
+          <Route path="/selecao-empresa" element={<CompanySelectionPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>
