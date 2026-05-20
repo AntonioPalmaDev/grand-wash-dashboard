@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { useCompany } from "@/context/CompanyContext";
 import {
   registrarLog,
   logCriarOperacao,
@@ -53,6 +54,7 @@ function mapOperation(r: any): Operation {
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { user, nomePersonagem } = useAuth();
+  const { activeCompany } = useCompany();
   const [clients, setClients] = useState<Client[]>([]);
   const [operations, setOperations] = useState<Operation[]>([]);
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
@@ -74,16 +76,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Carregamento Inicial — filtra registros deletados (soft delete)
   useEffect(() => {
-    if (!user) {
+    if (!user || !activeCompany) {
       setClients([]); setOperations([]); setConfig(DEFAULT_CONFIG); setLoading(false);
       return;
     }
     async function fetchAll() {
       setLoading(true);
       const [cRes, oRes, cfgRes] = await Promise.all([
-        supabase.from("clients").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
-        supabase.from("operations").select("*").is("deleted_at", null).order("data", { ascending: false }),
-        supabase.from("configs").select("*").limit(1).single(),
+        supabase.from("clients").select("*").eq("company_id", activeCompany.id).is("deleted_at", null).order("created_at", { ascending: false }),
+        supabase.from("operations").select("*").eq("company_id", activeCompany.id).is("deleted_at", null).order("data", { ascending: false }),
+        supabase.from("configs").select("*").eq("company_id", activeCompany.id).limit(1).single(),
       ]);
       if (cRes.data) setClients(cRes.data.map(mapClient));
       if (oRes.data) setOperations(oRes.data.map(mapOperation));
@@ -94,14 +96,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
     fetchAll();
-  }, [user]);
+  }, [user, activeCompany]);
 
   // Realtime — também respeita soft delete
   useEffect(() => {
-    if (!user) return;
+    if (!user || !activeCompany) return;
     const channel = supabase
-      .channel("app-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, (payload) => {
+      .channel(`app-realtime-${activeCompany.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "clients", filter: `company_id=eq.${activeCompany.id}` }, (payload) => {
         if (payload.eventType === "INSERT") {
           if (!(payload.new as any).deleted_at) setClients(prev => [mapClient(payload.new), ...prev]);
         } else if (payload.eventType === "UPDATE") {
@@ -118,7 +120,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setClients(prev => prev.filter(c => c.id !== (payload.old as any).id));
         }
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "operations" }, (payload) => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "operations", filter: `company_id=eq.${activeCompany.id}` }, (payload) => {
         if (payload.eventType === "INSERT") {
           if (!(payload.new as any).deleted_at) setOperations(prev => [mapOperation(payload.new), ...prev]);
         } else if (payload.eventType === "UPDATE") {
@@ -137,7 +139,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user, activeCompany]);
 
   const getClientRate = useCallback((client: Client) => {
     if (client.taxa > 0) return client.taxa;
@@ -145,9 +147,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [config]);
 
   const addClient = useCallback(async (c: Omit<Client, "id" | "createdAt">) => {
-    if (!user) return;
+    if (!user || !activeCompany) return;
     const { data, error } = await supabase.from("clients").insert({
-      user_id: user.id, nome: c.nome, tipo: c.tipo, taxa: Number(c.taxa), cor: c.cor || "#a855f7"
+      user_id: user.id, company_id: activeCompany.id, nome: c.nome, tipo: c.tipo, taxa: Number(c.taxa), cor: c.cor || "#a855f7"
     }).select().single();
     if (error) { console.error("Erro ao inserir cliente:", error.message); return; }
     if (data) {
@@ -187,7 +189,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [user, clients, getUserName, logBase]);
 
   const addOperation = useCallback(async (o: { clientId: string; valorBruto: number; responsavel?: string; pix?: string | null }) => {
-    if (!user) return;
+    if (!user || !activeCompany) return;
     const client = clients.find(c => c.id === o.clientId);
     if (!client) return;
     const taxa = getClientRate(client);
@@ -199,7 +201,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const pix = o.pix && /^\d+$/.test(o.pix) ? o.pix : null;
 
     const { data } = await supabase.from("operations").insert({
-      user_id: user.id, client_id: o.clientId, valor_bruto: o.valorBruto,
+      user_id: user.id, client_id: o.clientId, company_id: activeCompany.id, valor_bruto: o.valorBruto,
       taxa_percentual: taxa, lucro_bruto: lucroBruto, custo_maquina: custoMaquina,
       lucro_liquido: lucroLiquido, valor_cliente: valorCliente, responsavel,
       pix,
@@ -251,8 +253,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [user, operations, clients, getUserName, logBase]);
 
   const updateConfig = useCallback(async (c: AppConfig) => {
-    if (!user) return;
-    const payload: any = { user_id: user.id, taxa_pf: c.taxaPF, taxa_pj: c.taxaPJ, taxa_maquina: c.taxaMaquina, taxa_liquida: c.taxaLiquida };
+    if (!user || !activeCompany) return;
+    const payload: any = { user_id: user.id, company_id: activeCompany.id, taxa_pf: c.taxaPF, taxa_pj: c.taxaPJ, taxa_maquina: c.taxaMaquina, taxa_liquida: c.taxaLiquida };
     const { error } = await supabase.from("configs").upsert(payload);
     if (error) { console.error("Erro ao salvar config:", error.message); return; }
     const campos: string[] = [];
