@@ -76,7 +76,7 @@ import jsPDF from "jspdf";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
