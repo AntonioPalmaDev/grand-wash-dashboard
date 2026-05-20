@@ -12,7 +12,10 @@ import {
   PieChart,
   Calendar,
   ImageIcon,
-  FileImage
+  FileImage,
+  Trophy,
+  ArrowUpRight,
+  ArrowDownRight
 } from "lucide-react";
 import { format, subDays, startOfMonth, endOfMonth, startOfDay, endOfDay, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -47,7 +50,10 @@ import {
   Bar,
   Cell,
   PieChart as RePieChart,
-  Pie
+  Pie,
+  Legend,
+  AreaChart,
+  Area
 } from "recharts";
 import { KpiCard } from "@/components/KpiCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -182,18 +188,27 @@ export default function PainelFinanceiroPage() {
   }, [filteredData]);
 
   const topClients = useMemo(() => {
-    const clientTotals: Record<string, number> = {};
+    const clientStats: Record<string, { lucro: number; volume: number; name: string }> = {};
+    
     filteredData.forEach(op => {
-      clientTotals[op.clientId] = (clientTotals[op.clientId] || 0) + op.lucroLiquido;
+      if (!clientStats[op.clientId]) {
+        clientStats[op.clientId] = { 
+          lucro: 0, 
+          volume: 0, 
+          name: clients.find(c => c.id === op.clientId)?.nome || "Desconhecido" 
+        };
+      }
+      clientStats[op.clientId].lucro += op.lucroLiquido;
+      clientStats[op.clientId].volume += op.valorBruto;
     });
 
-    return Object.entries(clientTotals)
-      .map(([id, total]) => ({
-        name: clients.find(c => c.id === id)?.nome || "Desconhecido",
-        value: total
+    return Object.entries(clientStats)
+      .map(([id, stats]) => ({
+        id,
+        ...stats
       }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
+      .sort((a, b) => b.lucro - a.lucro)
+      .slice(0, 10);
   }, [filteredData, clients]);
 
   const runCapture = async () => {
