@@ -534,35 +534,49 @@ export default function PainelFinanceiroPage() {
         </Select>
       </div>
 
-      <div ref={dashboardRef} className={cn("space-y-6 p-1 rounded-lg", capturing && "bg-slate-950")}>
+      <motion.div 
+        ref={dashboardRef} 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className={cn("space-y-6 p-1 rounded-lg", capturing && "bg-slate-950")}
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard
-            title="Volume Movimentado"
-            value={formatCurrency(metrics.totalMov)}
-            icon={DollarSign}
-            description={`${gMov >= 0 ? "↑" : "↓"} ${Math.abs(gMov).toFixed(1)}% vs anterior`}
-            variant={gMov >= 0 ? "success" : "destructive"}
-          />
-          <KpiCard
-            title="Lucro Líquido"
-            value={formatCurrency(metrics.totalNet)}
-            icon={TrendingUp}
-            description={`${gNet >= 0 ? "↑" : "↓"} ${Math.abs(gNet).toFixed(1)}% vs anterior`}
-            variant={gNet >= 0 ? "success" : "destructive"}
-          />
-          <KpiCard
-            title="Total Operações"
-            value={metrics.totalOps.toString()}
-            icon={Activity}
-            description={`${gOps >= 0 ? "↑" : "↓"} ${Math.abs(gOps).toFixed(1)}% vs anterior`}
-            variant={gOps >= 0 ? "success" : "destructive"}
-          />
-          <KpiCard
-            title="Clientes Ativos"
-            value={metrics.activeClients.toString()}
-            icon={Users}
-            description="Participando no período"
-          />
+          <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+            <KpiCard
+              title="Volume Movimentado"
+              value={formatCurrency(metrics.totalMov)}
+              icon={DollarSign}
+              description={`${gMov >= 0 ? "↑" : "↓"} ${Math.abs(gMov).toFixed(1)}% vs anterior`}
+              variant={gMov >= 0 ? "success" : "destructive"}
+            />
+          </motion.div>
+          <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+            <KpiCard
+              title="Lucro Líquido"
+              value={formatCurrency(metrics.totalNet)}
+              icon={TrendingUp}
+              description={`${gNet >= 0 ? "↑" : "↓"} ${Math.abs(gNet).toFixed(1)}% vs anterior`}
+              variant={gNet >= 0 ? "success" : "destructive"}
+            />
+          </motion.div>
+          <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+            <KpiCard
+              title="Total Operações"
+              value={metrics.totalOps.toString()}
+              icon={Activity}
+              description={`${gOps >= 0 ? "↑" : "↓"} ${Math.abs(gOps).toFixed(1)}% vs anterior`}
+              variant={gOps >= 0 ? "success" : "destructive"}
+            />
+          </motion.div>
+          <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+            <KpiCard
+              title="Clientes Ativos"
+              value={metrics.activeClients.toString()}
+              icon={Users}
+              description="Participando no período"
+            />
+          </motion.div>
         </div>
 
         {gMov < -15 && (
