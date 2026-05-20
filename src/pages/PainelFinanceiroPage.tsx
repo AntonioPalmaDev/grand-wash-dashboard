@@ -78,6 +78,13 @@ import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import { motion } from "framer-motion";
 
+const formatShortCurrency = (value: number) => {
+  if (value >= 1000000000) return `R$ ${(value / 1000000000).toFixed(1).replace(/\.0$/, '')}B`;
+  if (value >= 1000000) return `R$ ${(value / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+  if (value >= 1000) return `R$ ${(value / 1000).toFixed(1).replace(/\.0$/, '')}K`;
+  return formatCurrency(value);
+};
+
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
@@ -633,7 +640,7 @@ export default function PainelFinanceiroPage() {
                       fontSize={11} 
                       tickLine={false} 
                       axisLine={false} 
-                      tickFormatter={v => `R$ ${v / 1000}k`}
+                      tickFormatter={formatShortCurrency}
                       tick={{ fill: '#64748b' }}
                     />
                     <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#ffffff20', strokeWidth: 1 }} />
