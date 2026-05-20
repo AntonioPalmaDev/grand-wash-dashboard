@@ -42,14 +42,22 @@ const devItems = [
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
 
+const masterItems = [
+  { title: "Admin Master", url: "/admin-master", icon: ShieldCheck },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
-  const { signOut, user } = useAuth();
+  const { signOut, user, isMasterAdmin } = useAuth();
   const { activeCompany, availableCompanies, switchCompany } = useCompany();
   const { role, isDev } = useRole();
   const collapsed = state === "collapsed";
 
-  const items = [...baseItems, ...(isDev ? devItems : [])];
+  const items = [
+    ...baseItems, 
+    ...(isDev ? devItems : []),
+    ...(isMasterAdmin ? masterItems : [])
+  ];
 
   return (
     <Sidebar collapsible="icon">
