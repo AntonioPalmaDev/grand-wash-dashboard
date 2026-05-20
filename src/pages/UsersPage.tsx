@@ -51,16 +51,44 @@ export default function UsersPage() {
       supabase.from("profiles").select("nome").eq("user_id", user.id).single()
         .then(({ data }) => { if (data?.nome) setMyName(data.nome); });
     }
-  }, [user]);
+  }, [user, activeCompany]);
 
   const getMyName = () => myName || user?.email || "Sistema";
 
   async function fetchProfiles() {
-    const query = supabase.from("profiles").select("*").order("created_at", { ascending: false });
-    if (activeCompany) query.eq("company_id", activeCompany.id);
-    const { data } = await query;
-    if (data) setProfiles(data as Profile[]);
-    setLoading(false);
+    if (!activeCompany) return;
+    setLoading(true);
+    
+    try {
+      const { data: userCompanies, error: ucError } = await supabase
+        .from("user_companies")
+        .select("user_id")
+        .eq("company_id", activeCompany.id);
+
+      if (ucError) throw ucError;
+
+      if (!userCompanies || userCompanies.length === 0) {
+        setProfiles([]);
+        setLoading(false);
+        return;
+      }
+
+      const userIds = userCompanies.map(uc => uc.user_id);
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .in("user_id", userIds)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      if (data) setProfiles(data as Profile[]);
+    } catch (err: any) {
+      console.error("Erro ao buscar perfis:", err);
+      toast.error("Erro ao carregar usuários");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleCreate() {
