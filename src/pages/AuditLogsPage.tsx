@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/hooks/useRole";
@@ -39,17 +40,20 @@ export default function AuditLogsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!activeCompany) return;
     async function fetchLogs() {
+      setLoading(true);
       const { data } = await supabase
         .from("audit_logs")
         .select("*")
+        .eq("company_id", activeCompany.id)
         .order("created_at", { ascending: false })
         .limit(200);
       if (data) setLogs(data as AuditLog[]);
       setLoading(false);
     }
     fetchLogs();
-  }, []);
+  }, [activeCompany]);
 
   async function handleDelete(id: string) {
     const { error } = await supabase.from("audit_logs").delete().eq("id", id);
