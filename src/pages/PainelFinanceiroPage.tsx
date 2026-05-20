@@ -20,7 +20,8 @@ import {
   BarChart3,
   Layers,
   Briefcase,
-  Zap
+  Zap,
+  Target
 } from "lucide-react";
 import { 
   format, 
