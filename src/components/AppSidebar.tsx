@@ -23,12 +23,12 @@ const baseItems = [
   { title: "Histórico", url: "/historico", icon: History },
   { title: "Financeiro", url: "/financeiro", icon: DollarSign },
   { title: "Ranking", url: "/ranking", icon: Trophy },
-  { title: "Resumo Financeiro", url: "/laudos", icon: ClipboardList },
+  
 ];
 
 const devItems = [
   
-  { title: "Usuários", url: "/usuarios", icon: ShieldCheck },
+  { title: "Painel Financeiro", url: "/painel-financeiro", icon: PieChart },
   { title: "Logs", url: "/logs", icon: FileText },
   { title: "Restaurações", url: "/restauracoes", icon: RotateCcw },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
