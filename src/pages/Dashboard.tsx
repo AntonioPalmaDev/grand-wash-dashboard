@@ -1,5 +1,5 @@
 import { useApp } from "@/context/AppContext";
-import { formatCurrency, formatDateOnly } from "@/lib/format";
+import { formatCurrency, formatDateOnly, formatPercent } from "@/lib/format";
 import { KpiCard } from "@/components/KpiCard";
 import {
   DollarSign,
@@ -10,6 +10,7 @@ import {
   BarChart3,
   LineChart as LineChartIcon,
   BarChart as BarChartIcon,
+  Check,
 } from "lucide-react";
 import {
   LineChart,
@@ -31,7 +32,7 @@ export default function Dashboard() {
   // Estado para os filtros e para a visualização do gráfico
   const [chartView, setChartView] = useState<"line" | "bar">("line");
   const [filtros, setFiltros] = useState({
-    periodo: "30d",
+    periodo: "ALL",
     agrupamento: "dia",
     tipo: "ALL",
     clienteId: "ALL",
@@ -72,14 +73,8 @@ export default function Dashboard() {
   }, [operations, filtros, clients]);
 
   // 2. KPIs DINÂMICOS
-  const kpiStats = useMemo(() => ({
-    totalMovimentado: filteredOperations.reduce((s, op) => s + op.valorBruto, 0),
-    lucroBrutoTotal: filteredOperations.reduce((s, op) => s + op.lucroBruto, 0),
-    totalMaquina: filteredOperations.reduce((s, op) => s + op.custoMaquina, 0),
-    lucroLiquidoTotal: filteredOperations.reduce((s, op) => s + op.lucroLiquido, 0),
-    totalRepassado: filteredOperations.reduce((s, op) => s + op.valorCliente, 0),
-    totalOperacoes: filteredOperations.length,
-  }), [filteredOperations]);
+  const { getStats } = useApp();
+  const kpiStats = useMemo(() => getStats(filteredOperations), [getStats, filteredOperations]);
 
   // 3. DADOS DO GRÁFICO
   const chartData = useMemo(() => {
@@ -162,7 +157,7 @@ export default function Dashboard() {
         <select className="bg-secondary p-2 rounded text-sm outline-none min-w-0 w-full" value={filtros.periodo} onChange={(e) => setFiltros({ ...filtros, periodo: e.target.value })}>
           <option value="7d">7 dias</option>
           <option value="30d">30 dias</option>
-          <option value="ALL">Todo o tempo</option>
+          <option value="ALL">Todo o período</option>
         </select>
 
         <select className="bg-secondary p-2 rounded text-sm outline-none min-w-0 w-full" value={filtros.agrupamento} onChange={(e) => setFiltros({ ...filtros, agrupamento: e.target.value })}>
@@ -214,11 +209,22 @@ export default function Dashboard() {
       {/* KPIs - grid responsivo */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <KpiCard title="Movimentado" value={formatCurrency(kpiStats.totalMovimentado)} icon={DollarSign} />
-        <KpiCard title="Lucro Bruto" value={formatCurrency(kpiStats.lucroBrutoTotal)} icon={TrendingUp} variant="success" />
-        <KpiCard title="Custo Maq." value={formatCurrency(kpiStats.totalMaquina)} icon={Cpu} variant="warning" />
         <KpiCard title="Lucro Líquido" value={formatCurrency(kpiStats.lucroLiquidoTotal)} icon={Wallet} variant="primary" />
-        <KpiCard title="Repassado" value={formatCurrency(kpiStats.totalRepassado)} icon={ArrowUpRight} />
+        <KpiCard 
+          title="Margem Operacional" 
+          value={formatPercent(kpiStats.totalMovimentado > 0 ? (kpiStats.lucroLiquidoTotal / kpiStats.totalMovimentado) * 100 : 0)} 
+          icon={TrendingUp} 
+          variant="success" 
+        />
+        <KpiCard title="Ticket Médio" value={formatCurrency(kpiStats.totalOperacoes > 0 ? kpiStats.totalMovimentado / kpiStats.totalOperacoes : 0)} icon={ArrowUpRight} />
         <KpiCard title="Operações" value={String(kpiStats.totalOperacoes)} icon={BarChart3} />
+        <KpiCard 
+          title="Status" 
+          value="Concluído" 
+          icon={Check} 
+          description="Padrão do painel"
+          variant="success"
+        />
       </div>
     </div>
   );

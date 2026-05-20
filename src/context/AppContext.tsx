@@ -29,7 +29,7 @@ interface AppContextType {
   updateOperationPix: (id: string, pix: string | null) => Promise<void>;
   deleteOperation: (id: string) => Promise<void>;
   updateConfig: (c: AppConfig) => Promise<void>;
-  getStats: () => DashboardStats;
+  getStats: (opsOverride?: Operation[]) => DashboardStats;
   getClientStats: (id: string) => { totalLavado: number; totalOps: number; lucroGerado: number; mediaPorOp: number; ultimaAtividade: string | null };
   getClientRate: (client: Client) => number;
   getUserName: () => string;
@@ -268,8 +268,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setConfig(c);
   }, [user, config, getUserName, logBase]);
 
-  const getStats = useCallback((): DashboardStats => {
-    const completed = operations.filter(op => op.status === "concluido");
+  const getStats = useCallback((opsOverride?: Operation[]): DashboardStats => {
+    const opsToUse = opsOverride || operations;
+    const completed = opsToUse.filter(op => op.status === "concluido");
     return {
       totalMovimentado: completed.reduce((s, op) => s + op.valorBruto, 0),
       lucroBrutoTotal: completed.reduce((s, op) => s + op.lucroBruto, 0),
