@@ -1,13 +1,25 @@
 export type ClientType = "PF" | "PJ";
 export type OperationStatus = "pendente" | "concluido" | "cancelado";
 
+export interface Company {
+  id: string;
+  name: string;
+  slug: string;
+  logo: string | null;
+  primaryColor: string;
+  secondaryColor: string;
+  active: boolean;
+  createdAt: string;
+}
+
 export interface Client {
   id: string;
   nome: string;
   tipo: ClientType;
   taxa: number;
-  cor?: string; // ✅ Essencial para o addClient e updateClient funcionarem
+  cor?: string;
   createdAt: string;
+  companyId?: string;
 }
 
 export interface Operation {
@@ -24,15 +36,18 @@ export interface Operation {
   data: string;
   createdAt: string;
   pix?: string | null;
-  tipo?: string; // campo opcional para compatibilidade de filtros
+  tipo?: string;
+  companyId?: string;
 }
 
 export interface AppConfig {
   taxaPF: number;
   taxaPJ: number;
   taxaMaquina: number;
-  taxaLiquida: number; // ✅ Nova meta de margem em %
+  taxaLiquida: number;
+  companyId?: string;
 }
+
 export interface DashboardStats {
   totalMovimentado: number;
   lucroBrutoTotal: number;
