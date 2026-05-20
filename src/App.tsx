@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,37 +18,32 @@ import SettingsPage from "@/pages/SettingsPage";
 import UsersPage from "@/pages/UsersPage";
 import AuditLogsPage from "@/pages/AuditLogsPage";
 import AuthPage from "@/pages/AuthPage";
-import PendingApprovalPage from "@/pages/PendingApprovalPage";
-import CompletePersonagemPage from "@/pages/CompletePersonagemPage";
 import RestorePage from "@/pages/RestorePage";
 import PainelFinanceiroPage from "@/pages/PainelFinanceiroPage";
 import AdminMasterPage from "@/pages/AdminMasterPage";
 import NotFound from "@/pages/NotFound";
 
+// Admin Global Pages
+import GlobalDashboard from "@/pages/admin/GlobalDashboard";
+import GlobalCompaniesPage from "@/pages/admin/GlobalCompaniesPage";
+
 const queryClient = new QueryClient();
 
 function ProtectedApp() {
-  const { user, loading, userStatus, nomePersonagem } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-3">
-          <div className="text-3xl">💰</div>
-          <p className="text-muted-foreground text-sm">Carregando...</p>
+          <div className="text-3xl animate-bounce">💰</div>
+          <p className="text-muted-foreground text-sm animate-pulse">Autenticando...</p>
         </div>
       </div>
     );
   }
 
   if (!user) return <AuthPage />;
-
-  // Comentado temporariamente para remover restrição de acesso
-  // if (userStatus !== "aprovado") return <PendingApprovalPage />;
-
-  // Força preenchimento do Nome do Personagem para usuários antigos
-  // Comentado temporariamente para remover restrição de perfil completo
-  // if (!nomePersonagem || !nomePersonagem.trim()) return <CompletePersonagemPage />;
 
   return (
     <CompanyProvider>
@@ -58,7 +53,7 @@ function ProtectedApp() {
 }
 
 function CompanyWrapper() {
-  const { activeCompany, loading } = useCompany();
+  const { activeCompany, loading, isGlobalMode } = useCompany();
   const { isMasterAdmin } = useAuth();
 
   if (loading) {
@@ -69,7 +64,8 @@ function CompanyWrapper() {
     );
   }
 
-  if (!activeCompany) {
+  // Se não estiver em modo global e não tiver empresa ativa, redireciona para seleção
+  if (!isGlobalMode && !activeCompany) {
     return <CompanySelectionPage />;
   }
 
@@ -77,19 +73,35 @@ function CompanyWrapper() {
     <AppProvider>
       <AppLayout>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/clientes" element={<ClientsPage />} />
-          <Route path="/operacoes" element={<OperationsPage />} />
-          <Route path="/historico" element={<HistoryPage />} />
-          <Route path="/financeiro" element={<FinancePage />} />
-          <Route path="/ranking" element={<RankingPage />} />
-          <Route path="/configuracoes" element={<SettingsPage />} />
-          <Route path="/usuarios" element={<UsersPage />} />
-          <Route path="/logs" element={<AuditLogsPage />} />
-          <Route path="/restauracoes" element={<RestorePage />} />
-          <Route path="/painel-financeiro" element={<PainelFinanceiroPage />} />
-          <Route path="/selecao-empresa" element={<CompanySelectionPage />} />
-          {isMasterAdmin && <Route path="/admin-master" element={<AdminMasterPage />} />}
+          {/* Rotas de Empresa */}
+          {!isGlobalMode && (
+            <>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/clientes" element={<ClientsPage />} />
+              <Route path="/operacoes" element={<OperationsPage />} />
+              <Route path="/historico" element={<HistoryPage />} />
+              <Route path="/financeiro" element={<FinancePage />} />
+              <Route path="/ranking" element={<RankingPage />} />
+              <Route path="/configuracoes" element={<SettingsPage />} />
+              <Route path="/usuarios" element={<UsersPage />} />
+              <Route path="/logs" element={<AuditLogsPage />} />
+              <Route path="/restauracoes" element={<RestorePage />} />
+              <Route path="/painel-financeiro" element={<PainelFinanceiroPage />} />
+              <Route path="/selecao-empresa" element={<CompanySelectionPage />} />
+            </>
+          )}
+
+          {/* Rotas Administrativas Globais */}
+          {isMasterAdmin && (
+            <>
+              <Route path="/admin" element={<GlobalDashboard />} />
+              <Route path="/admin/companies" element={<GlobalCompaniesPage />} />
+              <Route path="/admin/users" element={<UsersPage />} />
+              <Route path="/admin/logs" element={<AuditLogsPage />} />
+              <Route path="/admin-master" element={<Navigate to="/admin" replace />} />
+            </>
+          )}
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>
@@ -112,3 +124,4 @@ const App = () => (
 );
 
 export default App;
+
