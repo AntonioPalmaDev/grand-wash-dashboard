@@ -43,7 +43,8 @@ function ProtectedApp() {
 
   if (!user) return <AuthPage />;
 
-  if (userStatus !== "aprovado") return <PendingApprovalPage />;
+  // Comentado temporariamente para remover restrição de acesso
+  // if (userStatus !== "aprovado") return <PendingApprovalPage />;
 
   // Força preenchimento do Nome do Personagem para usuários antigos
   if (!nomePersonagem || !nomePersonagem.trim()) return <CompletePersonagemPage />;
