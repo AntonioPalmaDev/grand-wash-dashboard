@@ -67,7 +67,9 @@ export default function PainelFinanceiroPage() {
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [capturing, setCapturing] = useState(false);
   
-  const [dateRange, setDateRange] = useState<"today" | "yesterday" | "7d" | "30d" | "thisMonth" | "lastMonth" | "all">("thisMonth");
+  const [dateRange, setDateRange] = useState<"today" | "yesterday" | "7d" | "30d" | "thisMonth" | "lastMonth" | "all" | "custom">("thisMonth");
+  const [customStartDate, setCustomStartDate] = useState<string>("");
+  const [customEndDate, setCustomEndDate] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [clientFilter, setClientFilter] = useState<string>("all");
   const [responsibleFilter, setResponsibleFilter] = useState<string>("all");
@@ -89,6 +91,10 @@ export default function PainelFinanceiroPage() {
     else if (dateRange === "lastMonth") {
       start = startOfMonth(subMonths(now, 1));
       end = endOfMonth(subMonths(now, 1));
+    }
+    else if (dateRange === "custom" && customStartDate && customEndDate) {
+      start = startOfDay(new Date(customStartDate));
+      end = endOfDay(new Date(customEndDate));
     }
 
     return operations.filter(op => {
@@ -335,6 +341,7 @@ export default function PainelFinanceiroPage() {
               <SelectItem value="thisMonth">Este Mês</SelectItem>
               <SelectItem value="lastMonth">Mês Passado</SelectItem>
               <SelectItem value="all">Tudo</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
             </SelectContent>
           </Select>
 
@@ -367,7 +374,27 @@ export default function PainelFinanceiroPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+        {dateRange === "custom" && (
+          <>
+            <div className="flex flex-col gap-1">
+              <input
+                type="date"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <input
+                type="date"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+              />
+            </div>
+          </>
+        )}
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="h-9">
             <SelectValue placeholder="Status" />
