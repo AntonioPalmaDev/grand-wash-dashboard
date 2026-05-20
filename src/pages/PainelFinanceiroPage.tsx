@@ -233,6 +233,69 @@ export default function PainelFinanceiroPage() {
       .slice(0, 10);
   }, [filteredData, clients]);
 
+  const performanceByResponsible = useMemo(() => {
+    const stats: Record<string, { lucro: number; volume: number; name: string; ops: number }> = {};
+    
+    filteredData.forEach(op => {
+      const resp = op.responsavel || "Sistema";
+      if (!stats[resp]) {
+        stats[resp] = { lucro: 0, volume: 0, name: resp, ops: 0 };
+      }
+      stats[resp].lucro += op.lucroLiquido;
+      stats[resp].volume += op.valorBruto;
+      stats[resp].ops += 1;
+    });
+
+    return Object.values(stats).sort((a, b) => b.lucro - a.lucro);
+  }, [filteredData]);
+
+  const monthlyEvolution = useMemo(() => {
+    const now = new Date();
+    const months = eachMonthOfInterval({
+      start: subMonths(now, 5),
+      end: now
+    });
+
+    return months.map(month => {
+      const monthOps = operations.filter(op => isSameMonth(new Date(op.data), month));
+      return {
+        month: format(month, "MMM", { locale: ptBR }),
+        lucro: monthOps.reduce((acc, op) => acc + op.lucroLiquido, 0),
+        volume: monthOps.reduce((acc, op) => acc + op.valorBruto, 0)
+      };
+    });
+  }, [operations]);
+
+  const typeDistribution = useMemo(() => {
+    let pf = 0;
+    let pj = 0;
+    filteredData.forEach(op => {
+      const client = clients.find(c => c.id === op.clientId);
+      if (client?.tipo === "PJ") pj += op.valorBruto;
+      else pf += op.valorBruto;
+    });
+    return [
+      { name: "Pessoa Física", value: pf, color: "#a855f7" },
+      { name: "Pessoa Jurídica", value: pj, color: "#3b82f6" }
+    ];
+  }, [filteredData, clients]);
+
+  const operationalVolume = useMemo(() => {
+    const hours: Record<string, number> = {};
+    for (let i = 0; i < 24; i++) hours[i.toString().padStart(2, "0")] = 0;
+
+    filteredData.forEach(op => {
+      const hour = format(new Date(op.createdAt || op.data), "HH");
+      hours[hour] = (hours[hour] || 0) + 1;
+    });
+
+    return Object.entries(hours).map(([hour, count]) => ({
+      hour: `${hour}h`,
+      count
+    }));
+  }, [filteredData]);
+
+
   const runCapture = async () => {
     if (!dashboardRef.current) return null;
     setCapturing(true);
