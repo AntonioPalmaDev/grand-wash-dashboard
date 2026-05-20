@@ -10,6 +10,7 @@ import {
   BarChart3,
   LineChart as LineChartIcon,
   BarChart as BarChartIcon,
+  Check,
 } from "lucide-react";
 import {
   LineChart,
@@ -206,7 +207,7 @@ export default function Dashboard() {
       </div>
 
       {/* KPIs - grid responsivo */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <KpiCard title="Movimentado" value={formatCurrency(kpiStats.totalMovimentado)} icon={DollarSign} />
         <KpiCard title="Lucro Líquido" value={formatCurrency(kpiStats.lucroLiquidoTotal)} icon={Wallet} variant="primary" />
         <KpiCard 
@@ -217,6 +218,13 @@ export default function Dashboard() {
         />
         <KpiCard title="Ticket Médio" value={formatCurrency(kpiStats.totalOperacoes > 0 ? kpiStats.totalMovimentado / kpiStats.totalOperacoes : 0)} icon={ArrowUpRight} />
         <KpiCard title="Operações" value={String(kpiStats.totalOperacoes)} icon={BarChart3} />
+        <KpiCard 
+          title="Status" 
+          value="Concluído" 
+          icon={Check} 
+          description="Padrão do painel"
+          variant="success"
+        />
       </div>
     </div>
   );
