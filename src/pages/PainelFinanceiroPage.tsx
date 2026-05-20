@@ -15,9 +15,24 @@ import {
   FileImage,
   Trophy,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  TrendingDown,
+  BarChart3,
+  Layers,
+  Briefcase,
+  Zap
 } from "lucide-react";
-import { format, subDays, startOfMonth, endOfMonth, startOfDay, endOfDay, subMonths } from "date-fns";
+import { 
+  format, 
+  subDays, 
+  startOfMonth, 
+  endOfMonth, 
+  startOfDay, 
+  endOfDay, 
+  subMonths,
+  eachMonthOfInterval,
+  isSameMonth
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useApp } from "@/context/AppContext";
 import { formatCurrency } from "@/lib/format";
@@ -55,6 +70,13 @@ import {
   AreaChart,
   Area
 } from "recharts";
+import { KpiCard } from "@/components/KpiCard";
+import { Skeleton } from "@/components/ui/skeleton";
+import jsPDF from "jspdf";
+import * as XLSX from "xlsx";
+import { toast } from "sonner";
+import html2canvas from "html2canvas";
+import { motion, AnimatePresence } from "framer-motion";
 import { KpiCard } from "@/components/KpiCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import jsPDF from "jspdf";
