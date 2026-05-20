@@ -1,7 +1,9 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useRole } from "@/hooks/useRole";
+import { useCompany } from "@/context/CompanyContext";
 import {
   registrarLog,
   logRestaurarOperacao,
@@ -48,6 +50,7 @@ interface UpdateLog {
 export default function RestorePage() {
   const { user, nomePersonagem } = useAuth();
   const { isDev, loading: roleLoading } = useRole();
+  const { activeCompany } = useCompany();
 
   const [deletedOps, setDeletedOps] = useState<DeletedOperation[]>([]);
   const [deletedClients, setDeletedClients] = useState<DeletedClient[]>([]);
@@ -56,12 +59,13 @@ export default function RestorePage() {
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
+    if (!activeCompany) return;
     setLoading(true);
     const [opsRes, cliRes, logsRes, allClientsRes] = await Promise.all([
-      supabase.from("operations").select("*").not("deleted_at", "is", null).order("deleted_at", { ascending: false }),
-      supabase.from("clients").select("*").not("deleted_at", "is", null).order("deleted_at", { ascending: false }),
-      supabase.from("audit_logs").select("*").eq("action", "editar").order("created_at", { ascending: false }).limit(100),
-      supabase.from("clients").select("id, nome"),
+      supabase.from("operations").select("*").eq("company_id", activeCompany.id).not("deleted_at", "is", null).order("deleted_at", { ascending: false }),
+      supabase.from("clients").select("*").eq("company_id", activeCompany.id).not("deleted_at", "is", null).order("deleted_at", { ascending: false }),
+      (supabase.from("audit_logs") as any).select("*").eq("company_id", activeCompany.id).eq("action", "editar").order("created_at", { ascending: false }).limit(100),
+      supabase.from("clients").select("id, nome").eq("company_id", activeCompany.id),
     ]);
     if (opsRes.data) setDeletedOps(opsRes.data as any);
     if (cliRes.data) setDeletedClients(cliRes.data as any);
@@ -72,16 +76,17 @@ export default function RestorePage() {
       setClientNames(map);
     }
     setLoading(false);
-  }, []);
+  }, [activeCompany]);
 
   useEffect(() => {
-    if (isDev) fetchAll();
-  }, [isDev, fetchAll]);
+    if (isDev && activeCompany) fetchAll();
+  }, [isDev, activeCompany, fetchAll]);
 
   const logBase = () => ({
     userId: user?.id ?? "",
     userEmail: user?.email ?? "",
     nomePersonagem: nomePersonagem ?? null,
+    companyId: activeCompany?.id ?? null,
   });
 
   async function restoreOperation(op: DeletedOperation) {
@@ -107,7 +112,6 @@ export default function RestorePage() {
       toast.error("Log sem dados suficientes para reverter");
       return;
     }
-    // Mapear para o nome de tabela e payload correto
     const entityToTable: Record<string, string> = {
       "cliente": "clients",
       "operação": "operations",
@@ -116,7 +120,6 @@ export default function RestorePage() {
     const table = entityToTable[log.entity];
     if (!table) { toast.error(`Entidade '${log.entity}' não suportada para reversão`); return; }
 
-    // Constrói payload removendo metadados
     const before = { ...(log.before_data as any) };
     delete before.descricao;
     delete before.id;
@@ -124,15 +127,14 @@ export default function RestorePage() {
     delete before.updated_at;
     delete before.deleted_at;
     delete before.user_id;
+    delete before.company_id;
 
-    // Para cliente, AppContext salva os campos camelCase; convertemos para snake_case
     if (table === "clients") {
       const payload: any = {};
       if ("nome" in before) payload.nome = before.nome;
       if ("tipo" in before) payload.tipo = before.tipo;
       if ("taxa" in before) payload.taxa = Number(before.taxa);
       if ("cor" in before) payload.cor = before.cor;
-      if ("createdAt" in before) {/* skip */}
       const { error } = await supabase.from("clients").update(payload).eq("id", log.entity_id);
       if (error) { toast.error("Erro ao reverter: " + error.message); return; }
     } else if (table === "operations") {
