@@ -22,12 +22,13 @@ import PendingApprovalPage from "@/pages/PendingApprovalPage";
 import CompletePersonagemPage from "@/pages/CompletePersonagemPage";
 import RestorePage from "@/pages/RestorePage";
 import PainelFinanceiroPage from "@/pages/PainelFinanceiroPage";
+import AdminMasterPage from "@/pages/AdminMasterPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
 function ProtectedApp() {
-  const { user, loading, userStatus, nomePersonagem } = useAuth();
+  const { user, loading, userStatus, nomePersonagem, isMasterAdmin } = useAuth();
 
   if (loading) {
     return (
@@ -85,6 +86,7 @@ function CompanyWrapper() {
           <Route path="/restauracoes" element={<RestorePage />} />
           <Route path="/painel-financeiro" element={<PainelFinanceiroPage />} />
           <Route path="/selecao-empresa" element={<CompanySelectionPage />} />
+          {isMasterAdmin && <Route path="/admin-master" element={<AdminMasterPage />} />}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>
