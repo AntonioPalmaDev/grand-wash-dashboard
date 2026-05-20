@@ -312,18 +312,19 @@ export default function PainelFinanceiroPage() {
   }, [filteredData, clients]);
 
   const operationalVolume = useMemo(() => {
-    const hours: Record<string, number> = {};
-    for (let i = 0; i < 24; i++) hours[i.toString().padStart(2, "0")] = 0;
-
+    const daily: Record<string, { date: string; count: number }> = {};
+    
     filteredData.forEach(op => {
-      const hour = format(new Date(op.createdAt || op.data), "HH");
-      hours[hour] = (hours[hour] || 0) + 1;
+      const day = format(new Date(op.data), "dd/MM");
+      if (!daily[day]) daily[day] = { date: day, count: 0 };
+      daily[day].count += 1;
     });
 
-    return Object.entries(hours).map(([hour, count]) => ({
-      hour: `${hour}h`,
-      count
-    }));
+    return Object.values(daily).sort((a, b) => {
+      const [dayA, monthA] = a.date.split("/").map(Number);
+      const [dayB, monthB] = b.date.split("/").map(Number);
+      return monthA !== monthB ? monthA - monthB : dayA - dayB;
+    });
   }, [filteredData]);
 
 
