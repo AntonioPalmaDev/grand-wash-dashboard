@@ -62,6 +62,7 @@ export const EditCompanyModal = ({ company, isOpen, onClose, onSuccess }: EditCo
           name,
           description,
           active,
+          primary_color: primaryColor,
           tags
         })
         .eq("id", company.id);
