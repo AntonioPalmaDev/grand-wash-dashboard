@@ -101,34 +101,40 @@ export type Database = {
         Row: {
           active: boolean | null
           created_at: string | null
+          description: string | null
           id: string
           logo: string | null
           name: string
           primary_color: string | null
           secondary_color: string | null
           slug: string
+          tags: string[] | null
           updated_at: string | null
         }
         Insert: {
           active?: boolean | null
           created_at?: string | null
+          description?: string | null
           id?: string
           logo?: string | null
           name: string
           primary_color?: string | null
           secondary_color?: string | null
           slug: string
+          tags?: string[] | null
           updated_at?: string | null
         }
         Update: {
           active?: boolean | null
           created_at?: string | null
+          description?: string | null
           id?: string
           logo?: string | null
           name?: string
           primary_color?: string | null
           secondary_color?: string | null
           slug?: string
+          tags?: string[] | null
           updated_at?: string | null
         }
         Relationships: []

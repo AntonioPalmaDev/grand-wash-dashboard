@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useCompany } from "@/context/CompanyContext";
+import { Company } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -32,14 +33,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { EditCompanyModal } from "@/components/management/EditCompanyModal";
+import { UserManagementOverlay } from "@/components/management/UserManagementOverlay";
+import { AuditLogsOverlay } from "@/components/management/AuditLogsOverlay";
+import { PermissionsModal } from "@/components/management/PermissionsModal";
+import { DeactivateCompanyModal } from "@/components/management/DeactivateCompanyModal";
 
 const CompanySelectionPage = () => {
-  const { availableCompanies, switchCompany, createCompany } = useCompany();
+  const { availableCompanies, switchCompany, createCompany, refreshCompanies } = useCompany();
   const { isMasterAdmin } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
+
+  // Management States
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isUsersOverlayOpen, setIsUsersOverlayOpen] = useState(false);
+  const [isLogsOverlayOpen, setIsLogsOverlayOpen] = useState(false);
+  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
+  const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -156,20 +171,55 @@ const CompanySelectionPage = () => {
                     <DropdownMenuContent align="end" className="w-60 bg-slate-900 border-white/10 text-slate-200 p-2 rounded-2xl">
                       <DropdownMenuLabel className="px-3 py-2 text-xs font-bold uppercase tracking-widest text-slate-500">Gestão do Ambiente</DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-white/5 mx-2" />
-                      <DropdownMenuItem className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary">
+                      <DropdownMenuItem 
+                        className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCompany(company);
+                          setIsEditModalOpen(true);
+                        }}
+                      >
                         <Settings className="w-4 h-4" /> <span>Editar Informações</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary">
+                      <DropdownMenuItem 
+                        className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCompany(company);
+                          setIsUsersOverlayOpen(true);
+                        }}
+                      >
                         <Users className="w-4 h-4" /> <span>Gerenciar Usuários</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary">
+                      <DropdownMenuItem 
+                        className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCompany(company);
+                          setIsLogsOverlayOpen(true);
+                        }}
+                      >
                         <FileText className="w-4 h-4" /> <span>Visualizar Logs</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary">
+                      <DropdownMenuItem 
+                        className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCompany(company);
+                          setIsPermissionsModalOpen(true);
+                        }}
+                      >
                         <ShieldCheck className="w-4 h-4" /> <span>Permissões</span>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator className="bg-white/5 mx-2" />
-                      <DropdownMenuItem className="gap-3 cursor-pointer py-3 rounded-xl text-red-400 focus:bg-red-500/10 focus:text-red-400">
+                      <DropdownMenuItem 
+                        className="gap-3 cursor-pointer py-3 rounded-xl text-red-400 focus:bg-red-500/10 focus:text-red-400"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCompany(company);
+                          setIsDeactivateModalOpen(true);
+                        }}
+                      >
                         <Lock className="w-4 h-4" /> <span>Desativar Contexto</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -210,7 +260,8 @@ const CompanySelectionPage = () => {
                       className="border-white/10 hover:bg-white/10 rounded-2xl font-bold px-5 h-11"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // Trigger edit or manage
+                        setSelectedCompany(company);
+                        setIsEditModalOpen(true);
                       }}
                     >
                       Editar
@@ -262,6 +313,54 @@ const CompanySelectionPage = () => {
           </div>
         </div>
       </footer>
+
+      {/* Management Overlays */}
+      <EditCompanyModal 
+        company={selectedCompany} 
+        isOpen={isEditModalOpen} 
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedCompany(null);
+        }}
+        onSuccess={refreshCompanies}
+      />
+
+      <UserManagementOverlay 
+        company={selectedCompany} 
+        isOpen={isUsersOverlayOpen} 
+        onClose={() => {
+          setIsUsersOverlayOpen(false);
+          setSelectedCompany(null);
+        }}
+      />
+
+      <AuditLogsOverlay 
+        company={selectedCompany} 
+        isOpen={isLogsOverlayOpen} 
+        onClose={() => {
+          setIsLogsOverlayOpen(false);
+          setSelectedCompany(null);
+        }}
+      />
+
+      <PermissionsModal 
+        company={selectedCompany} 
+        isOpen={isPermissionsModalOpen} 
+        onClose={() => {
+          setIsPermissionsModalOpen(false);
+          setSelectedCompany(null);
+        }}
+      />
+
+      <DeactivateCompanyModal 
+        company={selectedCompany} 
+        isOpen={isDeactivateModalOpen} 
+        onClose={() => {
+          setIsDeactivateModalOpen(false);
+          setSelectedCompany(null);
+        }}
+        onSuccess={refreshCompanies}
+      />
     </div>
   );
 };

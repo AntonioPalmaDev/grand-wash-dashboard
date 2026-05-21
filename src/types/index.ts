@@ -9,6 +9,8 @@ export interface Company {
   primaryColor: string;
   secondaryColor: string;
   active: boolean;
+  description?: string;
+  tags?: string[];
   createdAt: string;
 }
 
