@@ -260,7 +260,8 @@ const CompanySelectionPage = () => {
                       className="border-white/10 hover:bg-white/10 rounded-2xl font-bold px-5 h-11"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // Trigger edit or manage
+                        setSelectedCompany(company);
+                        setIsEditModalOpen(true);
                       }}
                     >
                       Editar
