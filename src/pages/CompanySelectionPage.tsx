@@ -112,9 +112,16 @@ const CompanySelectionPage = () => {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full opacity-30" />
       </div>
 
+    <div ref={containerRef} className="min-h-screen bg-slate-950 text-slate-200 flex flex-col items-center p-6 sm:p-12 font-sans selection:bg-primary/30">
+      {/* Background patterns */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full opacity-40" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full opacity-30" />
+      </div>
+
       <div className="w-full max-w-7xl z-10 space-y-12">
         {/* Header Centralizado */}
-        <div className="text-center space-y-4 animate-in fade-in slide-in-from-top-4 duration-700">
+        <div className="text-center space-y-4 header-content">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest mb-4">
             <Globe className="w-3 h-3" /> Multi-tenant Ecosystem
           </div>
@@ -123,6 +130,7 @@ const CompanySelectionPage = () => {
             Selecione uma empresa para acessar ou gerencie as configurações do ambiente.
           </p>
         </div>
+
 
         {/* Search & Actions Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in duration-700 delay-200">
