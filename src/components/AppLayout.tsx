@@ -2,6 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { CompanySidebar } from "@/components/CompanySidebar";
 import { GlobalSidebar } from "@/components/GlobalSidebar";
 import { useCompany } from "@/context/CompanyContext";
+import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Globe, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
