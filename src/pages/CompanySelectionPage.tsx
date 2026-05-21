@@ -32,14 +32,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { EditCompanyModal } from "@/components/management/EditCompanyModal";
+import { UserManagementOverlay } from "@/components/management/UserManagementOverlay";
+import { AuditLogsOverlay } from "@/components/management/AuditLogsOverlay";
+import { PermissionsModal } from "@/components/management/PermissionsModal";
+import { DeactivateCompanyModal } from "@/components/management/DeactivateCompanyModal";
 
 const CompanySelectionPage = () => {
-  const { availableCompanies, switchCompany, createCompany } = useCompany();
+  const { availableCompanies, switchCompany, createCompany, refreshCompanies } = useCompany();
   const { isMasterAdmin } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
+
+  // Management States
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isUsersOverlayOpen, setIsUsersOverlayOpen] = useState(false);
+  const [isLogsOverlayOpen, setIsLogsOverlayOpen] = useState(false);
+  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
+  const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
