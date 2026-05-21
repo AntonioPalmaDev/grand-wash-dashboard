@@ -118,23 +118,53 @@ function CompanyWrapper() {
   );
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/invite/:token" element={<InvitePage />} />
-            <Route path="*" element={<ProtectedApp />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+const App = () => {
+  useEffect(() => {
+    // Registra o plugin do GSAP
+    gsap.registerPlugin(ScrollTrigger);
 
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    // Inicializa o Lenis (Smooth Scroll)
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
+      infinite: false,
+    });
+
+    // Sincroniza o Lenis com o GSAP ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update);
+
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+
+    gsap.ticker.lagSmoothing(0);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/invite/:token" element={<InvitePage />} />
+              <Route path="*" element={<ProtectedApp />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
-
