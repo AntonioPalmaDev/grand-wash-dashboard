@@ -52,12 +52,9 @@ function ProtectedApp() {
 
   if (!user) return <AuthPage />;
 
-  return (
-    <CompanyProvider>
-      <CompanyWrapper />
-    </CompanyProvider>
-  );
+  return <CompanyWrapper />;
 }
+
 
 function CompanyWrapper() {
   const { activeCompany, loading, isGlobalMode } = useCompany();
@@ -75,6 +72,8 @@ function CompanyWrapper() {
   if (!activeCompany || window.location.pathname === "/selecao-empresa") {
     return <CompanySelectionPage />;
   }
+
+
 
   return (
     <AppProvider>
@@ -160,13 +159,16 @@ const App = () => {
         <Toaster />
         <Sonner />
         <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/invite/:token" element={<InvitePage />} />
-              <Route path="*" element={<ProtectedApp />} />
-            </Routes>
-          </BrowserRouter>
+          <CompanyProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/invite/:token" element={<InvitePage />} />
+                <Route path="*" element={<ProtectedApp />} />
+              </Routes>
+            </BrowserRouter>
+          </CompanyProvider>
         </AuthProvider>
+
       </TooltipProvider>
     </QueryClientProvider>
   );
