@@ -91,6 +91,8 @@ function CompanyWrapper() {
             </>
           )}
 
+          <Route path="/selecao-empresa" element={<CompanySelectionPage />} />
+
           {/* Rotas Administrativas Globais */}
           {isMasterAdmin && (
             <>
