@@ -72,13 +72,13 @@ function CompanyWrapper() {
   }
 
   // A Central de Empresas é o ponto de entrada para seleção/gestão
-  if (!activeCompany && window.location.pathname !== "/selecao-empresa") {
+  if (!activeCompany || window.location.pathname === "/selecao-empresa") {
     return <CompanySelectionPage />;
   }
 
-
   return (
     <AppProvider>
+
       <AppLayout>
         <Routes>
           {/* Rotas de Empresa */}
