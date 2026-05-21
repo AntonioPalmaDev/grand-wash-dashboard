@@ -72,9 +72,10 @@ function CompanyWrapper() {
   }
 
   // A Central de Empresas é o ponto de entrada para seleção/gestão
-  if (!activeCompany) {
+  if (!activeCompany && window.location.pathname !== "/selecao-empresa") {
     return <CompanySelectionPage />;
   }
+
 
   return (
     <AppProvider>
@@ -111,7 +112,11 @@ function CompanyWrapper() {
             </>
           )}
 
+          <Route path="/selecao-empresa" element={<CompanySelectionPage />} />
+
           <Route path="*" element={<NotFound />} />
+
+
         </Routes>
       </AppLayout>
     </AppProvider>

@@ -58,15 +58,17 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
       setAvailableCompanies(mapped);
       
       const savedId = localStorage.getItem("active_company_id");
+      // Don't auto-set active company if in selection page or if no saved ID
       const found = mapped.find(c => c.id === savedId) || null;
       
-      if (!isGlobalMode && found) {
+      if (!isGlobalMode && found && location.pathname !== "/selecao-empresa") {
         setActiveCompany(found);
         document.documentElement.style.setProperty('--primary', hexToHSL(found.primaryColor));
       } else {
         setActiveCompany(null);
       }
     }
+
     setLoading(false);
   }, [user, isGlobalMode]);
 
