@@ -231,9 +231,11 @@ const CompanySelectionPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-5 rounded-3xl bg-white/5 border border-white/5 space-y-1.5 hover:bg-white/10 transition-all duration-300">
                     <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest flex items-center gap-2">
-                      <Activity className="w-3 h-3 text-green-500" /> Status
+                      <Activity className={`w-3 h-3 ${company.active ? 'text-green-500' : 'text-red-500'}`} /> Status
                     </p>
-                    <p className="text-sm font-bold text-slate-200 uppercase">Ativa</p>
+                    <p className={`text-sm font-bold uppercase ${company.active ? 'text-slate-200' : 'text-red-400'}`}>
+                      {company.active ? 'Ativa' : 'Inativa'}
+                    </p>
                   </div>
                   <div className="p-5 rounded-3xl bg-white/5 border border-white/5 space-y-1.5 hover:bg-white/10 transition-all duration-300">
                     <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest flex items-center gap-2">
@@ -267,13 +269,14 @@ const CompanySelectionPage = () => {
                       Editar
                     </Button>
                     <Button 
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-black gap-2 group/btn rounded-2xl px-6 h-11 shadow-lg shadow-primary/20"
+                      className={`${company.active ? 'bg-primary hover:bg-primary/90' : 'bg-slate-800 cursor-not-allowed opacity-50'} text-primary-foreground font-black gap-2 group/btn rounded-2xl px-6 h-11 shadow-lg shadow-primary/20`}
+                      disabled={!company.active}
                       onClick={(e) => {
                         e.stopPropagation();
-                        switchCompany(company.id);
+                        if (company.active) switchCompany(company.id);
                       }}
                     >
-                      Entrar <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                      {company.active ? 'Entrar' : 'Bloqueado'} <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                     </Button>
                   </div>
                 </div>
