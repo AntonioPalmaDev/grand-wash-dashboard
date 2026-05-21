@@ -313,6 +313,54 @@ const CompanySelectionPage = () => {
           </div>
         </div>
       </footer>
+
+      {/* Management Overlays */}
+      <EditCompanyModal 
+        company={selectedCompany} 
+        isOpen={isEditModalOpen} 
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedCompany(null);
+        }}
+        onSuccess={refreshCompanies}
+      />
+
+      <UserManagementOverlay 
+        company={selectedCompany} 
+        isOpen={isUsersOverlayOpen} 
+        onClose={() => {
+          setIsUsersOverlayOpen(false);
+          setSelectedCompany(null);
+        }}
+      />
+
+      <AuditLogsOverlay 
+        company={selectedCompany} 
+        isOpen={isLogsOverlayOpen} 
+        onClose={() => {
+          setIsLogsOverlayOpen(false);
+          setSelectedCompany(null);
+        }}
+      />
+
+      <PermissionsModal 
+        company={selectedCompany} 
+        isOpen={isPermissionsModalOpen} 
+        onClose={() => {
+          setIsPermissionsModalOpen(false);
+          setSelectedCompany(null);
+        }}
+      />
+
+      <DeactivateCompanyModal 
+        company={selectedCompany} 
+        isOpen={isDeactivateModalOpen} 
+        onClose={() => {
+          setIsDeactivateModalOpen(false);
+          setSelectedCompany(null);
+        }}
+        onSuccess={refreshCompanies}
+      />
     </div>
   );
 };
