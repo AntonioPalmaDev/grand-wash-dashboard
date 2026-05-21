@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useCompany } from "@/context/CompanyContext";
+import { Company } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
