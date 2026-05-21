@@ -22,6 +22,8 @@ import RestorePage from "@/pages/RestorePage";
 import PainelFinanceiroPage from "@/pages/PainelFinanceiroPage";
 import AdminMasterPage from "@/pages/AdminMasterPage";
 import NotFound from "@/pages/NotFound";
+import InvitePage from "@/pages/InvitePage";
+
 
 // Admin Global Pages
 import GlobalDashboard from "@/pages/admin/GlobalDashboard";
@@ -118,9 +120,13 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <BrowserRouter>
-          <ProtectedApp />
+          <Routes>
+            <Route path="/invite/:token" element={<InvitePage />} />
+            <Route path="*" element={<ProtectedApp />} />
+          </Routes>
         </BrowserRouter>
       </AuthProvider>
+
     </TooltipProvider>
   </QueryClientProvider>
 );
