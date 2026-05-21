@@ -52,12 +52,9 @@ function ProtectedApp() {
 
   if (!user) return <AuthPage />;
 
-  return (
-    <CompanyProvider>
-      <CompanyWrapper />
-    </CompanyProvider>
-  );
+  return <CompanyWrapper />;
 }
+
 
 function CompanyWrapper() {
   const { activeCompany, loading, isGlobalMode } = useCompany();
