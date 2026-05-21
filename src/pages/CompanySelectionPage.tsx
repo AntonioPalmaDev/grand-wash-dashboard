@@ -56,6 +56,36 @@ const CompanySelectionPage = () => {
   const [isLogsOverlayOpen, setIsLogsOverlayOpen] = useState(false);
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    if (availableCompanies.length > 0) {
+      const ctx = gsap.context(() => {
+        // Animação de entrada do Header
+        gsap.from(".header-content > *", {
+          y: 30,
+          opacity: 0,
+          duration: 1,
+          stagger: 0.2,
+          ease: "expo.out"
+        });
+
+        // Animação dos Cards em cascata
+        gsap.from(".company-card", {
+          y: 50,
+          opacity: 0,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: "power3.out",
+          delay: 0.3
+        });
+      }, containerRef);
+
+      return () => ctx.revert();
+    }
+  }, [availableCompanies]);
+
 
 
   const handleCreate = async () => {
