@@ -269,14 +269,13 @@ const CompanySelectionPage = () => {
                       Editar
                     </Button>
                     <Button 
-                      className={`${company.active ? 'bg-primary hover:bg-primary/90' : 'bg-slate-800 cursor-not-allowed opacity-50'} text-primary-foreground font-black gap-2 group/btn rounded-2xl px-6 h-11 shadow-lg shadow-primary/20`}
-                      disabled={!company.active}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-black gap-2 group/btn rounded-2xl px-6 h-11 shadow-lg shadow-primary/20"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (company.active) switchCompany(company.id);
+                        switchCompany(company.id);
                       }}
                     >
-                      {company.active ? 'Entrar' : 'Bloqueado'} <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                      Entrar <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                     </Button>
                   </div>
                 </div>
