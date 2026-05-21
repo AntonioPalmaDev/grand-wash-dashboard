@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { isGlobalMode, activeCompany, switchCompany } = useCompany();
+  const { isMasterAdmin } = useAuth();
 
   return (
     <SidebarProvider>
