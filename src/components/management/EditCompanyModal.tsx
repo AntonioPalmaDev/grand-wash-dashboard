@@ -22,6 +22,7 @@ export const EditCompanyModal = ({ company, isOpen, onClose, onSuccess }: EditCo
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [active, setActive] = useState(true);
+  const [primaryColor, setPrimaryColor] = useState("#0EA5E9");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -32,6 +33,7 @@ export const EditCompanyModal = ({ company, isOpen, onClose, onSuccess }: EditCo
       setName(company.name);
       setDescription(company.description || "");
       setActive(company.active);
+      setPrimaryColor(company.primaryColor || "#0EA5E9");
       setTags(company.tags || []);
     }
   }, [company]);
