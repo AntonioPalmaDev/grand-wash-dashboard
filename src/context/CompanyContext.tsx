@@ -51,8 +51,7 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     const { data, error } = await supabase
       .from("companies")
-      .select("*")
-      .eq("active", true);
+      .select("*");
 
     if (data) {
       const mapped = data.map(mapCompany);
