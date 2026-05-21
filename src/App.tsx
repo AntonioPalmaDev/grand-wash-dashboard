@@ -64,12 +64,8 @@ function CompanyWrapper() {
     );
   }
 
-  // Se não tiver empresa ativa e não for admin global, vai para seleção simples
-  // Se for admin, o layout global cuida da navegação
-  if (!isGlobalMode && !activeCompany) {
-    if (isMasterAdmin) {
-      return <Navigate to="/admin" replace />;
-    }
+  // A Central de Empresas é o ponto de entrada para seleção/gestão
+  if (!activeCompany) {
     return <CompanySelectionPage />;
   }
 
