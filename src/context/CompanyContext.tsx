@@ -49,16 +49,34 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     }
 
     setLoading(true);
-    const { data, error } = await supabase
-      .from("companies")
-      .select("*");
+    console.log("[CompanyContext] Refreshing companies for user:", user.id);
+
+    // Primeiro, buscamos se o usuário é Master Admin direto do profile
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_master_admin")
+      .eq("user_id", user.id)
+      .single();
+
+    const isUserMaster = profile?.is_master_admin || false;
+    console.log("[CompanyContext] Is Master Admin:", isUserMaster);
+
+    let query = supabase.from("companies").select("*");
+
+    // Se não for master, filtramos apenas as empresas que ele tem vínculo ou que são públicas/ativas
+    // O RLS já cuida disso no banco, então podemos apenas dar o select *
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("[CompanyContext] Error fetching companies:", error);
+    }
 
     if (data) {
+      console.log("[CompanyContext] Companies found:", data.length);
       const mapped = data.map(mapCompany);
       setAvailableCompanies(mapped);
       
       const savedId = localStorage.getItem("active_company_id");
-      // Don't auto-set active company if in selection page or if no saved ID
       const found = mapped.find(c => c.id === savedId) || null;
       
       if (!isGlobalMode && found && location.pathname !== "/selecao-empresa") {
@@ -70,7 +88,7 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     }
 
     setLoading(false);
-  }, [user, isGlobalMode]);
+  }, [user, isGlobalMode, location.pathname]);
 
   const hexToHSL = (hex: string) => {
     let r = 0, g = 0, b = 0;

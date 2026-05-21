@@ -160,6 +160,18 @@ const CompanySelectionPage = () => {
 
         {/* Grid de Empresas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredCompanies.length === 0 && !searchTerm && (
+            <div className="col-span-full py-20 text-center space-y-4">
+              <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10">
+                <Building2 className="w-10 h-10 text-slate-600" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Nenhuma empresa encontrada</h3>
+              <p className="text-slate-500">Você ainda não está vinculado a nenhuma empresa ou o sistema está carregando.</p>
+              <Button variant="outline" onClick={() => refreshCompanies()} className="mt-4 border-white/10 hover:bg-white/10 rounded-xl">
+                Tentar Recarregar
+              </Button>
+            </div>
+          )}
           {filteredCompanies.map((company) => (
             <Card 
               key={company.id} 
