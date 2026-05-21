@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, Mail, User } from "lucide-react";
 
 export default function AuthPage() {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,6 +18,44 @@ export default function AuthPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const inviteToken = searchParams.get("invite");
+
+  useEffect(() => {
+    if (user && inviteToken) {
+      handleAcceptedInvite(inviteToken);
+    }
+  }, [user, inviteToken]);
+
+  const handleAcceptedInvite = async (token: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.rpc("accept_invitation", {
+        invite_token: token
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result.success) {
+        toast({
+          title: "Convite aceito!",
+          description: "Você foi adicionado à empresa com sucesso.",
+        });
+        window.location.href = "/";
+      } else {
+        setError(result.message);
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

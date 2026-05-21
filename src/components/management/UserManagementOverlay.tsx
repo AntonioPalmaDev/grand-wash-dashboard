@@ -32,6 +32,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { InviteModal } from "./InviteModal";
+
 
 interface UserManagementOverlayProps {
   company: Company | null;
@@ -43,7 +45,9 @@ export const UserManagementOverlay = ({ company, isOpen, onClose }: UserManageme
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const { toast } = useToast();
+
 
   useEffect(() => {
     if (company && isOpen) {
@@ -109,9 +113,13 @@ export const UserManagementOverlay = ({ company, isOpen, onClose }: UserManageme
                 className="bg-white/5 border-white/10 text-white pl-10 h-11 rounded-xl focus:ring-primary"
               />
             </div>
-            <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 font-bold shadow-lg shadow-primary/20 gap-2">
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 font-bold shadow-lg shadow-primary/20 gap-2"
+              onClick={() => setIsInviteModalOpen(true)}
+            >
               <UserPlus className="w-4 h-4" /> Convidar
             </Button>
+
           </div>
         </div>
 
@@ -187,7 +195,14 @@ export const UserManagementOverlay = ({ company, isOpen, onClose }: UserManageme
             Fechar Painel
           </Button>
         </div>
+
+        <InviteModal 
+          company={company} 
+          isOpen={isInviteModalOpen} 
+          onClose={() => setIsInviteModalOpen(false)} 
+        />
       </SheetContent>
     </Sheet>
+
   );
 };
