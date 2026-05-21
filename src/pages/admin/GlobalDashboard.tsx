@@ -130,8 +130,8 @@ const GlobalDashboard = () => {
             Status do Sistema
           </Button>
           <Button size="sm" className="gap-2" onClick={() => navigate('/admin/companies')}>
-            <Plus className="size-4" />
-            Nova Empresa
+            <Building2 className="size-4" />
+            Central de Empresas
           </Button>
         </div>
       </div>
