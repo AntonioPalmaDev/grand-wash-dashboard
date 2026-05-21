@@ -159,15 +159,16 @@ const App = () => {
         <Toaster />
         <Sonner />
         <AuthProvider>
-          <CompanyProvider>
-            <BrowserRouter>
+          <BrowserRouter>
+            <CompanyProvider>
               <Routes>
                 <Route path="/invite/:token" element={<InvitePage />} />
                 <Route path="*" element={<ProtectedApp />} />
               </Routes>
-            </BrowserRouter>
-          </CompanyProvider>
+            </CompanyProvider>
+          </BrowserRouter>
         </AuthProvider>
+
 
       </TooltipProvider>
     </QueryClientProvider>
