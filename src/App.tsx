@@ -99,7 +99,7 @@ function CompanyWrapper() {
           {isMasterAdmin && (
             <>
               <Route path="/admin" element={<GlobalDashboard />} />
-              <Route path="/admin/companies" element={<GlobalCompaniesPage />} />
+              <Route path="/admin/companies" element={<CompanySelectionPage />} />
               <Route path="/admin/users" element={<UsersPage />} />
               <Route path="/admin/logs" element={<AuditLogsPage />} />
               <Route path="/admin-master" element={<Navigate to="/admin" replace />} />
