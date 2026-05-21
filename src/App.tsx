@@ -25,7 +25,7 @@ import NotFound from "@/pages/NotFound";
 
 // Admin Global Pages
 import GlobalDashboard from "@/pages/admin/GlobalDashboard";
-import GlobalCompaniesPage from "@/pages/admin/GlobalCompaniesPage";
+// Global Companies Page was merged into CompanySelectionPage
 
 const queryClient = new QueryClient();
 
@@ -64,8 +64,12 @@ function CompanyWrapper() {
     );
   }
 
-  // Se não estiver em modo global e não tiver empresa ativa, redireciona para seleção
+  // Se não tiver empresa ativa e não for admin global, vai para seleção simples
+  // Se for admin, o layout global cuida da navegação
   if (!isGlobalMode && !activeCompany) {
+    if (isMasterAdmin) {
+      return <Navigate to="/admin" replace />;
+    }
     return <CompanySelectionPage />;
   }
 
@@ -95,7 +99,7 @@ function CompanyWrapper() {
           {isMasterAdmin && (
             <>
               <Route path="/admin" element={<GlobalDashboard />} />
-              <Route path="/admin/companies" element={<GlobalCompaniesPage />} />
+              <Route path="/admin/companies" element={<CompanySelectionPage />} />
               <Route path="/admin/users" element={<UsersPage />} />
               <Route path="/admin/logs" element={<AuditLogsPage />} />
               <Route path="/admin-master" element={<Navigate to="/admin" replace />} />

@@ -121,8 +121,8 @@ const GlobalDashboard = () => {
     <div className="p-6 space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard Global</h1>
-          <p className="text-muted-foreground">Visão geral de todo o ecossistema SaaS</p>
+          <h1 className="text-3xl font-bold tracking-tight">Métricas Globais</h1>
+          <p className="text-muted-foreground">Consolidado de performance de todo o ecossistema</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="gap-2">
@@ -130,8 +130,8 @@ const GlobalDashboard = () => {
             Status do Sistema
           </Button>
           <Button size="sm" className="gap-2" onClick={() => navigate('/admin/companies')}>
-            <Plus className="size-4" />
-            Nova Empresa
+            <Building2 className="size-4" />
+            Central de Empresas
           </Button>
         </div>
       </div>
