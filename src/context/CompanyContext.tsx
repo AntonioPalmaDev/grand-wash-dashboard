@@ -26,6 +26,8 @@ function mapCompany(r: any): Company {
     primaryColor: r.primary_color || "#0EA5E9",
     secondaryColor: r.secondary_color || "#6366F1",
     active: r.active,
+    description: r.description || "",
+    tags: r.tags || [],
     createdAt: r.created_at,
   };
 }
