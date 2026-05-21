@@ -105,6 +105,25 @@ export const EditCompanyModal = ({ company, isOpen, onClose, onSuccess }: EditCo
                 className="bg-white/5 border-white/10 text-white h-12 rounded-xl focus:ring-primary"
               />
             </div>
+            <div className="space-y-2">
+              <Label className="text-slate-400 font-medium">Cor Principal</Label>
+              <div className="flex gap-2">
+                <Input 
+                  type="color"
+                  value={primaryColor} 
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="bg-white/5 border-white/10 h-12 w-20 rounded-xl p-1 cursor-pointer"
+                />
+                <Input 
+                  value={primaryColor} 
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="bg-white/5 border-white/10 text-white h-12 flex-1 rounded-xl focus:ring-primary font-mono"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2 flex flex-col justify-end">
               <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10 h-12">
                 <Label className="text-slate-400 font-medium">Status da Empresa</Label>
