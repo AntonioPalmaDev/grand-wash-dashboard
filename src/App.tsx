@@ -64,8 +64,12 @@ function CompanyWrapper() {
     );
   }
 
-  // Se não estiver em modo global e não tiver empresa ativa, redireciona para seleção
+  // Se não tiver empresa ativa e não for admin global, vai para seleção simples
+  // Se for admin, o layout global cuida da navegação
   if (!isGlobalMode && !activeCompany) {
+    if (isMasterAdmin) {
+      return <Navigate to="/admin" replace />;
+    }
     return <CompanySelectionPage />;
   }
 
