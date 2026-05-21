@@ -34,8 +34,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 const globalItems = [
-  { title: "Dashboard Global", url: "/admin", icon: Globe },
-  { title: "Empresas", url: "/admin/companies", icon: Building2 },
+  { title: "Métricas Globais", url: "/admin", icon: PieChart },
+  { title: "Central de Empresas", url: "/admin/companies", icon: Building2 },
   { title: "Usuários Globais", url: "/admin/users", icon: Users },
   { title: "Logs do Sistema", url: "/admin/logs", icon: FileText },
   { title: "Métricas Gerais", url: "/admin/metrics", icon: PieChart },
