@@ -231,9 +231,11 @@ const CompanySelectionPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-5 rounded-3xl bg-white/5 border border-white/5 space-y-1.5 hover:bg-white/10 transition-all duration-300">
                     <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest flex items-center gap-2">
-                      <Activity className="w-3 h-3 text-green-500" /> Status
+                      <Activity className={`w-3 h-3 ${company.active ? 'text-green-500' : 'text-red-500'}`} /> Status
                     </p>
-                    <p className="text-sm font-bold text-slate-200 uppercase">Ativa</p>
+                    <p className={`text-sm font-bold uppercase ${company.active ? 'text-slate-200' : 'text-red-400'}`}>
+                      {company.active ? 'Ativa' : 'Inativa'}
+                    </p>
                   </div>
                   <div className="p-5 rounded-3xl bg-white/5 border border-white/5 space-y-1.5 hover:bg-white/10 transition-all duration-300">
                     <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest flex items-center gap-2">
