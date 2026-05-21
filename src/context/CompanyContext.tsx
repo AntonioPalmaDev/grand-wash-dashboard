@@ -105,7 +105,7 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     if (!companyId) {
       setActiveCompany(null);
       localStorage.removeItem("active_company_id");
-      window.location.href = "/admin";
+      window.location.href = "/selecao-empresa";
       return;
     }
 

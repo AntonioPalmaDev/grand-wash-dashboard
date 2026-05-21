@@ -103,7 +103,7 @@ export function CompanySidebar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => switchCompany(null)} className="flex items-center gap-2 cursor-pointer text-primary py-2 font-medium">
                     <Globe className="size-4" />
-                    <span>Voltar para Central Global</span>
+                    <span>Trocar Empresa / Gestão</span>
                   </DropdownMenuItem>
                 </>
               )}

@@ -2,17 +2,19 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { CompanySidebar } from "@/components/CompanySidebar";
 import { GlobalSidebar } from "@/components/GlobalSidebar";
 import { useCompany } from "@/context/CompanyContext";
+import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Globe, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { isGlobalMode, activeCompany, switchCompany } = useCompany();
+  const { isMasterAdmin } = useAuth();
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
-        {isGlobalMode ? <GlobalSidebar /> : <CompanySidebar />}
+        {isGlobalMode && isMasterAdmin ? <GlobalSidebar /> : <CompanySidebar />}
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-14 flex items-center justify-between border-b border-border/50 px-4 glass-card sticky top-0 z-10">
             <div className="flex items-center gap-4">
@@ -43,7 +45,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 className="text-xs text-muted-foreground hover:text-primary gap-2"
               >
                 <ArrowLeft className="size-3" />
-                Sair da Empresa
+                Trocar Empresa / Gestão
               </Button>
             )}
           </header>
