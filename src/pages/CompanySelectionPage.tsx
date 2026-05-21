@@ -171,20 +171,55 @@ const CompanySelectionPage = () => {
                     <DropdownMenuContent align="end" className="w-60 bg-slate-900 border-white/10 text-slate-200 p-2 rounded-2xl">
                       <DropdownMenuLabel className="px-3 py-2 text-xs font-bold uppercase tracking-widest text-slate-500">Gestão do Ambiente</DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-white/5 mx-2" />
-                      <DropdownMenuItem className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary">
+                      <DropdownMenuItem 
+                        className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCompany(company);
+                          setIsEditModalOpen(true);
+                        }}
+                      >
                         <Settings className="w-4 h-4" /> <span>Editar Informações</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary">
+                      <DropdownMenuItem 
+                        className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCompany(company);
+                          setIsUsersOverlayOpen(true);
+                        }}
+                      >
                         <Users className="w-4 h-4" /> <span>Gerenciar Usuários</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary">
+                      <DropdownMenuItem 
+                        className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCompany(company);
+                          setIsLogsOverlayOpen(true);
+                        }}
+                      >
                         <FileText className="w-4 h-4" /> <span>Visualizar Logs</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary">
+                      <DropdownMenuItem 
+                        className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCompany(company);
+                          setIsPermissionsModalOpen(true);
+                        }}
+                      >
                         <ShieldCheck className="w-4 h-4" /> <span>Permissões</span>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator className="bg-white/5 mx-2" />
-                      <DropdownMenuItem className="gap-3 cursor-pointer py-3 rounded-xl text-red-400 focus:bg-red-500/10 focus:text-red-400">
+                      <DropdownMenuItem 
+                        className="gap-3 cursor-pointer py-3 rounded-xl text-red-400 focus:bg-red-500/10 focus:text-red-400"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCompany(company);
+                          setIsDeactivateModalOpen(true);
+                        }}
+                      >
                         <Lock className="w-4 h-4" /> <span>Desativar Contexto</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
