@@ -16,10 +16,8 @@ import {
   MoreHorizontal, 
   Activity, 
   ArrowRight,
-  Filter,
   Globe,
-  Lock,
-  LayoutDashboard
+  Lock
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -57,7 +55,6 @@ const CompanySelectionPage = () => {
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     if (availableCompanies.length > 0) {
@@ -86,8 +83,6 @@ const CompanySelectionPage = () => {
     }
   }, [availableCompanies]);
 
-
-
   const handleCreate = async () => {
     if (!newName.trim()) return;
     const { error } = await createCompany(newName);
@@ -105,13 +100,6 @@ const CompanySelectionPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col items-center p-6 sm:p-12 font-sans selection:bg-primary/30">
-      {/* Background patterns */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full opacity-40" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full opacity-30" />
-      </div>
-
     <div ref={containerRef} className="min-h-screen bg-slate-950 text-slate-200 flex flex-col items-center p-6 sm:p-12 font-sans selection:bg-primary/30">
       {/* Background patterns */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -131,9 +119,8 @@ const CompanySelectionPage = () => {
           </p>
         </div>
 
-
         {/* Search & Actions Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in duration-700 delay-200">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <div className="relative w-full max-w-md group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition-colors" />
             <input 
@@ -172,11 +159,11 @@ const CompanySelectionPage = () => {
         </div>
 
         {/* Grid de Empresas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredCompanies.map((company) => (
             <Card 
               key={company.id} 
-              className="group relative border-white/10 bg-white/5 hover:bg-white/[0.08] hover:border-primary/40 transition-all cursor-pointer overflow-hidden rounded-[2.5rem] shadow-2xl border-2 flex flex-col min-h-[340px]"
+              className="company-card group relative border-white/10 bg-white/5 hover:bg-white/[0.08] hover:border-primary/40 transition-all cursor-pointer overflow-hidden rounded-[2.5rem] shadow-2xl border-2 flex flex-col min-h-[340px]"
             >
               {/* Subtle Blue Glow on Hover */}
               <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/20 blur-[100px] rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500" />
@@ -326,7 +313,7 @@ const CompanySelectionPage = () => {
           {/* Card Especial de Nova Empresa (Sempre o Último) */}
           <button 
             onClick={() => setIsCreating(true)}
-            className="group relative flex flex-col items-center justify-center p-12 rounded-[2.5rem] border-4 border-dashed border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all min-h-[340px] overflow-hidden"
+            className="company-card group relative flex flex-col items-center justify-center p-12 rounded-[2.5rem] border-4 border-dashed border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all min-h-[340px] overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="w-20 h-20 rounded-[2rem] bg-primary/10 flex items-center justify-center mb-8 group-hover:scale-110 transition-all duration-500 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-[0_0_40px_rgba(var(--primary),0.3)]">
