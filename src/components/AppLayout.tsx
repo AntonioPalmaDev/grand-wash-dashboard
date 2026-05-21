@@ -45,7 +45,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 className="text-xs text-muted-foreground hover:text-primary gap-2"
               >
                 <ArrowLeft className="size-3" />
-                Sair da Empresa
+                Trocar Empresa / Gestão
               </Button>
             )}
           </header>
