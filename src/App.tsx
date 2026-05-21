@@ -25,7 +25,7 @@ import NotFound from "@/pages/NotFound";
 
 // Admin Global Pages
 import GlobalDashboard from "@/pages/admin/GlobalDashboard";
-import GlobalCompaniesPage from "@/pages/admin/GlobalCompaniesPage";
+// Global Companies Page was merged into CompanySelectionPage
 
 const queryClient = new QueryClient();
 
