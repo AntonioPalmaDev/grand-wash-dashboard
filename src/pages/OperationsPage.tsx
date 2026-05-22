@@ -76,7 +76,7 @@ function PixInlineEditor({ op }: { op: Operation }) {
 
 export default function OperationsPage() {
   const { operations, clients, addOperation, updateOperationStatus, deleteOperation, getUserName } = useApp();
-  const { isDev } = useRole();
+  const { isDev, canEdit } = useRole();
   const [open, setOpen] = useState(false);
   const [clientId, setClientId] = useState("");
   const [valorBruto, setValorBruto] = useState("");
@@ -129,62 +129,64 @@ export default function OperationsPage() {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold">Operações</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto"><Plus className="mr-2 h-4 w-4" /> Nova Operação</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg w-[calc(100vw-2rem)]">
-            <DialogHeader><DialogTitle>Registrar Operação</DialogTitle></DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Cliente</Label>
-                <Select value={clientId} onValueChange={setClientId}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.nome} ({c.tipo})</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Valor Bruto (R$)</Label>
-                <Input type="number" inputMode="decimal" value={valorBruto} onChange={e => setValorBruto(e.target.value)} placeholder="0.00" />
-              </div>
-              <div>
-                <Label>PIX (opcional)</Label>
-                <Input
-                  value={pix}
-                  onChange={e => setPix(onlyDigits(e.target.value))}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  placeholder="Somente números"
-                />
-                <p className="text-xs text-muted-foreground mt-1">Aceita apenas dígitos. Bloqueia após conclusão.</p>
-              </div>
-              <div>
-                <Label>Responsável</Label>
-                {isDev ? (
-                  <Input value={responsavel} onChange={e => setResponsavel(e.target.value)} placeholder={autoResponsavel} />
-                ) : (
-                  <Input value={autoResponsavel} disabled className="opacity-70" />
-                )}
-                {!isDev && <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente com seu usuário</p>}
-              </div>
-
-              {preview && (
-                <div className="bg-secondary/30 rounded-lg p-4 space-y-2 text-sm">
-                  <div className="text-xs font-semibold text-primary mb-2">🧠 Simulação</div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Taxa</span><span className="font-mono">{formatPercent(preview.taxa)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Lucro Bruto</span><span className="font-mono">{formatCurrency(preview.lucroBruto)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Custo Máquina</span><span className="font-mono">{formatCurrency(preview.custoMaquina)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Lucro Líquido</span><span className="font-mono font-bold text-primary">{formatCurrency(preview.lucroLiquido)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Valor ao Cliente</span><span className="font-mono">{formatCurrency(preview.valorCliente)}</span></div>
+        {canEdit && (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto"><Plus className="mr-2 h-4 w-4" /> Nova Operação</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg w-[calc(100vw-2rem)]">
+              <DialogHeader><DialogTitle>Registrar Operação</DialogTitle></DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Cliente</Label>
+                  <Select value={clientId} onValueChange={setClientId}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.nome} ({c.tipo})</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
+                <div>
+                  <Label>Valor Bruto (R$)</Label>
+                  <Input type="number" inputMode="decimal" value={valorBruto} onChange={e => setValorBruto(e.target.value)} placeholder="0.00" />
+                </div>
+                <div>
+                  <Label>PIX (opcional)</Label>
+                  <Input
+                    value={pix}
+                    onChange={e => setPix(onlyDigits(e.target.value))}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="Somente números"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Aceita apenas dígitos. Bloqueia após conclusão.</p>
+                </div>
+                <div>
+                  <Label>Responsável</Label>
+                  {isDev ? (
+                    <Input value={responsavel} onChange={e => setResponsavel(e.target.value)} placeholder={autoResponsavel} />
+                  ) : (
+                    <Input value={autoResponsavel} disabled className="opacity-70" />
+                  )}
+                  {!isDev && <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente com seu usuário</p>}
+                </div>
 
-              <Button onClick={handleAdd} className="w-full" disabled={!clientId || !valorBruto || Number(valorBruto) <= 0}>Registrar</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+                {preview && (
+                  <div className="bg-secondary/30 rounded-lg p-4 space-y-2 text-sm">
+                    <div className="text-xs font-semibold text-primary mb-2">🧠 Simulação</div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Taxa</span><span className="font-mono">{formatPercent(preview.taxa)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Lucro Bruto</span><span className="font-mono">{formatCurrency(preview.lucroBruto)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Custo Máquina</span><span className="font-mono">{formatCurrency(preview.custoMaquina)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Lucro Líquido</span><span className="font-mono font-bold text-primary">{formatCurrency(preview.lucroLiquido)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Valor ao Cliente</span><span className="font-mono">{formatCurrency(preview.valorCliente)}</span></div>
+                  </div>
+                )}
+
+                <Button onClick={handleAdd} className="w-full" disabled={!clientId || !valorBruto || Number(valorBruto) <= 0}>Registrar</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {/* Filtros */}

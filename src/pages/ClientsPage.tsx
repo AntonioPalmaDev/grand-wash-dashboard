@@ -12,7 +12,7 @@ import type { Client, ClientType } from "@/types";
 
 export default function ClientsPage() {
   const { clients, addClient, updateClient, deleteClient, getClientStats, getClientRate, config } = useApp();
-  const { isDev } = useRole();
+  const { isDev, canEdit } = useRole();
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState<ClientType>("PF");
@@ -62,41 +62,43 @@ export default function ClientsPage() {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold">Gestão de Clientes</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto"><Plus className="mr-2 h-4 w-4" /> Novo Cliente</Button>
-          </DialogTrigger>
-          <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
-            <DialogHeader><DialogTitle>Cadastrar Cliente</DialogTitle></DialogHeader>
-            <div className="space-y-4 pt-4">
-              <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-3">
-                  <Label>Nome</Label>
-                  <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Família Silva" />
+        {canEdit && (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto"><Plus className="mr-2 h-4 w-4" /> Novo Cliente</Button>
+            </DialogTrigger>
+            <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
+              <DialogHeader><DialogTitle>Cadastrar Cliente</DialogTitle></DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="col-span-3">
+                    <Label>Nome</Label>
+                    <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Família Silva" />
+                  </div>
+                  <div className="col-span-1">
+                    <Label>Cor</Label>
+                    <Input type="color" value={cor} onChange={e => setCor(e.target.value)} className="h-10 p-1 cursor-pointer" />
+                  </div>
                 </div>
-                <div className="col-span-1">
-                  <Label>Cor</Label>
-                  <Input type="color" value={cor} onChange={e => setCor(e.target.value)} className="h-10 p-1 cursor-pointer" />
+                <div>
+                  <Label>Tipo</Label>
+                  <Select value={tipo} onValueChange={v => setTipo(v as ClientType)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PF">Pessoa Física (PF)</SelectItem>
+                      <SelectItem value="PJ">Empresa (PJ)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+                <div>
+                  <Label>Taxa (%)</Label>
+                  <Input type="number" value={taxaCustom} onChange={e => setTaxaCustom(e.target.value)} placeholder={`Padrão: ${tipo === "PF" ? config.taxaPF : config.taxaPJ}%`} />
+                </div>
+                <Button onClick={handleAdd} className="w-full">Salvar</Button>
               </div>
-              <div>
-                <Label>Tipo</Label>
-                <Select value={tipo} onValueChange={v => setTipo(v as ClientType)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PF">Pessoa Física (PF)</SelectItem>
-                    <SelectItem value="PJ">Empresa (PJ)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Taxa (%)</Label>
-                <Input type="number" value={taxaCustom} onChange={e => setTaxaCustom(e.target.value)} placeholder={`Padrão: ${tipo === "PF" ? config.taxaPF : config.taxaPJ}%`} />
-              </div>
-              <Button onClick={handleAdd} className="w-full">Salvar</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="flex gap-2">
@@ -123,7 +125,7 @@ export default function ClientsPage() {
                   <span className="font-bold text-lg">{client.nome}</span>
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => handleStartEdit(client)} className="h-8 w-8"><Pencil size={14} /></Button>
+                  {canEdit && <Button variant="ghost" size="icon" onClick={() => handleStartEdit(client)} className="h-8 w-8"><Pencil size={14} /></Button>}
                   {isDev && (
                     <Button variant="ghost" size="icon" onClick={() => deleteClient(client.id)} className="h-8 w-8 text-destructive"><Trash2 size={14} /></Button>
                   )}

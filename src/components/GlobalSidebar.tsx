@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/context/AuthContext";
+import { useRole } from "@/hooks/useRole";
 import { useCompany } from "@/context/CompanyContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,7 +52,10 @@ const globalItems = [
 export function GlobalSidebar() {
   const { state } = useSidebar();
   const { signOut, user } = useAuth();
+  const { canAccessAdmin, role } = useRole();
   const collapsed = state === "collapsed";
+
+  if (!canAccessAdmin) return null;
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/50 bg-slate-950 text-slate-200">
@@ -96,8 +100,8 @@ export function GlobalSidebar() {
             <div className="px-2 mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
               <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Logado como</p>
               <p className="text-xs text-white font-medium truncate">{user.email}</p>
-              <Badge variant="outline" className="mt-2 text-[9px] border-primary/30 text-primary bg-primary/5 py-0">
-                MASTER ADMIN
+              <Badge variant="outline" className="mt-2 text-[9px] border-primary/30 text-primary bg-primary/5 py-0 uppercase">
+                {role?.replace("_", " ") || "ADMIN"}
               </Badge>
             </div>
           )}
