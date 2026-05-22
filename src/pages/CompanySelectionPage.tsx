@@ -17,7 +17,8 @@ import {
   Activity, 
   ArrowRight,
   Globe,
-  Lock
+  Lock,
+  LogOut
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -41,7 +42,7 @@ import { DeactivateCompanyModal } from "@/components/management/DeactivateCompan
 
 const CompanySelectionPage = () => {
   const { availableCompanies, switchCompany, createCompany, refreshCompanies } = useCompany();
-  const { isMasterAdmin } = useAuth();
+  const { isMasterAdmin, signOut } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -109,7 +110,18 @@ const CompanySelectionPage = () => {
             />
           </div>
           
-          <Dialog open={isCreating} onOpenChange={setIsCreating}>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="rounded-2xl gap-2 border-white/10 hover:bg-white/10 text-slate-400 hover:text-white h-12"
+              onClick={() => signOut()}
+            >
+              <LogOut className="w-5 h-5" /> Logout
+            </Button>
+
+            <Dialog open={isCreating} onOpenChange={setIsCreating}>
+
             <DialogTrigger asChild>
               <Button size="lg" className="rounded-2xl gap-2 shadow-lg shadow-primary/20 font-bold px-8 h-12">
                 <Plus className="w-5 h-5" /> Nova Empresa
@@ -133,7 +145,8 @@ const CompanySelectionPage = () => {
                 <Button className="w-full h-12 shadow-lg shadow-primary/20 font-bold rounded-xl" onClick={handleCreate}>Confirmar Cadastro</Button>
               </div>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
 
         {/* Grid de Empresas */}
