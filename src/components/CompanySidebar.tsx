@@ -69,8 +69,8 @@ export function CompanySidebar() {
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton size="lg" className="hover:bg-accent transition-colors border border-border/50 rounded-lg shadow-sm">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  {activeCompany?.logo ? (
-                    <img src={activeCompany.logo} alt={activeCompany.name} className="h-6 w-6 object-contain" />
+                  {activeCompany?.logo_url ? (
+                    <img src={activeCompany.logo_url} alt={activeCompany.name} className="h-6 w-6 object-contain" />
                   ) : (
                     <Building2 className="size-4" />
                   )}

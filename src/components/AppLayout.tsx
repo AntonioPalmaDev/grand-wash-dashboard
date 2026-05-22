@@ -29,7 +29,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   </>
                 ) : (
                   <>
-                    <Building2 className="size-4 text-primary" />
+                    {activeCompany?.logo_url ? (
+                      <img src={activeCompany.logo_url} alt={activeCompany.name} className="size-6 object-contain" />
+                    ) : (
+                      <Building2 className="size-4 text-primary" />
+                    )}
                     <span className="text-sm font-bold tracking-tight uppercase">{activeCompany?.name}</span>
                     <Badge variant="secondary" className="text-[10px]">INTERNAL AREA</Badge>
                   </>

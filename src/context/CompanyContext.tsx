@@ -22,7 +22,7 @@ function mapCompany(r: any): Company {
     id: r.id,
     name: r.name,
     slug: r.slug,
-    logo: r.logo,
+    logo_url: r.logo_url || null,
     primaryColor: r.primary_color || "#0EA5E9",
     secondaryColor: r.secondary_color || "#6366F1",
     active: r.active,
