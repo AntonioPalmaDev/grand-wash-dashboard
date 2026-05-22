@@ -51,8 +51,6 @@ const companyItems = [
   { title: "Relatórios", url: "/painel-financeiro", icon: PieChart },
   { title: "Histórico", url: "/historico", icon: History },
   { title: "Usuários", url: "/usuarios", icon: Users },
-  { title: "Automações", url: "/automacoes", icon: Zap },
-  { title: "Integrações", url: "/integracoes", icon: Bot },
   { title: "Logs da Empresa", url: "/logs", icon: FileText },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
