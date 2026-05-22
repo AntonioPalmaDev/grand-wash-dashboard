@@ -234,16 +234,6 @@ const CompanySelectionPage = () => {
                       >
                         <FileText className="w-4 h-4" /> <span>Visualizar Logs</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedCompany(company);
-                          setIsPermissionsModalOpen(true);
-                        }}
-                      >
-                        <ShieldCheck className="w-4 h-4" /> <span>Permissões</span>
-                      </DropdownMenuItem>
                       <DropdownMenuSeparator className="bg-white/5 mx-2" />
                       <DropdownMenuItem 
                         className="gap-3 cursor-pointer py-3 rounded-xl text-red-400 focus:bg-red-500/10 focus:text-red-400"
