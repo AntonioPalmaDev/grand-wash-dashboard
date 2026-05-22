@@ -22,7 +22,9 @@ import {
   Building2,
   ShieldCheck,
   AlertTriangle,
-  Check
+  Check,
+  Key,
+  Copy
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -73,6 +75,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
   const [newRole, setNewRole] = useState("");
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   
+  const [generatedToken, setGeneratedToken] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -81,6 +84,38 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
       fetchCompanies();
     }
   }, [isOpen]);
+
+  const generateAnonymousToken = async () => {
+    const token = Math.random().toString(36).substring(2, 10).toUpperCase();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase.from("anonymous_tokens").insert({
+        token,
+        created_by: user?.id
+      });
+
+      if (error) throw error;
+      
+      setGeneratedToken(token);
+      toast({
+        title: "Token Gerado!",
+        description: `O token ${token} é válido por 24 horas.`
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao gerar token",
+        description: error.message
+      });
+    }
+  };
+
+  const copyToken = () => {
+    if (generatedToken) {
+      navigator.clipboard.writeText(generatedToken);
+      toast({ title: "Token copiado!" });
+    }
+  };
 
   const fetchCompanies = async () => {
     const { data } = await supabase.from("companies").select("id, name").eq("active", true);
@@ -309,13 +344,35 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
       <SheetContent side="right" className="w-full sm:max-w-2xl bg-slate-950 border-white/10 p-0 overflow-hidden flex flex-col">
         <div className="p-8 border-b border-white/5 space-y-6">
           <SheetHeader className="space-y-1 text-left">
-            <SheetTitle className="text-3xl font-black text-white flex items-center gap-3">
-              <ShieldCheck className="w-8 h-8 text-primary" /> Usuários Globais
-            </SheetTitle>
+            <div className="flex items-center justify-between">
+              <SheetTitle className="text-3xl font-black text-white flex items-center gap-3">
+                <ShieldCheck className="w-8 h-8 text-primary" /> Usuários Globais
+              </SheetTitle>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={generateAnonymousToken}
+                className="border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 gap-2"
+              >
+                <Key className="w-4 h-4" /> Gerar Token Acesso
+              </Button>
+            </div>
             <SheetDescription className="text-slate-400 font-medium">
               Gerencie todos os usuários cadastrados em todo o ecossistema.
             </SheetDescription>
           </SheetHeader>
+
+          {generatedToken && (
+            <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-primary uppercase">Token Ativo (Expira em 24h)</span>
+                <span className="text-xl font-mono font-black text-white tracking-widest">{generatedToken}</span>
+              </div>
+              <Button size="icon" variant="ghost" onClick={copyToken} className="hover:bg-primary/20 text-primary">
+                <Copy className="w-5 h-5" />
+              </Button>
+            </div>
+          )}
 
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition-colors" />
