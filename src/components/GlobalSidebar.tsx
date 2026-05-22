@@ -61,7 +61,7 @@ export function GlobalSidebar() {
     <Sidebar collapsible="icon" className="border-r border-border/50 bg-slate-950 text-slate-200">
       <SidebarContent className="flex flex-col h-full">
         <div className="p-4 flex items-center gap-3">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/20 overflow-hidden">
             <ShieldCheck className="size-5" />
           </div>
           {!collapsed && (
