@@ -21,10 +21,11 @@ interface Profile {
   user_id: string;
   nome: string;
   email: string;
-  role: "desenvolvedor" | "gestao";
+  role: "visualizador" | "gestao" | "desenvolvedor" | "admin_master";
   status: "pendente" | "aprovado" | "rejeitado";
   motivo_rejeicao: string | null;
   created_at: string;
+  company_id?: string;
 }
 
 import { useCompany } from "@/context/CompanyContext";
@@ -42,16 +43,30 @@ export default function UsersPage() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRoleValue] = useState<"desenvolvedor" | "gestao">("gestao");
+  const [role, setRoleValue] = useState<Profile["role"]>("gestao");
+  const [targetCompanyId, setTargetCompanyId] = useState<string>("");
+  const [availableCompaniesList, setAvailableCompaniesList] = useState<any[]>([]);
   const [myName, setMyName] = useState("");
 
   useEffect(() => {
     fetchProfiles();
+    fetchAvailableCompanies();
     if (user) {
       supabase.from("profiles").select("nome").eq("user_id", user.id).single()
         .then(({ data }) => { if (data?.nome) setMyName(data.nome); });
     }
   }, [user, activeCompany]);
+
+  async function fetchAvailableCompanies() {
+    const { data, error } = await supabase
+      .from("companies")
+      .select("id, name")
+      .eq("active", true);
+    if (!error && data) {
+      setAvailableCompaniesList(data);
+      if (activeCompany) setTargetCompanyId(activeCompany.id);
+    }
+  }
 
   const getMyName = () => myName || user?.email || "Sistema";
 
@@ -97,17 +112,39 @@ export default function UsersPage() {
     const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { nome, nome_personagem: nome } } });
     if (error) { toast.error(error.message); return; }
     if (data.user) {
-      if (role === "desenvolvedor") {
-        await supabase.from("profiles").update({ role, nome, company_id: activeCompany?.id }).eq("user_id", data.user.id);
-        await supabase.from("user_roles").upsert({ user_id: data.user.id, role, company_id: activeCompany?.id });
-      } else if (nome) {
-        await supabase.from("profiles").update({ nome, company_id: activeCompany?.id }).eq("user_id", data.user.id);
+      const selectedCompanyId = targetCompanyId || activeCompany?.id;
+      
+      await supabase.from("profiles").update({ 
+        role: role as any, 
+        nome, 
+        company_id: selectedCompanyId 
+      }).eq("user_id", data.user.id);
+
+      if (role === "desenvolvedor" || role === "admin_master") {
+        await supabase.from("user_roles").upsert({ 
+          user_id: data.user.id, 
+          role: role as any, 
+          company_id: selectedCompanyId 
+        });
       }
-      if (activeCompany) {
-        await supabase.from("user_companies").insert({ user_id: data.user.id, company_id: activeCompany.id });
+
+      if (selectedCompanyId) {
+        await supabase.from("user_companies").insert({ 
+          user_id: data.user.id, 
+          company_id: selectedCompanyId 
+        });
       }
       const desc = logCriarUsuario({ responsavel: getMyName(), nomeUsuario: nome || email, email });
-      await registrarLog({ userId: user.id, userEmail: user.email || "", companyId: activeCompany?.id, action: "criar", entity: "usuário", entityId: data.user.id, description: desc, afterData: { nome, email, role } });
+      await registrarLog({ 
+        userId: user.id, 
+        userEmail: user.email || "", 
+        companyId: activeCompany?.id, 
+        action: "criar", 
+        entity: "usuário", 
+        entityId: data.user.id, 
+        description: desc, 
+        afterData: { nome, email, role, company_id: selectedCompanyId } 
+      });
     }
     toast.success("Usuário criado com sucesso");
     setOpen(false); setNome(""); setEmail(""); setPassword(""); setRoleValue("gestao");
@@ -141,15 +178,53 @@ export default function UsersPage() {
     setRejectUserId(userId); setMotivo(""); setRejectOpen(true);
   }
 
-  async function handleChangeRole(userId: string, newRole: "desenvolvedor" | "gestao") {
+  async function handleChangeRole(userId: string, newRole: Profile["role"]) {
     if (!user) return;
     const profile = profiles.find(p => p.user_id === userId);
-    await supabase.from("profiles").update({ role: newRole }).eq("user_id", userId);
+    await supabase.from("profiles").update({ role: newRole as any }).eq("user_id", userId);
     await supabase.from("user_roles").delete().eq("user_id", userId);
-    await supabase.from("user_roles").insert({ user_id: userId, role: newRole });
+    if (newRole === "desenvolvedor" || newRole === "admin_master") {
+      await supabase.from("user_roles").insert({ 
+        user_id: userId, 
+        role: newRole as any, 
+        company_id: profile?.company_id || activeCompany?.id 
+      });
+    }
     const desc = logAlterarRoleUsuario({ responsavel: getMyName(), nomeUsuario: profile?.nome || profile?.email || "---", roleAnterior: profile?.role || "---", roleNova: newRole });
     await registrarLog({ userId: user.id, userEmail: user.email || "", companyId: activeCompany?.id, action: "editar", entity: "usuário", entityId: userId, description: desc, beforeData: { role: profile?.role }, afterData: { role: newRole } });
     toast.success("Role atualizada");
+    fetchProfiles();
+  }
+
+  async function handleChangeCompany(userId: string, newCompanyId: string) {
+    if (!user) return;
+    const profile = profiles.find(p => p.user_id === userId);
+    
+    // Update profile
+    await supabase.from("profiles").update({ company_id: newCompanyId }).eq("user_id", userId);
+    
+    // Update user_companies
+    await supabase.from("user_companies").delete().eq("user_id", userId);
+    await supabase.from("user_companies").insert({ user_id: userId, company_id: newCompanyId });
+    
+    // Update user_roles if applicable
+    if (profile?.role === "desenvolvedor" || profile?.role === "admin_master") {
+      await supabase.from("user_roles").update({ company_id: newCompanyId }).eq("user_id", userId);
+    }
+
+    await registrarLog({ 
+      userId: user.id, 
+      userEmail: user.email || "", 
+      companyId: activeCompany?.id, 
+      action: "editar", 
+      entity: "usuário", 
+      entityId: userId, 
+      description: `Alterou empresa do usuário ${profile?.nome || profile?.email} para ${availableCompaniesList.find(c => c.id === newCompanyId)?.name}`, 
+      beforeData: { company_id: profile?.company_id }, 
+      afterData: { company_id: newCompanyId } 
+    });
+    
+    toast.success("Empresa do usuário atualizada");
     fetchProfiles();
   }
 
@@ -200,12 +275,25 @@ export default function UsersPage() {
               <div><Label>Email</Label><Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemplo.com" /></div>
               <div><Label>Senha</Label><Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" /></div>
               <div>
+                <Label>Empresa</Label>
+                <Select value={targetCompanyId} onValueChange={setTargetCompanyId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione a empresa" /></SelectTrigger>
+                  <SelectContent>
+                    {availableCompaniesList.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>Role</Label>
-                <Select value={role} onValueChange={(v) => setRoleValue(v as "desenvolvedor" | "gestao")}>
+                <Select value={role} onValueChange={(v) => setRoleValue(v as Profile["role"])}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="visualizador">Visualizador</SelectItem>
                     <SelectItem value="gestao">Gestão</SelectItem>
                     <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>
+                    <SelectItem value="admin_master">Admin Master</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -276,18 +364,47 @@ export default function UsersPage() {
         <TabsContent value="approved" className="mt-4">
           <div className="glass-card rounded-lg overflow-hidden">
             <Table>
-              <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Role</TableHead><TableHead>Status</TableHead><TableHead>Alterar Role</TableHead><TableHead>Alterar Status</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Empresa</TableHead><TableHead>Role</TableHead><TableHead>Status</TableHead><TableHead>Alterar Role</TableHead><TableHead>Alterar Empresa</TableHead><TableHead>Alterar Status</TableHead></TableRow></TableHeader>
               <TableBody>
                 {approvedProfiles.map(p => (
                   <TableRow key={p.id}>
-                    <TableCell className="font-medium">{p.nome || "—"}</TableCell>
-                    <TableCell>{p.email}</TableCell>
-                    <TableCell><Badge variant={p.role === "desenvolvedor" ? "default" : "secondary"}><Shield className="h-3 w-3 mr-1" />{p.role === "desenvolvedor" ? "Desenvolvedor" : "Gestão"}</Badge></TableCell>
+                    <TableCell className="font-medium">
+                      <div>{p.nome || "—"}</div>
+                      <div className="text-[10px] text-muted-foreground">{p.email}</div>
+                    </TableCell>
+                    <TableCell>{availableCompaniesList.find(c => c.id === p.company_id)?.name || "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant={
+                        p.role === "admin_master" ? "destructive" : 
+                        p.role === "desenvolvedor" ? "default" : 
+                        p.role === "visualizador" ? "outline" : "secondary"
+                      }>
+                        <Shield className="h-3 w-3 mr-1" />
+                        {p.role === "admin_master" ? "Admin Master" : 
+                         p.role === "desenvolvedor" ? "Desenvolvedor" : 
+                         p.role === "gestao" ? "Gestão" : "Visualizador"}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{statusBadge(p.status)}</TableCell>
                     <TableCell>
                       <Select value={p.role} onValueChange={(v) => handleChangeRole(p.user_id, v as any)}>
                         <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                        <SelectContent><SelectItem value="gestao">Gestão</SelectItem><SelectItem value="desenvolvedor">Desenvolvedor</SelectItem></SelectContent>
+                        <SelectContent>
+                          <SelectItem value="visualizador">Visualizador</SelectItem>
+                          <SelectItem value="gestao">Gestão</SelectItem>
+                          <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>
+                          <SelectItem value="admin_master">Admin Master</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Select value={p.company_id} onValueChange={(v) => handleChangeCompany(p.user_id, v)}>
+                        <SelectTrigger className="w-40"><SelectValue placeholder="Empresa" /></SelectTrigger>
+                        <SelectContent>
+                          {availableCompaniesList.map(c => (
+                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
                     </TableCell>
                     <TableCell>
