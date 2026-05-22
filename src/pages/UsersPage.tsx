@@ -181,12 +181,12 @@ export default function UsersPage() {
   async function handleChangeRole(userId: string, newRole: Profile["role"]) {
     if (!user) return;
     const profile = profiles.find(p => p.user_id === userId);
-    await supabase.from("profiles").update({ role: newRole }).eq("user_id", userId);
+    await supabase.from("profiles").update({ role: newRole as any }).eq("user_id", userId);
     await supabase.from("user_roles").delete().eq("user_id", userId);
     if (newRole === "desenvolvedor" || newRole === "admin_master") {
       await supabase.from("user_roles").insert({ 
         user_id: userId, 
-        role: newRole, 
+        role: newRole as any, 
         company_id: profile?.company_id || activeCompany?.id 
       });
     }
