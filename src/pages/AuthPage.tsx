@@ -118,6 +118,26 @@ export default function AuthPage() {
     setLoading(false);
   }
 
+  const handleAnonLogin = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      // Usando o e-mail 'anonimo@anonimo.com' e a senha 'anonimo'
+      const { error } = await signIn("anonimo@anonimo.com", "anonimo");
+      if (error) {
+        if (error.includes("Invalid login credentials")) {
+          setError("Usuário anônimo ainda não foi configurado por um administrador.");
+        } else {
+          setError(error);
+        }
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="glass-card rounded-xl p-8 w-full max-w-md space-y-6">
@@ -234,9 +254,23 @@ export default function AuthPage() {
           {error && <p className="text-sm text-destructive bg-destructive/10 rounded p-2">{error}</p>}
           {success && <p className="text-sm text-success bg-success/10 rounded p-2">{success}</p>}
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Aguarde..." : isLogin ? "Entrar" : "Criar Conta"}
-          </Button>
+          <div className="space-y-3 pt-2">
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : isLogin ? "Entrar" : "Criar Conta"}
+            </Button>
+            
+            {isLogin && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full border-white/10 hover:bg-white/5 gap-2" 
+                onClick={handleAnonLogin}
+                disabled={loading}
+              >
+                <User className="h-4 w-4" /> Entrar como Anônimo
+              </Button>
+            )}
+          </div>
         </form>
 
         <p className="text-center text-sm text-muted-foreground">
