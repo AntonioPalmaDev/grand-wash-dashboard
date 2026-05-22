@@ -21,7 +21,8 @@ import {
   Loader2,
   Building2,
   ShieldCheck,
-  AlertTriangle
+  AlertTriangle,
+  Check
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -50,6 +51,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface GlobalUserManagementOverlayProps {
   isOpen: boolean;
@@ -69,7 +71,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [companyDialogOpen, setCompanyDialogOpen] = useState(false);
   const [newRole, setNewRole] = useState("");
-  const [newCompanyId, setNewCompanyId] = useState("");
+  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   
   const { toast } = useToast();
 
@@ -88,15 +90,20 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
   const fetchGlobalUsers = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Buscar profiles e seus vínculos na user_companies
+      const { data: profiles, error: profileError } = await supabase
         .from("profiles")
         .select(`
           *,
-          company:companies(name, slug)
+          user_companies(
+            company_id,
+            companies(name, slug)
+          )
         `);
 
-      if (error) throw error;
-      setUsers(data || []);
+      if (profileError) throw profileError;
+      
+      setUsers(profiles || []);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -119,13 +126,18 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
       
       if (error) throw error;
       
+      // Atualizar roles em user_roles se necessário (legado/dependências)
       await supabase.from("user_roles").delete().eq("user_id", selectedUser.user_id);
       if (newRole === "desenvolvedor" || newRole === "admin_master") {
-        await supabase.from("user_roles").insert({
-          user_id: selectedUser.user_id,
-          role: newRole as any,
-          company_id: selectedUser.company_id
-        });
+        // Usa a primeira empresa vinculada como referência se existir
+        const mainCompanyId = selectedUser.user_companies?.[0]?.company_id || selectedUser.company_id;
+        if (mainCompanyId) {
+          await supabase.from("user_roles").insert({
+            user_id: selectedUser.user_id,
+            role: newRole as any,
+            company_id: mainCompanyId
+          });
+        }
       }
 
       toast({ title: "Role atualizada com sucesso" });
@@ -138,23 +150,49 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
     }
   };
 
-  const handleCompanyChange = async () => {
-    if (!selectedUser || !newCompanyId) return;
+  const handleCompanyLinksChange = async () => {
+    if (!selectedUser) return;
     setLoading(true);
     try {
-      await supabase.from("profiles").update({ company_id: newCompanyId }).eq("user_id", selectedUser.user_id);
-      await supabase.from("user_companies").delete().eq("user_id", selectedUser.user_id);
-      await supabase.from("user_companies").insert({ user_id: selectedUser.user_id, company_id: newCompanyId });
+      // 1. Remover todos os vínculos atuais em user_companies
+      const { error: deleteError } = await supabase
+        .from("user_companies")
+        .delete()
+        .eq("user_id", selectedUser.user_id);
       
-      if (selectedUser.role === "desenvolvedor" || selectedUser.role === "admin_master") {
-        await supabase.from("user_roles").update({ company_id: newCompanyId }).eq("user_id", selectedUser.user_id);
+      if (deleteError) throw deleteError;
+
+      // 2. Inserir novos vínculos
+      if (selectedCompanies.length > 0) {
+        const newLinks = selectedCompanies.map(id => ({
+          user_id: selectedUser.user_id,
+          company_id: id
+        }));
+        
+        const { error: insertError } = await supabase
+          .from("user_companies")
+          .insert(newLinks);
+          
+        if (insertError) throw insertError;
+
+        // 3. Atualizar company_id principal no profile (para compatibilidade)
+        await supabase
+          .from("profiles")
+          .update({ company_id: selectedCompanies[0] })
+          .eq("user_id", selectedUser.user_id);
+      } else {
+        // Se desvincular de todas, limpa o profile
+        await supabase
+          .from("profiles")
+          .update({ company_id: null })
+          .eq("user_id", selectedUser.user_id);
       }
 
-      toast({ title: "Empresa atualizada com sucesso" });
+      toast({ title: "Vínculos de empresa atualizados" });
       setCompanyDialogOpen(false);
       fetchGlobalUsers();
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Erro ao atualizar empresa", description: error.message });
+      toast({ variant: "destructive", title: "Erro ao atualizar empresas", description: error.message });
     } finally {
       setLoading(false);
     }
@@ -172,7 +210,6 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
 
     setIsDeleting(true);
     try {
-      // Registrar log antes de deletar
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
       await (supabase.from("audit_logs").insert as any)([{
@@ -185,11 +222,6 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
         before_data: selectedUser as any
       }]);
 
-      // Em um cenário real com Supabase Auth, a exclusão de usuário via client side é limitada.
-      // Geralmente usamos uma Edge Function para deletar do Auth.
-      // Aqui vamos marcar como inativo no profile ou tentar deletar se as políticas permitirem (RPC/Trigger).
-      // Por simplicidade e segurança, vamos remover os acessos e limpar o perfil.
-      
       const { error: profileError } = await supabase
         .from("profiles")
         .delete()
@@ -219,7 +251,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
   const filteredUsers = users.filter(u => 
     u.nome?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.company?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    u.user_companies?.some((uc: any) => uc.companies?.name?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getRoleBadge = (role: string) => {
@@ -237,6 +269,14 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
       default: 
         return <Badge variant="outline" className="font-bold uppercase text-[9px] text-slate-300">{role}</Badge>;
     }
+  };
+
+  const toggleCompanySelection = (companyId: string) => {
+    setSelectedCompanies(prev => 
+      prev.includes(companyId) 
+        ? prev.filter(id => id !== companyId) 
+        : [...prev, companyId]
+    );
   };
 
   return (
@@ -265,7 +305,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
 
         <ScrollArea className="flex-1 px-8">
           <div className="py-6 space-y-4">
-            {loading ? (
+            {loading && users.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-4">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
                 <p className="font-bold uppercase tracking-widest text-[10px]">Carregando Ecossistema...</p>
@@ -300,9 +340,13 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
                           <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium truncate">
                             <Mail className="w-3 h-3 shrink-0" /> {user.email}
                           </div>
-                          {user.company && (
-                            <div className="flex items-center gap-2 text-[11px] text-primary font-bold uppercase tracking-wider">
-                              <Building2 className="w-3 h-3 shrink-0" /> {user.company.name}
+                          {user.user_companies && user.user_companies.length > 0 && (
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                              {user.user_companies.map((uc: any) => (
+                                <Badge key={uc.company_id} variant="outline" className="text-[9px] bg-primary/5 border-primary/20 text-primary py-0 h-4 font-bold uppercase">
+                                  {uc.companies?.name}
+                                </Badge>
+                              ))}
                             </div>
                           )}
                         </div>
@@ -339,11 +383,12 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
                             className="gap-2 cursor-pointer rounded-lg focus:bg-primary/10 focus:text-primary text-xs py-2.5"
                             onClick={() => {
                               setSelectedUser(user);
-                              setNewCompanyId(user.company_id || "");
+                              const currentIds = user.user_companies?.map((uc: any) => uc.company_id) || [];
+                              setSelectedCompanies(currentIds);
                               setCompanyDialogOpen(true);
                             }}
                           >
-                            <Building2 className="w-3.5 h-3.5" /> Trocar Empresa
+                            <Building2 className="w-3.5 h-3.5" /> Vincular Empresas
                           </DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-white/5" />
                           <DropdownMenuItem 
@@ -373,7 +418,6 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
         </div>
       </SheetContent>
 
-      {/* Modais de Ação */}
       <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
         <DialogContent className="bg-slate-900 border-white/10 text-white sm:max-w-md">
           <DialogHeader>
@@ -413,33 +457,46 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
         <DialogContent className="bg-slate-900 border-white/10 text-white sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-primary" /> Trocar Empresa
+              <Building2 className="w-5 h-5 text-primary" /> Gerenciar Empresas
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Vincule {selectedUser?.nome || selectedUser?.email} a uma nova empresa.
+              Selecione as empresas que {selectedUser?.nome || selectedUser?.email} pode acessar.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Select value={newCompanyId} onValueChange={setNewCompanyId}>
-              <SelectTrigger className="bg-white/5 border-white/10 text-white h-12 rounded-xl">
-                <SelectValue placeholder="Selecione a empresa" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-white/10 text-white">
+            <ScrollArea className="h-[300px] pr-4">
+              <div className="space-y-2">
                 {availableCompanies.map(company => (
-                  <SelectItem key={company.id} value={company.id}>
-                    {company.name}
-                  </SelectItem>
+                  <div 
+                    key={company.id} 
+                    className="flex items-center space-x-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 cursor-pointer transition-colors"
+                    onClick={() => toggleCompanySelection(company.id)}
+                  >
+                    <Checkbox 
+                      id={`company-${company.id}`} 
+                      checked={selectedCompanies.includes(company.id)}
+                      onCheckedChange={() => toggleCompanySelection(company.id)}
+                      className="border-white/20 data-[state=checked]:bg-primary"
+                    />
+                    <label 
+                      htmlFor={`company-${company.id}`}
+                      className="text-sm font-medium text-slate-200 cursor-pointer flex-1"
+                    >
+                      {company.name}
+                    </label>
+                    {selectedCompanies.includes(company.id) && <Check className="w-4 h-4 text-primary" />}
+                  </div>
                 ))}
-              </SelectContent>
-            </Select>
+              </div>
+            </ScrollArea>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setCompanyDialogOpen(false)} className="bg-transparent border-white/10 text-white hover:bg-white/5">
               Cancelar
             </Button>
-            <Button onClick={handleCompanyChange} disabled={loading} className="font-bold">
+            <Button onClick={handleCompanyLinksChange} disabled={loading} className="font-bold">
               {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Confirmar Alteração
+              Salvar Alterações
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -449,10 +506,10 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
         <DialogContent className="bg-slate-900 border-white/10 text-white sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2 text-red-500">
-              <AlertTriangle className="w-6 h-6" /> Excluir Usuário
+              <AlertTriangle className="w-5 h-5" /> Confirmar Exclusão
             </DialogTitle>
             <DialogDescription className="text-slate-400">
-              Esta ação removerá permanentemente o acesso de <strong>{selectedUser?.nome || selectedUser?.email}</strong> do sistema.
+              Esta ação é irreversível. O usuário <strong>{selectedUser?.nome}</strong> perderá acesso a todo o sistema.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
