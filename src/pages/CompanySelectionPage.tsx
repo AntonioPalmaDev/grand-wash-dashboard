@@ -229,16 +229,6 @@ const CompanySelectionPage = () => {
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedCompany(company);
-                          setIsUsersOverlayOpen(true);
-                        }}
-                      >
-                        <Users className="w-4 h-4" /> <span>Gerenciar Usuários</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="gap-3 cursor-pointer py-3 rounded-xl focus:bg-primary/10 focus:text-primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedCompany(company);
                           setIsLogsOverlayOpen(true);
                         }}
                       >
