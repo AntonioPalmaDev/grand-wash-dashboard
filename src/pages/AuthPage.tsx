@@ -170,7 +170,7 @@ export default function AuthPage() {
             }
           });
           if (signUpError) {
-            setError(signUpError);
+            setError(signUpError.message);
           } else {
             const { error: retryError } = await signIn(anonEmail, anonPass);
             if (retryError) setError(retryError);
