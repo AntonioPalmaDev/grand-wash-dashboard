@@ -178,15 +178,53 @@ export default function UsersPage() {
     setRejectUserId(userId); setMotivo(""); setRejectOpen(true);
   }
 
-  async function handleChangeRole(userId: string, newRole: "desenvolvedor" | "gestao") {
+  async function handleChangeRole(userId: string, newRole: Profile["role"]) {
     if (!user) return;
     const profile = profiles.find(p => p.user_id === userId);
     await supabase.from("profiles").update({ role: newRole }).eq("user_id", userId);
     await supabase.from("user_roles").delete().eq("user_id", userId);
-    await supabase.from("user_roles").insert({ user_id: userId, role: newRole });
+    if (newRole === "desenvolvedor" || newRole === "admin_master") {
+      await supabase.from("user_roles").insert({ 
+        user_id: userId, 
+        role: newRole, 
+        company_id: profile?.company_id || activeCompany?.id 
+      });
+    }
     const desc = logAlterarRoleUsuario({ responsavel: getMyName(), nomeUsuario: profile?.nome || profile?.email || "---", roleAnterior: profile?.role || "---", roleNova: newRole });
     await registrarLog({ userId: user.id, userEmail: user.email || "", companyId: activeCompany?.id, action: "editar", entity: "usuário", entityId: userId, description: desc, beforeData: { role: profile?.role }, afterData: { role: newRole } });
     toast.success("Role atualizada");
+    fetchProfiles();
+  }
+
+  async function handleChangeCompany(userId: string, newCompanyId: string) {
+    if (!user) return;
+    const profile = profiles.find(p => p.user_id === userId);
+    
+    // Update profile
+    await supabase.from("profiles").update({ company_id: newCompanyId }).eq("user_id", userId);
+    
+    // Update user_companies
+    await supabase.from("user_companies").delete().eq("user_id", userId);
+    await supabase.from("user_companies").insert({ user_id: userId, company_id: newCompanyId });
+    
+    // Update user_roles if applicable
+    if (profile?.role === "desenvolvedor" || profile?.role === "admin_master") {
+      await supabase.from("user_roles").update({ company_id: newCompanyId }).eq("user_id", userId);
+    }
+
+    await registrarLog({ 
+      userId: user.id, 
+      userEmail: user.email || "", 
+      companyId: activeCompany?.id, 
+      action: "editar", 
+      entity: "usuário", 
+      entityId: userId, 
+      description: `Alterou empresa do usuário ${profile?.nome || profile?.email} para ${availableCompaniesList.find(c => c.id === newCompanyId)?.name}`, 
+      beforeData: { company_id: profile?.company_id }, 
+      afterData: { company_id: newCompanyId } 
+    });
+    
+    toast.success("Empresa do usuário atualizada");
     fetchProfiles();
   }
 
