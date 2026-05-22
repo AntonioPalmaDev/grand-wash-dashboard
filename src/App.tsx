@@ -58,7 +58,7 @@ function ProtectedApp() {
 function CompanyWrapper() {
   const { activeCompany, loading, isGlobalMode } = useCompany();
   const { isMasterAdmin } = useAuth();
-  const { role } = useRole();
+  const { role, canAccessAdmin } = useRole();
 
   if (loading) {
     return (

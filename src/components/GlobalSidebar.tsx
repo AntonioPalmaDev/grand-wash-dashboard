@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/context/AuthContext";
+import { useRole } from "@/hooks/useRole";
 import { useCompany } from "@/context/CompanyContext";
 import { Button } from "@/components/ui/button";
 import {
