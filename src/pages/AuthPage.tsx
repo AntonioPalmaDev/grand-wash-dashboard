@@ -198,6 +198,9 @@ export default function AuthPage() {
                 </div>
               )}
               <p className="text-[10px] text-muted-foreground italic">* Você pode selecionar múltiplas empresas.</p>
+            </div>
+          )}
+
           <div>
             <Label>Email</Label>
             <div className="relative">
