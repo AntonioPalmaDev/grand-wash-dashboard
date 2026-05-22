@@ -112,7 +112,15 @@ export function CompanySidebar() {
           <SidebarGroupLabel className="px-4">Gestão Empresarial</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {companyItems.map((item) => (
+              {companyItems
+                .filter(item => {
+                  if (role === "visualizador") {
+                    // Only Dashboard and Reports (Financial Panel) for anonymous users
+                    return item.url === "/" || item.url === "/painel-financeiro";
+                  }
+                  return true;
+                })
+                .map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink
