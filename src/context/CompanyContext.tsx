@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Company } from "@/types";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "react-router-dom";
 
 interface CompanyContextType {
