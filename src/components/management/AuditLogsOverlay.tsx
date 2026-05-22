@@ -45,13 +45,12 @@ export const AuditLogsOverlay = ({ company, isOpen, onClose }: AuditLogsOverlayP
     if (!company) return;
     setLoading(true);
     try {
-      // For now we fetch from audit_logs table
-      // You might need to filter by some criteria if available
       const { data, error } = await supabase
         .from("audit_logs")
         .select("*")
+        .eq("company_id", company.id)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(100);
 
       if (error) throw error;
       setLogs(data || []);

@@ -40,15 +40,18 @@ export default function AuditLogsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!activeCompany) return;
     async function fetchLogs() {
       setLoading(true);
-      const { data } = await (supabase
-        .from("audit_logs") as any)
-        .select("*")
-        .eq("company_id", activeCompany.id)
+      let query = supabase.from("audit_logs").select("*");
+      
+      if (activeCompany) {
+        query = query.eq("company_id", activeCompany.id);
+      }
+      
+      const { data } = await (query as any)
         .order("created_at", { ascending: false })
         .limit(200);
+        
       if (data) setLogs(data as AuditLog[]);
       setLoading(false);
     }
