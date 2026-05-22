@@ -175,7 +175,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
       // Registrar log antes de deletar
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
-      await supabase.from("audit_logs").insert({
+      await supabase.from("audit_logs").insert([{
         user_id: currentUser?.id || "",
         user_email: currentUser?.email || "",
         action: "excluir",
@@ -183,7 +183,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
         entity_id: selectedUser.user_id,
         description: `Exclusão global do usuário ${selectedUser.nome} (${selectedUser.email}). Justificativa: ${deleteJustification}`,
         before_data: selectedUser as any
-      });
+      }]);
 
       // Em um cenário real com Supabase Auth, a exclusão de usuário via client side é limitada.
       // Geralmente usamos uma Edge Function para deletar do Auth.
