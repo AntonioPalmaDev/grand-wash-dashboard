@@ -94,7 +94,13 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
       const { data: profiles, error: profileError } = await supabase
         .from("profiles")
         .select(`
-          *,
+          id,
+          user_id,
+          email,
+          nome,
+          role,
+          status,
+          company_id,
           user_companies(
             company_id,
             companies(id, name, slug)
