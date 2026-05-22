@@ -12,7 +12,7 @@ import type { Client, ClientType } from "@/types";
 
 export default function ClientsPage() {
   const { clients, addClient, updateClient, deleteClient, getClientStats, getClientRate, config } = useApp();
-  const { isDev } = useRole();
+  const { isDev, canEdit } = useRole();
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState<ClientType>("PF");
@@ -123,7 +123,7 @@ export default function ClientsPage() {
                   <span className="font-bold text-lg">{client.nome}</span>
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => handleStartEdit(client)} className="h-8 w-8"><Pencil size={14} /></Button>
+                  {canEdit && <Button variant="ghost" size="icon" onClick={() => handleStartEdit(client)} className="h-8 w-8"><Pencil size={14} /></Button>}
                   {isDev && (
                     <Button variant="ghost" size="icon" onClick={() => deleteClient(client.id)} className="h-8 w-8 text-destructive"><Trash2 size={14} /></Button>
                   )}

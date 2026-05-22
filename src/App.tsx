@@ -86,10 +86,11 @@ function CompanyWrapper() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/painel-financeiro" element={<PainelFinanceiroPage />} />
               
+              <Route path="/clientes" element={<ClientsPage />} />
+              <Route path="/operacoes" element={<OperationsPage />} />
+              
               {role !== "visualizador" && (
                 <>
-                  <Route path="/clientes" element={<ClientsPage />} />
-                  <Route path="/operacoes" element={<OperationsPage />} />
                   <Route path="/historico" element={<HistoryPage />} />
                   <Route path="/financeiro" element={<FinancePage />} />
                   <Route path="/ranking" element={<RankingPage />} />
@@ -103,10 +104,8 @@ function CompanyWrapper() {
             </>
           )}
 
-          <Route path="/selecao-empresa" element={<CompanySelectionPage />} />
-
           {/* Rotas Administrativas Globais */}
-          {isMasterAdmin && (
+          {canAccessAdmin && (
             <>
               <Route path="/admin" element={<GlobalDashboard />} />
               <Route path="/admin/companies" element={<CompanySelectionPage />} />
