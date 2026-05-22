@@ -147,29 +147,34 @@ export const EditCompanyModal = ({ company, isOpen, onClose, onSuccess }: EditCo
           <div className="flex flex-col md:flex-row gap-6 items-start">
             <div className="space-y-2 w-full md:w-1/3">
               <Label className="text-slate-400 font-medium">Logotipo da Empresa</Label>
-              <div className="relative group aspect-square rounded-2xl bg-white/5 border-2 border-dashed border-white/10 flex flex-col items-center justify-center overflow-hidden hover:border-primary/50 transition-all">
+              <div className="relative group aspect-square rounded-2xl bg-white/5 border-2 border-dashed border-white/10 flex flex-col items-center justify-center overflow-hidden hover:border-primary/50 transition-all cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                 {logoUrl ? (
                   <>
                     <img src={logoUrl} alt="Logo" className="w-full h-full object-contain p-4" />
                     <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-all">
-                      <Button size="icon" variant="destructive" className="rounded-full w-8 h-8" onClick={handleRemoveLogo}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                      <Button size="icon" variant="secondary" className="rounded-full w-8 h-8" onClick={() => fileInputRef.current?.click()}>
+                      <Button size="icon" variant="secondary" className="rounded-full w-8 h-8 pointer-events-none">
                         <Upload className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        size="icon" 
+                        variant="destructive" 
+                        className="rounded-full w-8 h-8" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveLogo();
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </>
                 ) : (
-                  <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex flex-col items-center gap-2 text-slate-500 hover:text-primary transition-colors"
-                  >
+                  <div className="flex flex-col items-center gap-2 text-slate-500 group-hover:text-primary transition-colors">
                     <div className="p-3 rounded-full bg-white/5">
                       <ImageIcon className="w-8 h-8" />
                     </div>
                     <span className="text-xs font-bold uppercase tracking-wider">Upload Logo</span>
-                  </button>
+                  </div>
                 )}
                 {uploading && (
                   <div className="absolute inset-0 bg-slate-950/80 flex items-center justify-center">

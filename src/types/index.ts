@@ -5,8 +5,7 @@ export interface Company {
   id: string;
   name: string;
   slug: string;
-  logo: string | null;
-  logo_url?: string;
+  logo_url: string | null;
   primaryColor: string;
   secondaryColor: string;
   active: boolean;
