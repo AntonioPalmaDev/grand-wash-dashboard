@@ -90,21 +90,46 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
   const fetchGlobalUsers = async () => {
     setLoading(true);
     try {
-      // Buscar profiles e seus vínculos na user_companies
+      // Buscar profiles de forma simples primeiro para testar
       const { data: profiles, error: profileError } = await supabase
         .from("profiles")
         .select(`
-          *,
-          user_companies(
-            company_id,
-            companies(name, slug)
-          )
+          id,
+          user_id,
+          email,
+          nome,
+          role,
+          status,
+          company_id
         `);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Erro ao buscar perfis:", profileError);
+        throw profileError;
+      }
+
+      // Buscar vínculos separadamente para evitar problemas de join
+      const { data: links, error: linksError } = await supabase
+        .from("user_companies")
+        .select(`
+          user_id,
+          company_id,
+          companies(id, name, slug)
+        `);
+
+      if (linksError) {
+        console.error("Erro ao buscar vínculos:", linksError);
+      }
+
+      const usersWithLinks = (profiles || []).map(profile => ({
+        ...profile,
+        user_companies: (links || []).filter(link => link.user_id === profile.user_id)
+      }));
       
-      setUsers(profiles || []);
+      console.log("Usuários com vínculos:", usersWithLinks);
+      setUsers(usersWithLinks);
     } catch (error: any) {
+      console.error("Erro no fetchGlobalUsers:", error);
       toast({
         variant: "destructive",
         title: "Erro ao carregar usuários globais",
@@ -305,7 +330,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
 
         <ScrollArea className="flex-1 px-8">
           <div className="py-6 space-y-4">
-            {loading && users.length === 0 ? (
+            {loading ? (
               <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-4">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
                 <p className="font-bold uppercase tracking-widest text-[10px]">Carregando Ecossistema...</p>
