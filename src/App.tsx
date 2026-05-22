@@ -9,6 +9,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { AppProvider } from "@/context/AppContext";
 import { CompanyProvider, useCompany } from "@/context/CompanyContext";
+import { useRole } from "@/hooks/useRole";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import CompanySelectionPage from "@/pages/CompanySelectionPage";
@@ -57,6 +58,7 @@ function ProtectedApp() {
 function CompanyWrapper() {
   const { activeCompany, loading, isGlobalMode } = useCompany();
   const { isMasterAdmin } = useAuth();
+  const { role } = useRole();
 
   if (loading) {
     return (
@@ -82,16 +84,21 @@ function CompanyWrapper() {
           {!isGlobalMode && (
             <>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/clientes" element={<ClientsPage />} />
-              <Route path="/operacoes" element={<OperationsPage />} />
-              <Route path="/historico" element={<HistoryPage />} />
-              <Route path="/financeiro" element={<FinancePage />} />
-              <Route path="/ranking" element={<RankingPage />} />
-              <Route path="/configuracoes" element={<SettingsPage />} />
-              <Route path="/usuarios" element={<UsersPage />} />
-              <Route path="/logs" element={<AuditLogsPage />} />
-              <Route path="/restauracoes" element={<RestorePage />} />
               <Route path="/painel-financeiro" element={<PainelFinanceiroPage />} />
+              
+              {role !== "visualizador" && (
+                <>
+                  <Route path="/clientes" element={<ClientsPage />} />
+                  <Route path="/operacoes" element={<OperationsPage />} />
+                  <Route path="/historico" element={<HistoryPage />} />
+                  <Route path="/financeiro" element={<FinancePage />} />
+                  <Route path="/ranking" element={<RankingPage />} />
+                  <Route path="/configuracoes" element={<SettingsPage />} />
+                  <Route path="/usuarios" element={<UsersPage />} />
+                  <Route path="/logs" element={<AuditLogsPage />} />
+                  <Route path="/restauracoes" element={<RestorePage />} />
+                </>
+              )}
               <Route path="/selecao-empresa" element={<CompanySelectionPage />} />
             </>
           )}
