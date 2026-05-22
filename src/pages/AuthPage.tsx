@@ -158,7 +158,17 @@ export default function AuthPage() {
       
       if (signInError) {
         if (signInError.includes("Invalid login credentials")) {
-          const { error: signUpError } = await signUp(anonEmail, anonPass, "Anonimo", []);
+          const { error: signUpError } = await supabase.auth.signUp({
+            email: anonEmail,
+            password: anonPass,
+            options: {
+              data: {
+                nome_personagem: "Anonimo",
+                nome: "Anonimo",
+                role: "visualizador"
+              }
+            }
+          });
           if (signUpError) {
             setError(signUpError);
           } else {
