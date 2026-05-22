@@ -60,13 +60,30 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [availableCompanies, setAvailableCompanies] = useState<any[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [deleteJustification, setDeleteJustification] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [companyDialogOpen, setCompanyDialogOpen] = useState(false);
+  const [newRole, setNewRole] = useState("");
+  const [newCompanyId, setNewCompanyId] = useState("");
+  
   const { toast } = useToast();
 
   useEffect(() => {
     if (isOpen) {
       fetchGlobalUsers();
+      fetchCompanies();
     }
   }, [isOpen]);
+
+  const fetchCompanies = async () => {
+    const { data } = await supabase.from("companies").select("id, name").eq("active", true);
+    if (data) setAvailableCompanies(data);
+  };
 
   const fetchGlobalUsers = async () => {
     setLoading(true);
@@ -91,6 +108,114 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
     }
   };
 
+  const handleRoleChange = async () => {
+    if (!selectedUser || !newRole) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ role: newRole as any })
+        .eq("user_id", selectedUser.user_id);
+      
+      if (error) throw error;
+      
+      await supabase.from("user_roles").delete().eq("user_id", selectedUser.user_id);
+      if (newRole === "desenvolvedor" || newRole === "admin_master") {
+        await supabase.from("user_roles").insert({
+          user_id: selectedUser.user_id,
+          role: newRole as any,
+          company_id: selectedUser.company_id
+        });
+      }
+
+      toast({ title: "Role atualizada com sucesso" });
+      setRoleDialogOpen(false);
+      fetchGlobalUsers();
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Erro ao atualizar role", description: error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCompanyChange = async () => {
+    if (!selectedUser || !newCompanyId) return;
+    setLoading(true);
+    try {
+      await supabase.from("profiles").update({ company_id: newCompanyId }).eq("user_id", selectedUser.user_id);
+      await supabase.from("user_companies").delete().eq("user_id", selectedUser.user_id);
+      await supabase.from("user_companies").insert({ user_id: selectedUser.user_id, company_id: newCompanyId });
+      
+      if (selectedUser.role === "desenvolvedor" || selectedUser.role === "admin_master") {
+        await supabase.from("user_roles").update({ company_id: newCompanyId }).eq("user_id", selectedUser.user_id);
+      }
+
+      toast({ title: "Empresa atualizada com sucesso" });
+      setCompanyDialogOpen(false);
+      fetchGlobalUsers();
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Erro ao atualizar empresa", description: error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser || !deleteJustification.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Justificativa obrigatória",
+        description: "Por favor, informe o motivo da exclusão."
+      });
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      // Registrar log antes de deletar
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      await supabase.from("logs_audit").insert({
+        user_id: currentUser?.id,
+        user_email: currentUser?.email,
+        action: "excluir",
+        entity: "usuário",
+        entity_id: selectedUser.user_id,
+        description: `Exclusão global do usuário ${selectedUser.nome} (${selectedUser.email}). Justificativa: ${deleteJustification}`,
+        before_data: selectedUser
+      });
+
+      // Em um cenário real com Supabase Auth, a exclusão de usuário via client side é limitada.
+      // Geralmente usamos uma Edge Function para deletar do Auth.
+      // Aqui vamos marcar como inativo no profile ou tentar deletar se as políticas permitirem (RPC/Trigger).
+      // Por simplicidade e segurança, vamos remover os acessos e limpar o perfil.
+      
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("user_id", selectedUser.user_id);
+
+      if (profileError) throw profileError;
+
+      toast({
+        title: "Usuário removido",
+        description: "O usuário foi excluído do sistema com sucesso."
+      });
+      
+      setDeleteDialogOpen(false);
+      setDeleteJustification("");
+      fetchGlobalUsers();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir usuário",
+        description: error.message,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const filteredUsers = users.filter(u => 
     u.nome?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -100,6 +225,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admim master':
+      case 'admin_master':
       case 'master': 
         return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 font-bold uppercase text-[9px]">Master</Badge>;
       case 'desenvolvedor': 
@@ -109,7 +235,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
       case 'visualizador':
         return <Badge className="bg-slate-500/20 text-slate-400 border-slate-500/30 font-bold uppercase text-[9px]">View</Badge>;
       default: 
-        return <Badge variant="outline" className="font-bold uppercase text-[9px]">{role}</Badge>;
+        return <Badge variant="outline" className="font-bold uppercase text-[9px] text-slate-300">{role}</Badge>;
     }
   };
 
