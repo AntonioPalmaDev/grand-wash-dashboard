@@ -175,7 +175,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
       // Registrar log antes de deletar
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
-      await supabase.from("audit_logs").insert([{
+      await (supabase.from("audit_logs").insert as any)([{
         user_id: currentUser?.id || "",
         user_email: currentUser?.email || "",
         action: "excluir",
