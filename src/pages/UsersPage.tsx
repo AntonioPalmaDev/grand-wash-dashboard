@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Users, Plus, Shield, CheckCircle2, XCircle, Clock, Building2, Check } from "lucide-react";
+import { Users, Plus, Shield, CheckCircle2, XCircle, Clock, Building2, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateOnly } from "@/lib/format";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -98,12 +98,18 @@ export default function UsersPage() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("*, user_companies(company_id)")
+        .select(`
+          *,
+          user_companies(
+            company_id,
+            companies(name)
+          )
+        `)
         .in("user_id", userIds)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      if (data) setProfiles(data as Profile[]);
+      if (data) setProfiles(data as any[]);
     } catch (err: any) {
       console.error("Erro ao buscar perfis:", err);
       toast.error("Erro ao carregar usuários");
