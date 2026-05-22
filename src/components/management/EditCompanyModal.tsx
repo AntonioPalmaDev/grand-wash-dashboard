@@ -144,29 +144,76 @@ export const EditCompanyModal = ({ company, isOpen, onClose, onSuccess }: EditCo
         </DialogHeader>
         
         <div className="space-y-6 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label className="text-slate-400 font-medium">Nome da Empresa</Label>
-              <Input 
-                value={name} 
-                onChange={(e) => setName(e.target.value)}
-                className="bg-white/5 border-white/10 text-white h-12 rounded-xl focus:ring-primary"
-              />
+          <div className="flex flex-col md:flex-row gap-6 items-start">
+            <div className="space-y-2 w-full md:w-1/3">
+              <Label className="text-slate-400 font-medium">Logotipo da Empresa</Label>
+              <div className="relative group aspect-square rounded-2xl bg-white/5 border-2 border-dashed border-white/10 flex flex-col items-center justify-center overflow-hidden hover:border-primary/50 transition-all">
+                {logoUrl ? (
+                  <>
+                    <img src={logoUrl} alt="Logo" className="w-full h-full object-contain p-4" />
+                    <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-all">
+                      <Button size="icon" variant="destructive" className="rounded-full w-8 h-8" onClick={handleRemoveLogo}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                      <Button size="icon" variant="secondary" className="rounded-full w-8 h-8" onClick={() => fileInputRef.current?.click()}>
+                        <Upload className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex flex-col items-center gap-2 text-slate-500 hover:text-primary transition-colors"
+                  >
+                    <div className="p-3 rounded-full bg-white/5">
+                      <ImageIcon className="w-8 h-8" />
+                    </div>
+                    <span className="text-xs font-bold uppercase tracking-wider">Upload Logo</span>
+                  </button>
+                )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-slate-950/80 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                )}
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleLogoUpload} 
+                  disabled={uploading}
+                />
+              </div>
+              <p className="text-[10px] text-slate-500 text-center font-medium">Recomendado: 512x512px (PNG/JPG)</p>
             </div>
-            <div className="space-y-2">
-              <Label className="text-slate-400 font-medium">Cor Principal</Label>
-              <div className="flex gap-2">
-                <Input 
-                  type="color"
-                  value={primaryColor} 
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  className="bg-white/5 border-white/10 h-12 w-20 rounded-xl p-1 cursor-pointer"
-                />
-                <Input 
-                  value={primaryColor} 
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white h-12 flex-1 rounded-xl focus:ring-primary font-mono"
-                />
+
+            <div className="flex-1 space-y-6 w-full">
+              <div className="grid grid-cols-1 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-slate-400 font-medium">Nome da Empresa</Label>
+                  <Input 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)}
+                    className="bg-white/5 border-white/10 text-white h-12 rounded-xl focus:ring-primary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-400 font-medium">Cor Principal</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      type="color"
+                      value={primaryColor} 
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="bg-white/5 border-white/10 h-12 w-20 rounded-xl p-1 cursor-pointer"
+                    />
+                    <Input 
+                      value={primaryColor} 
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="bg-white/5 border-white/10 text-white h-12 flex-1 rounded-xl focus:ring-primary font-mono"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

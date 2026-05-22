@@ -6,6 +6,7 @@ export interface Company {
   name: string;
   slug: string;
   logo: string | null;
+  logo_url?: string;
   primaryColor: string;
   secondaryColor: string;
   active: boolean;
