@@ -115,7 +115,7 @@ export default function UsersPage() {
       const selectedCompanyId = targetCompanyId || activeCompany?.id;
       
       await supabase.from("profiles").update({ 
-        role, 
+        role: role as any, 
         nome, 
         company_id: selectedCompanyId 
       }).eq("user_id", data.user.id);
@@ -123,7 +123,7 @@ export default function UsersPage() {
       if (role === "desenvolvedor" || role === "admin_master") {
         await supabase.from("user_roles").upsert({ 
           user_id: data.user.id, 
-          role, 
+          role: role as any, 
           company_id: selectedCompanyId 
         });
       }
