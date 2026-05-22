@@ -46,6 +46,7 @@ export type Database = {
           action: string
           after_data: Json | null
           before_data: Json | null
+          company_id: string | null
           created_at: string
           entity: string
           entity_id: string | null
@@ -58,6 +59,7 @@ export type Database = {
           action: string
           after_data?: Json | null
           before_data?: Json | null
+          company_id?: string | null
           created_at?: string
           entity: string
           entity_id?: string | null
@@ -70,6 +72,7 @@ export type Database = {
           action?: string
           after_data?: Json | null
           before_data?: Json | null
+          company_id?: string | null
           created_at?: string
           entity?: string
           entity_id?: string | null
@@ -78,7 +81,15 @@ export type Database = {
           user_email?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clients: {
         Row: {
