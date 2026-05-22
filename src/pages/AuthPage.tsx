@@ -122,13 +122,25 @@ export default function AuthPage() {
     setLoading(true);
     setError("");
     try {
-      // Usando o e-mail 'anonimo@anonimo.com' e a senha 'anonimo'
-      const { error } = await signIn("anonimo@anonimo.com", "anonimo");
-      if (error) {
-        if (error.includes("Invalid login credentials")) {
-          setError("Usuário anônimo ainda não foi configurado por um administrador.");
+      const anonEmail = "anonimo@anonimo.com";
+      const anonPass = "anonimo";
+      
+      // Tenta login
+      const { error: signInError } = await signIn(anonEmail, anonPass);
+      
+      if (signInError) {
+        // Se falhar porque não existe, tenta criar
+        if (signInError.includes("Invalid login credentials")) {
+          const { error: signUpError } = await signUp(anonEmail, anonPass, "Anonimo", []);
+          if (signUpError) {
+            setError(signUpError);
+          } else {
+            // Após criar, tenta logar de novo
+            const { error: retryError } = await signIn(anonEmail, anonPass);
+            if (retryError) setError(retryError);
+          }
         } else {
-          setError(error);
+          setError(signInError);
         }
       }
     } catch (err: any) {
