@@ -330,7 +330,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
 
         <ScrollArea className="flex-1 px-8">
           <div className="py-6 space-y-4">
-            {loading && users.length === 0 ? (
+            {loading ? (
               <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-4">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
                 <p className="font-bold uppercase tracking-widest text-[10px]">Carregando Ecossistema...</p>
