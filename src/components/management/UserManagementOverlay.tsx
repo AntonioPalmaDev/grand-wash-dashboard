@@ -59,14 +59,33 @@ export const UserManagementOverlay = ({ company, isOpen, onClose }: UserManageme
     if (!company) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
+      // Buscar usuários vinculados a esta empresa específica através da tabela user_companies
+      const { data: userLinks, error: linksError } = await supabase
+        .from("user_companies")
+        .select(`
+          user_id,
+          profiles (
+            id,
+            user_id,
+            email,
+            nome,
+            role,
+            status,
+            is_master_admin
+          )
+        `)
         .eq("company_id", company.id);
 
-      if (error) throw error;
-      setUsers(data || []);
+      if (linksError) throw linksError;
+
+      // Extrair os perfis dos resultados
+      const companyUsers = userLinks
+        ?.map((link: any) => link.profiles)
+        .filter((profile: any) => profile !== null) || [];
+
+      setUsers(companyUsers);
     } catch (error: any) {
+      console.error("Erro ao buscar usuários da empresa:", error);
       toast({
         variant: "destructive",
         title: "Erro ao carregar usuários",
