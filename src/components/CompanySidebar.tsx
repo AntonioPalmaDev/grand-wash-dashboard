@@ -144,8 +144,8 @@ export function CompanySidebar() {
             <div className="px-2 mb-3">
               <div className="flex items-center gap-2 mb-1">
                 <p className="text-xs font-semibold truncate">{user.email?.split('@')[0]}</p>
-                <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
-                  {role === "desenvolvedor" ? "DEV" : "ADMIN"}
+                <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 uppercase">
+                  {role === "desenvolvedor" ? "DEV" : role === "visualizador" ? "VIEWER" : "ADMIN"}
                 </Badge>
               </div>
               <p className="text-[10px] text-muted-foreground truncate">{activeCompany?.name}</p>
