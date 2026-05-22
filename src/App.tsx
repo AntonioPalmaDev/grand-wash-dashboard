@@ -9,6 +9,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { AppProvider } from "@/context/AppContext";
 import { CompanyProvider, useCompany } from "@/context/CompanyContext";
+import { useRole } from "@/hooks/useRole";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import CompanySelectionPage from "@/pages/CompanySelectionPage";
