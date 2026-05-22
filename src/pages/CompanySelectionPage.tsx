@@ -379,6 +379,11 @@ const CompanySelectionPage = () => {
         }}
       />
 
+      <GlobalUserManagementOverlay 
+        isOpen={isGlobalUsersOverlayOpen} 
+        onClose={() => setIsGlobalUsersOverlayOpen(false)}
+      />
+
       <AuditLogsOverlay 
         company={selectedCompany} 
         isOpen={isLogsOverlayOpen} 
