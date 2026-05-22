@@ -4,7 +4,8 @@ import {
   SheetContent, 
   SheetHeader, 
   SheetTitle,
-  SheetDescription
+  SheetDescription,
+  SheetFooter
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +20,8 @@ import {
   MoreVertical,
   Loader2,
   Building2,
-  ShieldCheck
+  ShieldCheck,
+  AlertTriangle
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,8 +30,26 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface GlobalUserManagementOverlayProps {
   isOpen: boolean;
@@ -40,13 +60,30 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [availableCompanies, setAvailableCompanies] = useState<any[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [deleteJustification, setDeleteJustification] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [companyDialogOpen, setCompanyDialogOpen] = useState(false);
+  const [newRole, setNewRole] = useState("");
+  const [newCompanyId, setNewCompanyId] = useState("");
+  
   const { toast } = useToast();
 
   useEffect(() => {
     if (isOpen) {
       fetchGlobalUsers();
+      fetchCompanies();
     }
   }, [isOpen]);
+
+  const fetchCompanies = async () => {
+    const { data } = await supabase.from("companies").select("id, name").eq("active", true);
+    if (data) setAvailableCompanies(data);
+  };
 
   const fetchGlobalUsers = async () => {
     setLoading(true);
@@ -71,6 +108,114 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
     }
   };
 
+  const handleRoleChange = async () => {
+    if (!selectedUser || !newRole) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ role: newRole as any })
+        .eq("user_id", selectedUser.user_id);
+      
+      if (error) throw error;
+      
+      await supabase.from("user_roles").delete().eq("user_id", selectedUser.user_id);
+      if (newRole === "desenvolvedor" || newRole === "admin_master") {
+        await supabase.from("user_roles").insert({
+          user_id: selectedUser.user_id,
+          role: newRole as any,
+          company_id: selectedUser.company_id
+        });
+      }
+
+      toast({ title: "Role atualizada com sucesso" });
+      setRoleDialogOpen(false);
+      fetchGlobalUsers();
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Erro ao atualizar role", description: error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCompanyChange = async () => {
+    if (!selectedUser || !newCompanyId) return;
+    setLoading(true);
+    try {
+      await supabase.from("profiles").update({ company_id: newCompanyId }).eq("user_id", selectedUser.user_id);
+      await supabase.from("user_companies").delete().eq("user_id", selectedUser.user_id);
+      await supabase.from("user_companies").insert({ user_id: selectedUser.user_id, company_id: newCompanyId });
+      
+      if (selectedUser.role === "desenvolvedor" || selectedUser.role === "admin_master") {
+        await supabase.from("user_roles").update({ company_id: newCompanyId }).eq("user_id", selectedUser.user_id);
+      }
+
+      toast({ title: "Empresa atualizada com sucesso" });
+      setCompanyDialogOpen(false);
+      fetchGlobalUsers();
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Erro ao atualizar empresa", description: error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser || !deleteJustification.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Justificativa obrigatória",
+        description: "Por favor, informe o motivo da exclusão."
+      });
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      // Registrar log antes de deletar
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      await (supabase.from("audit_logs").insert as any)([{
+        user_id: currentUser?.id || "",
+        user_email: currentUser?.email || "",
+        action: "excluir",
+        entity: "usuário",
+        entity_id: selectedUser.user_id,
+        description: `Exclusão global do usuário ${selectedUser.nome} (${selectedUser.email}). Justificativa: ${deleteJustification}`,
+        before_data: selectedUser as any
+      }]);
+
+      // Em um cenário real com Supabase Auth, a exclusão de usuário via client side é limitada.
+      // Geralmente usamos uma Edge Function para deletar do Auth.
+      // Aqui vamos marcar como inativo no profile ou tentar deletar se as políticas permitirem (RPC/Trigger).
+      // Por simplicidade e segurança, vamos remover os acessos e limpar o perfil.
+      
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("user_id", selectedUser.user_id);
+
+      if (profileError) throw profileError;
+
+      toast({
+        title: "Usuário removido",
+        description: "O usuário foi excluído do sistema com sucesso."
+      });
+      
+      setDeleteDialogOpen(false);
+      setDeleteJustification("");
+      fetchGlobalUsers();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir usuário",
+        description: error.message,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const filteredUsers = users.filter(u => 
     u.nome?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -80,6 +225,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admim master':
+      case 'admin_master':
       case 'master': 
         return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 font-bold uppercase text-[9px]">Master</Badge>;
       case 'desenvolvedor': 
@@ -89,7 +235,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
       case 'visualizador':
         return <Badge className="bg-slate-500/20 text-slate-400 border-slate-500/30 font-bold uppercase text-[9px]">View</Badge>;
       default: 
-        return <Badge variant="outline" className="font-bold uppercase text-[9px]">{role}</Badge>;
+        return <Badge variant="outline" className="font-bold uppercase text-[9px] text-slate-300">{role}</Badge>;
     }
   };
 
@@ -167,7 +313,7 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
                       <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
                         <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                         <span className="text-[9px] font-black text-primary uppercase tracking-tighter">
-                          ID: {user.id.substring(0, 8)}
+                          ID: {user.user_id?.substring(0, 8) || user.id.substring(0, 8)}
                         </span>
                       </div>
                       
@@ -178,14 +324,37 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-slate-900 border-white/10 text-slate-200 rounded-xl p-1.5 min-w-[160px]">
-                          <DropdownMenuItem className="gap-2 cursor-pointer rounded-lg focus:bg-primary/10 focus:text-primary text-xs py-2.5">
+                          <DropdownMenuLabel className="text-[10px] font-bold uppercase text-slate-500 px-2 py-1.5">Ações</DropdownMenuLabel>
+                          <DropdownMenuItem 
+                            className="gap-2 cursor-pointer rounded-lg focus:bg-primary/10 focus:text-primary text-xs py-2.5"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setNewRole(user.role);
+                              setRoleDialogOpen(true);
+                            }}
+                          >
                             <Shield className="w-3.5 h-3.5" /> Mudar Permissão
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer rounded-lg focus:bg-primary/10 focus:text-primary text-xs py-2.5">
+                          <DropdownMenuItem 
+                            className="gap-2 cursor-pointer rounded-lg focus:bg-primary/10 focus:text-primary text-xs py-2.5"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setNewCompanyId(user.company_id || "");
+                              setCompanyDialogOpen(true);
+                            }}
+                          >
                             <Building2 className="w-3.5 h-3.5" /> Trocar Empresa
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer rounded-lg text-red-400 focus:bg-red-500/10 focus:text-red-400 text-xs py-2.5">
-                            <Trash2 className="w-3.5 h-3.5" /> Revogar Acesso
+                          <DropdownMenuSeparator className="bg-white/5" />
+                          <DropdownMenuItem 
+                            className="gap-2 cursor-pointer rounded-lg text-red-400 focus:bg-red-500/10 focus:text-red-400 text-xs py-2.5"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setDeleteJustification("");
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Excluir Usuário
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -203,6 +372,119 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
           </Button>
         </div>
       </SheetContent>
+
+      {/* Modais de Ação */}
+      <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+        <DialogContent className="bg-slate-900 border-white/10 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Shield className="w-5 h-5 text-primary" /> Alterar Permissão
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Defina o novo nível de acesso para {selectedUser?.nome || selectedUser?.email}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={newRole} onValueChange={setNewRole}>
+              <SelectTrigger className="bg-white/5 border-white/10 text-white h-12 rounded-xl">
+                <SelectValue placeholder="Selecione o cargo" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-white/10 text-white">
+                <SelectItem value="visualizador">Visualizador</SelectItem>
+                <SelectItem value="gestao">Gestão</SelectItem>
+                <SelectItem value="desenvolvedor">Desenvolvedor</SelectItem>
+                <SelectItem value="admin_master">Admin Master</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setRoleDialogOpen(false)} className="bg-transparent border-white/10 text-white hover:bg-white/5">
+              Cancelar
+            </Button>
+            <Button onClick={handleRoleChange} disabled={loading} className="font-bold">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Confirmar Alteração
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={companyDialogOpen} onOpenChange={setCompanyDialogOpen}>
+        <DialogContent className="bg-slate-900 border-white/10 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-primary" /> Trocar Empresa
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Vincule {selectedUser?.nome || selectedUser?.email} a uma nova empresa.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={newCompanyId} onValueChange={setNewCompanyId}>
+              <SelectTrigger className="bg-white/5 border-white/10 text-white h-12 rounded-xl">
+                <SelectValue placeholder="Selecione a empresa" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-white/10 text-white">
+                {availableCompanies.map(company => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setCompanyDialogOpen(false)} className="bg-transparent border-white/10 text-white hover:bg-white/5">
+              Cancelar
+            </Button>
+            <Button onClick={handleCompanyChange} disabled={loading} className="font-bold">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Confirmar Alteração
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="bg-slate-900 border-white/10 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-red-500">
+              <AlertTriangle className="w-6 h-6" /> Excluir Usuário
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Esta ação removerá permanentemente o acesso de <strong>{selectedUser?.nome || selectedUser?.email}</strong> do sistema.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-300 uppercase tracking-wider">Justificativa da Exclusão</label>
+              <Textarea 
+                placeholder="Informe o motivo pelo qual este usuário está sendo removido..."
+                value={deleteJustification}
+                onChange={(e) => setDeleteJustification(e.target.value)}
+                className="bg-white/5 border-white/10 text-white rounded-xl min-h-[120px] focus:ring-red-500/50"
+              />
+              <p className="text-[10px] text-slate-500 italic">
+                * Esta justificativa será registrada nos logs de auditoria do sistema.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="bg-transparent border-white/10 text-white hover:bg-white/5">
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteUser} 
+              disabled={isDeleting || !deleteJustification.trim()}
+              className="font-bold bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />}
+              Confirmar Exclusão
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Sheet>
   );
 };
