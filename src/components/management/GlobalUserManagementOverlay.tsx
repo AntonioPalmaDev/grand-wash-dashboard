@@ -97,14 +97,19 @@ export const GlobalUserManagementOverlay = ({ isOpen, onClose }: GlobalUserManag
           *,
           user_companies(
             company_id,
-            companies(name, slug)
+            companies(id, name, slug)
           )
         `);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Erro ao buscar perfis:", profileError);
+        throw profileError;
+      }
       
+      console.log("Perfis carregados:", profiles);
       setUsers(profiles || []);
     } catch (error: any) {
+      console.error("Erro no fetchGlobalUsers:", error);
       toast({
         variant: "destructive",
         title: "Erro ao carregar usuários globais",
