@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EditCompanyModal } from "@/components/management/EditCompanyModal";
 import { UserManagementOverlay } from "@/components/management/UserManagementOverlay";
+import { GlobalUserManagementOverlay } from "@/components/management/GlobalUserManagementOverlay";
 import { AuditLogsOverlay } from "@/components/management/AuditLogsOverlay";
 import { PermissionsModal } from "@/components/management/PermissionsModal";
 import { DeactivateCompanyModal } from "@/components/management/DeactivateCompanyModal";
@@ -52,6 +53,7 @@ const CompanySelectionPage = () => {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isUsersOverlayOpen, setIsUsersOverlayOpen] = useState(false);
+  const [isGlobalUsersOverlayOpen, setIsGlobalUsersOverlayOpen] = useState(false);
   const [isLogsOverlayOpen, setIsLogsOverlayOpen] = useState(false);
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
@@ -111,6 +113,17 @@ const CompanySelectionPage = () => {
           </div>
           
           <div className="flex gap-2">
+            {isMasterAdmin && (
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="rounded-2xl gap-2 border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary h-12"
+                onClick={() => setIsGlobalUsersOverlayOpen(true)}
+              >
+                <Users className="w-5 h-5" /> Todos Usuários
+              </Button>
+            )}
+
             <Button 
               variant="outline" 
               size="lg" 
@@ -364,6 +377,11 @@ const CompanySelectionPage = () => {
           setIsUsersOverlayOpen(false);
           setSelectedCompany(null);
         }}
+      />
+
+      <GlobalUserManagementOverlay 
+        isOpen={isGlobalUsersOverlayOpen} 
+        onClose={() => setIsGlobalUsersOverlayOpen(false)}
       />
 
       <AuditLogsOverlay 
