@@ -131,6 +131,7 @@ export type Database = {
           description: string | null
           id: string
           logo: string | null
+          logo_url: string | null
           name: string
           primary_color: string | null
           secondary_color: string | null
@@ -144,6 +145,7 @@ export type Database = {
           description?: string | null
           id?: string
           logo?: string | null
+          logo_url?: string | null
           name: string
           primary_color?: string | null
           secondary_color?: string | null
@@ -157,6 +159,7 @@ export type Database = {
           description?: string | null
           id?: string
           logo?: string | null
+          logo_url?: string | null
           name?: string
           primary_color?: string | null
           secondary_color?: string | null
