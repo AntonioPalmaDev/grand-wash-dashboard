@@ -188,10 +188,14 @@ const CompanySelectionPage = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-5">
                     <div 
-                      className="w-16 h-16 rounded-3xl flex items-center justify-center shadow-2xl border-2 border-white/5 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3"
+                      className="w-16 h-16 rounded-3xl flex items-center justify-center shadow-2xl border-2 border-white/5 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 overflow-hidden"
                       style={{ backgroundColor: `${company.primaryColor}15` }}
                     >
-                      <Building2 className="w-8 h-8" style={{ color: company.primaryColor }} />
+                      {company.logo_url ? (
+                        <img src={company.logo_url} alt={company.name} className="w-full h-full object-cover p-2" />
+                      ) : (
+                        <Building2 className="w-8 h-8" style={{ color: company.primaryColor }} />
+                      )}
                     </div>
                     <div>
                       <CardTitle className="text-2xl font-black text-white group-hover:text-primary transition-colors">

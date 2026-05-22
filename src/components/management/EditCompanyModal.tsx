@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Company } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Building2, Save, X, Tag as TagIcon, Loader2 } from "lucide-react";
+import { Building2, Save, X, Tag as TagIcon, Loader2, Upload, Trash2, ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface EditCompanyModalProps {
@@ -26,6 +26,9 @@ export const EditCompanyModal = ({ company, isOpen, onClose, onSuccess }: EditCo
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,8 +38,52 @@ export const EditCompanyModal = ({ company, isOpen, onClose, onSuccess }: EditCo
       setActive(company.active);
       setPrimaryColor(company.primaryColor || "#0EA5E9");
       setTags(company.tags || []);
+      setLogoUrl(company.logo_url || null);
     }
   }, [company]);
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploading(true);
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error("Você deve selecionar uma imagem para o upload.");
+      }
+
+      const file = event.target.files[0];
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${company?.id}-${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("company_logos")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("company_logos")
+        .getPublicUrl(filePath);
+
+      setLogoUrl(publicUrl);
+      toast({
+        title: "Logo carregado",
+        description: "O logotipo foi enviado com sucesso.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro no upload",
+        description: error.message,
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleAddTag = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && tagInput.trim()) {
@@ -63,7 +110,8 @@ export const EditCompanyModal = ({ company, isOpen, onClose, onSuccess }: EditCo
           description,
           active,
           primary_color: primaryColor,
-          tags
+          tags,
+          logo_url: logoUrl
         })
         .eq("id", company.id);
 
