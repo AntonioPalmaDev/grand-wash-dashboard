@@ -95,9 +95,13 @@ export default function HistoryPage() {
                       </td>
                       <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
                       <td className="p-3 text-right font-mono font-semibold text-primary">{formatCurrency(op.valorBruto)}</td>
-                      <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatPercent(op.taxaPercentual)}</td>
-                      <td className="p-3 text-right font-mono font-semibold">{op.category === 'itens' ? "—" : formatCurrency(op.lucroLiquido)}</td>
-                      <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatCurrency(op.valorCliente)}</td>
+                      {hasDinheiro && (
+                        <>
+                          <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatPercent(op.taxaPercentual)}</td>
+                          <td className="p-3 text-right font-mono font-semibold">{op.category === 'itens' ? "—" : formatCurrency(op.lucroLiquido)}</td>
+                          <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatCurrency(op.valorCliente)}</td>
+                        </>
+                      )}
                       <td className="p-3 text-center">
                         <Badge variant={op.status === "concluido" ? "default" : op.status === "cancelado" ? "destructive" : "secondary"} className="text-xs">
                           {op.status === "concluido" ? "Concluído" : op.status === "cancelado" ? "Cancelado" : "Pendente"}
