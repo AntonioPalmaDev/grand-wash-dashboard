@@ -88,6 +88,7 @@ export default function OperationsPage() {
   
   // Specific form state
   const [category, setCategory] = useState<ProductCategory>("dinheiro");
+  const [operationType, setOperationType] = useState("");
   const [valorBruto, setValorBruto] = useState("");
   const [selectedItems, setSelectedItems] = useState<{ productId: string, quantity: number }[]>([]);
 
@@ -159,6 +160,7 @@ export default function OperationsPage() {
       responsavel: finalResponsavel, 
       pix: pix || null,
       category,
+      operationType: operationType.trim() || null,
       items: finalItems
     });
     
@@ -172,6 +174,7 @@ export default function OperationsPage() {
     setResponsavel(""); 
     setPix("");
     setCategory("dinheiro");
+    setOperationType("");
     setSelectedItems([]);
   }
 
@@ -236,7 +239,7 @@ export default function OperationsPage() {
                   </div>
                   {isBlackDragons && (
                     <div>
-                      <Label>Tipo de Operação</Label>
+                      <Label>Categoria</Label>
                       <Select value={category} onValueChange={v => setCategory(v as ProductCategory)}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -247,6 +250,17 @@ export default function OperationsPage() {
                     </div>
                   )}
                 </div>
+                
+                {isBlackDragons && (
+                  <div>
+                    <Label>Subtipo (ex: Lavagem, Câmbio)</Label>
+                    <Input 
+                      value={operationType} 
+                      onChange={e => setOperationType(e.target.value)} 
+                      placeholder="Identifique o tipo específico..."
+                    />
+                  </div>
+                )}
 
                 {category === "dinheiro" && (
                   <div>
@@ -436,6 +450,11 @@ export default function OperationsPage() {
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="outline" className="text-[10px]">{client?.tipo}</Badge>
+                        {op.operationType && (
+                          <Badge variant="secondary" className="text-[10px] bg-primary/20 text-primary border-primary/20">
+                            {op.operationType}
+                          </Badge>
+                        )}
                         <span className="text-[11px] text-muted-foreground">{formatDate(op.data)}</span>
                       </div>
                     </div>
@@ -557,7 +576,16 @@ export default function OperationsPage() {
                             )}
                           </div>
                         </td>
-                        <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
+                        <td className="p-3">
+                          <div className="flex flex-col gap-1">
+                            <Badge variant="outline" className="text-[10px] w-fit">{client?.tipo}</Badge>
+                            {op.operationType && (
+                              <span className="text-[10px] font-bold text-primary uppercase tracking-tighter">
+                                {op.operationType}
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="p-3 text-right font-mono font-bold text-white text-base drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
                           {formatCurrency(op.valorBruto)}
                         </td>

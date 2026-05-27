@@ -34,6 +34,7 @@ interface AppContextType {
     responsavel?: string; 
     pix?: string | null; 
     category?: ProductCategory;
+    operationType?: string | null;
     items?: { productId: string; quantity: number; unitPrice: number; subtotal: number }[]
   }) => Promise<void>;
   updateOperationStatus: (id: string, status: OperationStatus) => Promise<void>;
@@ -85,6 +86,7 @@ function mapOperation(r: any): Operation {
     createdAt: r.created_at,
     pix: (r as any).pix ?? null,
     category: (r as any).category as ProductCategory || "dinheiro",
+    operationType: r.operation_type || null,
     items: (r as any).operation_items ? (r as any).operation_items.map((item: any) => ({
       id: item.id,
       operationId: item.operation_id,
@@ -272,6 +274,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     responsavel?: string; 
     pix?: string | null;
     category?: ProductCategory;
+    operationType?: string | null;
     items?: { productId: string; quantity: number; unitPrice: number; subtotal: number }[]
   }) => {
     if (!user || !activeCompany) return;
@@ -315,7 +318,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       valor_cliente: valorCliente, 
       responsavel,
       pix,
-      category
+      category,
+      operation_type: o.operationType
     } as any).select().single();
 
     if (data) {
