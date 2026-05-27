@@ -36,7 +36,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
-import { FilterItem } from "@/features/dashboard/components/FilterItem";
+import { DashboardFilters } from "@/features/dashboard/components/DashboardFilters";
 import { ExecutiveKpi } from "@/features/dashboard/components/ExecutiveKpi";
 import { CustomTooltip } from "@/features/dashboard/components/CustomTooltip";
 
@@ -90,75 +90,12 @@ export default function Dashboard() {
         </div>
 
         {/* MODERN FILTERS BAR */}
-        <div className="p-1.5 bg-secondary/10 backdrop-blur-xl rounded-2xl border border-white/5 shadow-2xl overflow-x-auto no-scrollbar">
-          <div className="flex items-center gap-2 min-w-max">
-            <FilterItem 
-              icon={Calendar} 
-              label="Período" 
-              value={filtros.periodo} 
-              onChange={(v) => setFiltros(f => ({ ...f, periodo: v }))}
-              options={[
-                { label: "7 Dias", value: "7d" },
-                { label: "30 Dias", value: "30d" },
-                { label: "Total", value: "ALL" },
-              ]}
-            />
-            <FilterItem 
-              icon={Layers} 
-              label="Camada" 
-              value={filtros.camada} 
-              onChange={(v) => setFiltros(f => ({ ...f, camada: v }))}
-              options={[
-                { label: "Ambas", value: "ALL" },
-                { label: "Financeiro", value: "FINANCEIRO" },
-                { label: "Produtos", value: "PRODUTOS" },
-              ]}
-            />
-            <FilterItem 
-              icon={Shield} 
-              label="Perfil" 
-              value={filtros.perfil} 
-              onChange={(v) => setFiltros(f => ({ ...f, perfil: v }))}
-              options={[
-                { label: "Todos", value: "ALL" },
-                { label: "PJ", value: "PJ" },
-                { label: "PF", value: "PF" },
-              ]}
-            />
-            <FilterItem 
-              icon={User} 
-              label="Responsável" 
-              value={filtros.responsavel} 
-              onChange={(v) => setFiltros(f => ({ ...f, responsavel: v }))}
-              options={[
-                { label: "Todos", value: "ALL" },
-                ...responsaveis.map(r => ({ label: r, value: r }))
-              ]}
-            />
-            <FilterItem 
-              icon={Search} 
-              label="Cliente" 
-              value={filtros.clienteId} 
-              onChange={(v) => setFiltros(f => ({ ...f, clienteId: v }))}
-              options={[
-                { label: "Todos Clientes", value: "ALL" },
-                ...clients.map(c => ({ label: c.nome, value: c.id }))
-              ]}
-            />
-            <FilterItem 
-              icon={Zap} 
-              label="Status" 
-              value={filtros.status} 
-              onChange={(v) => setFiltros(f => ({ ...f, status: v }))}
-              options={[
-                { label: "Todos", value: "ALL" },
-                { label: "Concluído", value: "concluido" },
-                { label: "Pendente", value: "pendente" },
-                { label: "Cancelado", value: "cancelado" },
-              ]}
-            />
-          </div>
-        </div>
+        <DashboardFilters 
+          filtros={filtros}
+          setFiltros={setFiltros}
+          responsaveis={responsaveis}
+          clients={clients}
+        />
       </header>
 
       {/* MAIN CHART */}
