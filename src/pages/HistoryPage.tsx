@@ -42,7 +42,9 @@ export default function HistoryPage() {
       <div className="flex gap-3 flex-wrap">
         <Input placeholder="Buscar cliente..." value={search} onChange={e => setSearch(e.target.value)} className="max-w-xs" />
         <Select value={tipoFilter} onValueChange={v => setTipoFilter(v as any)}>
-          <SelectTrigger className="w-full sm:w-32"><SelectValue placeholder="Tipo" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-32 bg-secondary/50 border-white/10 hover:bg-secondary/80 transition-colors">
+            <SelectValue placeholder="Tipo" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos PF/PJ</SelectItem>
             <SelectItem value="PF">PF</SelectItem>
@@ -50,7 +52,9 @@ export default function HistoryPage() {
           </SelectContent>
         </Select>
         <Select value={categoryFilter} onValueChange={v => setCategoryFilter(v as any)}>
-          <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Categoria" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-40 bg-secondary/50 border-white/10 hover:bg-secondary/80 transition-colors text-white font-semibold">
+            <SelectValue placeholder="Categoria" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas categorias</SelectItem>
             <SelectItem value="dinheiro">Dinheiro</SelectItem>
@@ -70,7 +74,7 @@ export default function HistoryPage() {
                   <th className="text-left p-3">Cliente</th>
                   {!hasDinheiro && <th className="text-left p-3">Produtos</th>}
                   <th className="text-left p-3">Tipo</th>
-                  <th className="text-right p-3">{!hasDinheiro ? "Total / Lucro" : "Valor Bruto"}</th>
+                  <th className="text-right p-3 font-bold text-white tracking-wide">{!hasDinheiro ? "TOTAL / LUCRO" : "VALOR BRUTO"}</th>
                   {hasDinheiro && (
                     <>
                       <th className="text-right p-3">Taxa</th>

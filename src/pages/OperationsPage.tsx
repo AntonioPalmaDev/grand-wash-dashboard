@@ -347,7 +347,9 @@ export default function OperationsPage() {
           className="w-full sm:max-w-[150px] font-mono"
         />
         <Select value={statusFilter} onValueChange={v => setStatusFilter(v as any)}>
-          <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-40 bg-secondary/50 border-white/10 hover:bg-secondary/80 transition-colors">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos status</SelectItem>
             <SelectItem value="pendente">Pendente</SelectItem>
@@ -357,7 +359,9 @@ export default function OperationsPage() {
         </Select>
         {isBlackDragons && (
           <Select value={categoryFilter} onValueChange={v => setCategoryFilter(v as any)}>
-            <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Categoria" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-40 bg-secondary/50 border-white/10 hover:bg-secondary/80 transition-colors text-white font-semibold">
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas categorias</SelectItem>
               <SelectItem value="dinheiro">Dinheiro</SelectItem>
@@ -396,9 +400,10 @@ export default function OperationsPage() {
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-secondary/20 rounded p-2">
-                      <div className="text-[10px] text-muted-foreground uppercase">Total / Lucro</div>
-                      <div className="font-mono font-semibold text-primary">{formatCurrency(op.valorBruto)}</div>
+                    <div className="bg-secondary/40 hover:bg-secondary/60 transition-all rounded-xl p-3 border border-white/5 relative overflow-hidden group">
+                      <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-full scale-150 -translate-x-1/2 -translate-y-1/2" />
+                      <div className="text-[10px] text-white/70 uppercase font-bold tracking-wider mb-1">Total / Lucro</div>
+                      <div className="font-mono text-lg font-bold text-white relative z-10">{formatCurrency(op.valorBruto)}</div>
                     </div>
                     {op.category === 'dinheiro' && (
                       <div className="bg-secondary/20 rounded p-2">
@@ -466,7 +471,7 @@ export default function OperationsPage() {
                     <th className="text-left p-3">Cliente</th>
                     {!hasDinheiro && <th className="text-left p-3">Produtos</th>}
                     <th className="text-left p-3">Tipo</th>
-                    <th className="text-right p-3">{!hasDinheiro ? "Total / Lucro" : "Valor Bruto"}</th>
+                    <th className="text-right p-3 font-bold text-white tracking-wide">{!hasDinheiro ? "TOTAL / LUCRO" : "VALOR BRUTO"}</th>
                     {hasDinheiro && (
                       <>
                         <th className="text-right p-3">Taxa</th>
