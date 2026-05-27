@@ -330,6 +330,7 @@ export type Database = {
           responsavel: string
           status: string
           taxa_percentual: number
+          total_items_quantity: number | null
           user_id: string
           valor_bruto: number
           valor_cliente: number
@@ -350,6 +351,7 @@ export type Database = {
           responsavel?: string
           status?: string
           taxa_percentual: number
+          total_items_quantity?: number | null
           user_id: string
           valor_bruto: number
           valor_cliente: number
@@ -370,6 +372,7 @@ export type Database = {
           responsavel?: string
           status?: string
           taxa_percentual?: number
+          total_items_quantity?: number | null
           user_id?: string
           valor_bruto?: number
           valor_cliente?: number
@@ -399,6 +402,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          min_stock_alert: number | null
           name: string
           percentage: number
           status: string
@@ -413,6 +417,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          min_stock_alert?: number | null
           name: string
           percentage?: number
           status?: string
@@ -427,6 +432,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          min_stock_alert?: number | null
           name?: string
           percentage?: number
           status?: string
