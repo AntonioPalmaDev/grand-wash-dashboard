@@ -297,14 +297,14 @@ export default function Dashboard() {
               <div className="flex items-center gap-6 bg-white/5 px-6 py-3 rounded-2xl border border-white/5">
                 <div className="text-center">
                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Total Período</p>
-                  <p className="text-xl font-mono font-bold text-white tracking-tighter">
+                  <p className="text-xl font-mono font-bold text-emerald-500 tracking-tighter">
                     {formatCurrency(chartData.reduce((acc, curr) => acc + curr.value, 0))}
                   </p>
                 </div>
                 <div className="w-[1px] h-8 bg-white/10" />
                 <div className="text-center">
                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Média Diária</p>
-                  <p className="text-xl font-mono font-bold text-primary tracking-tighter">
+                  <p className="text-xl font-mono font-bold text-emerald-500 tracking-tighter">
                     {formatCurrency(chartData.length ? chartData.reduce((acc, curr) => acc + curr.value, 0) / chartData.length : 0)}
                   </p>
                 </div>
@@ -587,7 +587,7 @@ function CustomTooltip({ active, payload, label }: any) {
     return (
       <div className="bg-black/90 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl">
         <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-2">{label}</p>
-        <p className="text-xl font-mono font-black text-primary tracking-tighter">
+        <p className="text-xl font-mono font-black text-emerald-500 tracking-tighter">
           {formatCurrency(payload[0].value)}
         </p>
         <p className="text-[9px] text-white/40 uppercase font-bold mt-1">Receita Real Consolidada</p>
