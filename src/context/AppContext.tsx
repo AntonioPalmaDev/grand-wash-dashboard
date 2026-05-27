@@ -273,6 +273,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     responsavel?: string; 
     pix?: string | null;
     category?: ProductCategory;
+    operationType?: string | null;
     items?: { productId: string; quantity: number; unitPrice: number; subtotal: number }[]
   }) => {
     if (!user || !activeCompany) return;
