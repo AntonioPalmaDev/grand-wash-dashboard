@@ -74,7 +74,7 @@ export default function HistoryPage() {
                   <th className="text-left p-3">Cliente</th>
                   {!hasDinheiro && <th className="text-left p-3">Produtos</th>}
                   <th className="text-left p-3">Tipo</th>
-                  <th className="text-right p-3 font-bold text-white tracking-wide">{!hasDinheiro ? "TOTAL / LUCRO" : "VALOR BRUTO"}</th>
+                  <th className="text-right p-3 font-medium text-muted-foreground uppercase tracking-wider">{!hasDinheiro ? "TOTAL / LUCRO" : "VALOR BRUTO"}</th>
                   {hasDinheiro && (
                     <>
                       <th className="text-right p-3">Taxa</th>
