@@ -130,7 +130,7 @@ export default function HistoryPage() {
                           formatCurrency(op.lucroLiquido)
                         )}
                       </td>
-                      <td className="p-3 text-right font-mono text-muted-foreground">
+                      <td className="p-3 text-right font-mono text-white">
                         {op.category === 'itens' ? "—" : formatCurrency(op.valorCliente)}
                       </td>
                       <td className="p-3 text-center">
