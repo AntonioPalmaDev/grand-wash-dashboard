@@ -294,9 +294,28 @@ export default function OperationsPage() {
                           </div>
                           {selected && (
                             <div className="flex items-center gap-2">
-                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, -1)}><Minus className="h-3 w-3" /></Button>
-                              <span className="text-sm font-mono w-4 text-center">{selected.quantity}</span>
-                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, 1)}><Plus className="h-3 w-3" /></Button>
+                              {category === 'dinheiro' ? (
+                                <Input
+                                  type="number"
+                                  value={selected.quantity}
+                                  onChange={(e) => {
+                                    const val = Number(e.target.value);
+                                    if (val >= 0) {
+                                      setSelectedItems(prev => prev.map(item => 
+                                        item.productId === product.id ? { ...item, quantity: val } : item
+                                      ));
+                                    }
+                                  }}
+                                  className="h-8 w-24 text-right font-mono"
+                                  placeholder="Valor"
+                                />
+                              ) : (
+                                <>
+                                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, -1)}><Minus className="h-3 w-3" /></Button>
+                                  <span className="text-sm font-mono w-4 text-center">{selected.quantity}</span>
+                                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, 1)}><Plus className="h-3 w-3" /></Button>
+                                </>
+                              )}
                             </div>
                           )}
                         </div>
