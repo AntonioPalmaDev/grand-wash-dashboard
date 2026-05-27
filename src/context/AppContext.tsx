@@ -341,7 +341,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     
     if (error) { 
       console.error("Erro ao inserir produto:", error.message); 
-      return; 
+      throw error;
     }
     
     if (data) {
@@ -363,7 +363,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (p.stockQuantity !== undefined) updatePayload.stock_quantity = p.stockQuantity;
     
     const { error } = await supabase.from("products").update(updatePayload).eq("id", id);
-    if (error) { console.error("Erro ao atualizar produto:", error.message); return; }
+    if (error) { 
+      console.error("Erro ao atualizar produto:", error.message); 
+      throw error;
+    }
     
     await registrarLog({ ...logBase(), action: "editar", entity: "produto", entityId: id, description: `${getUserName()} editou o produto ${id}`, afterData: p });
   }, [user, logBase, getUserName]);
@@ -371,7 +374,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const deleteProduct = useCallback(async (id: string) => {
     if (!user) return;
     const { error } = await supabase.from("products").delete().eq("id", id);
-    if (error) { console.error("Erro ao excluir produto:", error.message); return; }
+    if (error) { 
+      console.error("Erro ao excluir produto:", error.message); 
+      throw error;
+    }
     
     await registrarLog({ ...logBase(), action: "excluir", entity: "produto", entityId: id, description: `${getUserName()} excluiu o produto ${id}` });
   }, [user, logBase, getUserName]);
