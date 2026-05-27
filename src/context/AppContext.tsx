@@ -187,6 +187,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setOperations(prev => prev.filter(o => o.id !== (payload.old as any).id));
         }
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "products", filter: `company_id=eq.${activeCompany.id}` }, (payload) => {
+        if (payload.eventType === "INSERT") {
+          setProducts(prev => [mapProduct(payload.new), ...prev].sort((a, b) => a.name.localeCompare(b.name)));
+        } else if (payload.eventType === "UPDATE") {
+          setProducts(prev => {
+            const n = payload.new as any;
+            const exists = prev.some(p => p.id === n.id);
+            const newList = exists ? prev.map(p => p.id === n.id ? mapProduct(n) : p) : [mapProduct(n), ...prev];
+            return newList.sort((a, b) => a.name.localeCompare(b.name));
+          });
+        } else if (payload.eventType === "DELETE") {
+          setProducts(prev => prev.filter(p => p.id !== (payload.old as any).id));
+        }
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user, activeCompany]);
@@ -309,14 +323,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addProduct = useCallback(async (p: Omit<Product, "id" | "createdAt" | "updatedAt" | "companyId">) => {
     if (!user || !activeCompany) return;
-    const { data, error } = await supabase.from("products").insert({
-      ...p,
-      company_id: activeCompany.id,
-      base_value: p.baseValue,
-      stock_quantity: p.stockQuantity
-    } as any).select().single();
     
-    if (error) { console.error("Erro ao inserir produto:", error.message); return; }
+    // Clean up the payload to avoid camelCase fields being sent to Supabase
+    const insertPayload = {
+      name: p.name,
+      category: p.category,
+      type: p.type,
+      description: p.description,
+      status: p.status,
+      percentage: p.percentage,
+      base_value: p.baseValue,
+      stock_quantity: p.stockQuantity,
+      company_id: activeCompany.id
+    };
+
+    const { data, error } = await supabase.from("products").insert(insertPayload).select().single();
+    
+    if (error) { 
+      console.error("Erro ao inserir produto:", error.message); 
+      return; 
+    }
+    
     if (data) {
       await registrarLog({ ...logBase(), action: "criar", entity: "produto", entityId: data.id, description: `${getUserName()} criou o produto ${p.name}`, afterData: p });
     }
@@ -324,7 +351,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateProduct = useCallback(async (id: string, p: Partial<Product>) => {
     if (!user) return;
-    const updatePayload: any = { ...p };
+    
+    const updatePayload: any = {};
+    if (p.name !== undefined) updatePayload.name = p.name;
+    if (p.category !== undefined) updatePayload.category = p.category;
+    if (p.type !== undefined) updatePayload.type = p.type;
+    if (p.description !== undefined) updatePayload.description = p.description;
+    if (p.status !== undefined) updatePayload.status = p.status;
+    if (p.percentage !== undefined) updatePayload.percentage = p.percentage;
     if (p.baseValue !== undefined) updatePayload.base_value = p.baseValue;
     if (p.stockQuantity !== undefined) updatePayload.stock_quantity = p.stockQuantity;
     
