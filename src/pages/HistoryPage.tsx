@@ -42,11 +42,19 @@ export default function HistoryPage() {
       <div className="flex gap-3 flex-wrap">
         <Input placeholder="Buscar cliente..." value={search} onChange={e => setSearch(e.target.value)} className="max-w-xs" />
         <Select value={tipoFilter} onValueChange={v => setTipoFilter(v as any)}>
-          <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-32"><SelectValue placeholder="Tipo" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="all">Todos PF/PJ</SelectItem>
             <SelectItem value="PF">PF</SelectItem>
             <SelectItem value="PJ">PJ</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={categoryFilter} onValueChange={v => setCategoryFilter(v as any)}>
+          <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Categoria" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas categorias</SelectItem>
+            <SelectItem value="dinheiro">Dinheiro</SelectItem>
+            <SelectItem value="itens">Venda de Itens</SelectItem>
           </SelectContent>
         </Select>
       </div>
