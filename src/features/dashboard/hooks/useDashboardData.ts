@@ -5,6 +5,8 @@ import { Operation, Client } from "@/types";
 
 export interface DashboardFiltersState {
   periodo: string;
+  startDate?: Date;
+  endDate?: Date;
   tipoOperacao: string;
   clienteId: string;
   responsavel: string;
@@ -40,7 +42,12 @@ export function useDashboardData() {
       filtered = filtered.filter(op => op.status === filtros.status);
     }
 
-    if (filtros.periodo !== "ALL") {
+    if (filtros.periodo === "custom" && filtros.startDate && filtros.endDate) {
+      filtered = filtered.filter(op => {
+        const opDate = new Date(op.data);
+        return opDate >= filtros.startDate! && opDate <= filtros.endDate!;
+      });
+    } else if (filtros.periodo !== "ALL") {
       const days = Number(filtros.periodo.replace("d", ""));
       const limitDate = new Date();
       limitDate.setDate(now.getDate() - days);
@@ -106,7 +113,18 @@ export function useDashboardData() {
       return `${y}-${m}-${d}`;
     };
 
-    if (filtros.periodo !== "ALL") {
+    if (filtros.periodo === "custom" && filtros.startDate && filtros.endDate) {
+      const start = new Date(filtros.startDate);
+      const end = new Date(filtros.endDate);
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      for (let i = 0; i <= diffDays; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        result[getSPDateKey(d)] = 0;
+      }
+    } else if (filtros.periodo !== "ALL") {
       const days = Number(filtros.periodo.replace("d", ""));
       for (let i = days - 1; i >= 0; i--) {
         const d = new Date();
