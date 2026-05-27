@@ -153,7 +153,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!user || !activeCompany) return;
     const channel = supabase
       .channel(`app-realtime-${activeCompany.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "clients", filter: `company_id=eq.${activeCompany.id}` }, (payload) => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "clients", filter: `company_id=eq.${activeCompany.id}` }, async (payload) => {
         if (payload.eventType === "INSERT") {
           if (!(payload.new as any).deleted_at) setClients(prev => [mapClient(payload.new), ...prev]);
         } else if (payload.eventType === "UPDATE") {
@@ -170,18 +170,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setClients(prev => prev.filter(c => c.id !== (payload.old as any).id));
         }
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "operations", filter: `company_id=eq.${activeCompany.id}` }, (payload) => {
-        if (payload.eventType === "INSERT") {
-          if (!(payload.new as any).deleted_at) setOperations(prev => [mapOperation(payload.new), ...prev]);
-        } else if (payload.eventType === "UPDATE") {
+      .on("postgres_changes", { event: "*", schema: "public", table: "operations", filter: `company_id=eq.${activeCompany.id}` }, async (payload) => {
+        if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
           const n = payload.new as any;
           if (n.deleted_at) {
             setOperations(prev => prev.filter(o => o.id !== n.id));
           } else {
-            setOperations(prev => {
-              const exists = prev.some(o => o.id === n.id);
-              return exists ? prev.map(o => o.id === n.id ? mapOperation(n) : o) : [mapOperation(n), ...prev];
-            });
+            // Para garantir que temos os itens e produtos relacionados, buscamos a operação completa
+            const { data, error } = await supabase
+              .from("operations")
+              .select("*, operation_items(*, products(*))")
+              .eq("id", n.id)
+              .single();
+            
+            if (data && !data.deleted_at) {
+              setOperations(prev => {
+                const exists = prev.some(o => o.id === data.id);
+                const mapped = mapOperation(data);
+                if (exists) {
+                  return prev.map(o => o.id === data.id ? mapped : o);
+                } else {
+                  return [mapped, ...prev].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+                }
+              });
+            } else if (data?.deleted_at) {
+              setOperations(prev => prev.filter(o => o.id !== n.id));
+            }
           }
         } else if (payload.eventType === "DELETE") {
           setOperations(prev => prev.filter(o => o.id !== (payload.old as any).id));
