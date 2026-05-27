@@ -1,11 +1,10 @@
-import { useApp } from "@/context/AppContext";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { KpiCard } from "@/components/KpiCard";
-import { DollarSign, TrendingUp, Cpu, Wallet, Package } from "lucide-react";
+import { DollarSign, TrendingUp, Wallet, Package } from "lucide-react";
+import { useFinanceData } from "@/hooks/useFinanceData";
 
 export default function FinancePage() {
-  const { getStats } = useApp();
-  const stats = getStats();
+  const { stats, margemLiquida } = useFinanceData();
 
   return (
     <div className="space-y-6">
@@ -23,7 +22,7 @@ export default function FinancePage() {
           <p>Total de operações concluídas: <span className="text-foreground font-mono font-semibold">{stats.operacoesConcluidas}</span></p>
           <p>Quantidade total de itens vendidos: <span className="text-foreground font-mono font-semibold">{stats.quantidadeTotalItens}</span></p>
           {stats.totalMovimentado > 0 && (
-            <p>Margem líquida: <span className="text-primary font-mono font-semibold">{((stats.lucroLiquidoTotal / stats.totalMovimentado) * 100).toFixed(1)}%</span></p>
+            <p>Margem líquida: <span className="text-primary font-mono font-semibold">{margemLiquida}%</span></p>
           )}
         </div>
       </div>

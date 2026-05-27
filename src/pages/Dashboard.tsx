@@ -1,4 +1,3 @@
-import { useApp } from "@/context/AppContext";
 import { useCompany } from "@/context/CompanyContext";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { 
@@ -14,14 +13,11 @@ import {
   User,
   Shield,
   Layers,
-  ArrowUpRight,
-  ArrowDownRight,
+  History,
+  Search,
   LineChart as LineChartIcon,
   BarChart as BarChartIcon,
-  AreaChart as AreaChartIcon,
-  History,
-  Filter,
-  Search
+  AreaChart as AreaChartIcon
 } from "lucide-react";
 import {
   LineChart,
@@ -36,97 +32,26 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
+import { FilterItem } from "@/features/dashboard/components/FilterItem";
+import { ExecutiveKpi } from "@/features/dashboard/components/ExecutiveKpi";
+import { CustomTooltip } from "@/features/dashboard/components/CustomTooltip";
 
 export default function Dashboard() {
-  const { operations, clients, getStats } = useApp();
-  const { activeCompany } = useCompany();
-
-  const [chartType, setChartType] = useState<"line" | "bar" | "area">("area");
-  const [filtros, setFiltros] = useState({
-    periodo: "30d",
-    tipoOperacao: "ALL",
-    clienteId: "ALL",
-    responsavel: "ALL",
-    perfil: "ALL",
-    status: "concluido",
-    camada: "ALL", // "FINANCEIRO" | "PRODUTOS" | "ALL"
-  });
-
-  // Unique lists for filters
-  const responsaveis = useMemo(() => {
-    return Array.from(new Set(operations.map(op => op.responsavel))).filter(Boolean).sort();
-  }, [operations]);
-
-  const filteredOperations = useMemo(() => {
-    let filtered = [...operations];
-    const now = new Date();
-
-    // Filtro de Status
-    if (filtros.status !== "ALL") {
-      filtered = filtered.filter(op => op.status === filtros.status);
-    }
-
-    // Filtro de Período
-    if (filtros.periodo !== "ALL") {
-      const days = Number(filtros.periodo.replace("d", ""));
-      const limitDate = new Date();
-      limitDate.setDate(now.getDate() - days);
-      filtered = filtered.filter(op => new Date(op.data) >= limitDate);
-    }
-
-    // Filtro de Camada (Financeiro / Produtos)
-    if (filtros.camada === "FINANCEIRO") {
-      filtered = filtered.filter(op => op.category === "dinheiro");
-    } else if (filtros.camada === "PRODUTOS") {
-      filtered = filtered.filter(op => op.category === "itens");
-    }
-
-    // Filtro de Perfil (PF/PJ)
-    if (filtros.perfil !== "ALL") {
-      filtered = filtered.filter(op => {
-        const client = clients.find(c => c.id === op.clientId);
-        return client?.tipo === filtros.perfil;
-      });
-    }
-
-    // Filtro de Cliente
-    if (filtros.clienteId !== "ALL") {
-      filtered = filtered.filter(op => op.clientId === filtros.clienteId);
-    }
-
-    // Filtro de Responsável
-    if (filtros.responsavel !== "ALL") {
-      filtered = filtered.filter(op => op.responsavel === filtros.responsavel);
-    }
-
-    return filtered;
-  }, [operations, filtros, clients]);
-
-  const { stats, previousStats } = useMemo(() => {
-    const current = getStats(filteredOperations);
-    
-    // Calculate previous period for comparison
-    const now = new Date();
-    const days = filtros.periodo === "ALL" ? 30 : Number(filtros.periodo.replace("d", ""));
-    const limitDate = new Date();
-    limitDate.setDate(now.getDate() - days);
-    const startPreviousDate = new Date();
-    startPreviousDate.setDate(limitDate.getDate() - days);
-
-    const previousOps = operations.filter(op => {
-      const opDate = new Date(op.data);
-      return op.status === "concluido" && opDate >= startPreviousDate && opDate < limitDate;
-    });
-
-    const previous = getStats(previousOps);
-    
-    return { stats: current, previousStats: previous };
-  }, [getStats, filteredOperations, operations, filtros.periodo]);
+  const {
+    chartType,
+    setChartType,
+    filtros,
+    setFiltros,
+    responsaveis,
+    clients,
+    stats,
+    previousStats,
+    chartData
+  } = useDashboardData();
 
   const calculateGrowth = (current: number, previous: number) => {
     if (!previous) return null;
@@ -136,52 +61,6 @@ export default function Dashboard() {
       isPositive: growth >= 0
     };
   };
-
-  const chartData = useMemo(() => {
-    const result: Record<string, number> = {};
-    const now = new Date();
-
-    const getSPDateKey = (date: Date) => {
-      const parts = new Intl.DateTimeFormat("en-CA", {
-        year: "numeric", month: "2-digit", day: "2-digit",
-        timeZone: "America/Sao_Paulo",
-      }).formatToParts(date);
-      const y = parts.find(p => p.type === "year")?.value;
-      const m = parts.find(p => p.type === "month")?.value;
-      const d = parts.find(p => p.type === "day")?.value;
-      return `${y}-${m}-${d}`;
-    };
-
-    // Pre-fill days for 7d/30d
-    if (filtros.periodo !== "ALL") {
-      const days = Number(filtros.periodo.replace("d", ""));
-      for (let i = days - 1; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(now.getDate() - i);
-        result[getSPDateKey(d)] = 0;
-      }
-    }
-
-    filteredOperations.forEach(op => {
-      const d = new Date(op.data);
-      const key = getSPDateKey(d);
-      
-      // LOGIC: REAL ENTRY
-      // Money -> Lucro Líquido
-      // Items -> Valor Bruto
-      const realValue = op.category === "dinheiro" ? op.lucroLiquido : op.valorBruto;
-      
-      result[key] = (result[key] || 0) + realValue;
-    });
-
-    return Object.entries(result)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, value]) => ({
-        label: formatDayLabel(key),
-        fullDate: key,
-        value,
-      }));
-  }, [filteredOperations, filtros.periodo]);
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-700">
@@ -282,7 +161,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* MAIN CHART (PRIORIDADE MÁXIMA) */}
+      {/* MAIN CHART */}
       <section className="relative">
         <Card className="border-white/10 bg-gradient-to-br from-white/10 via-white/[0.02] to-transparent overflow-hidden rounded-[2rem] shadow-2xl backdrop-blur-sm">
           <CardContent className="p-8">
@@ -382,9 +261,8 @@ export default function Dashboard() {
         </Card>
       </section>
 
-      {/* KPI SUMMARIZED (ABAIXO DO GRÁFICO) */}
+      {/* KPI SUMMARIZED */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Camada Financeira */}
         <div className="space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-primary flex items-center gap-2 px-1">
             <DollarSign className="h-4 w-4" /> Performance Financeira
@@ -419,7 +297,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Camada Produtos */}
         <div className="space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-primary flex items-center gap-2 px-1">
             <Package className="h-4 w-4" /> Gestão de Produtos
@@ -520,91 +397,9 @@ export default function Dashboard() {
   );
 }
 
-// COMPONENTES AUXILIARES
-
-function FilterItem({ icon: Icon, label, value, options, onChange }: any) {
-  return (
-    <div className="relative group">
-      <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-all cursor-pointer">
-        <Icon size={14} className="text-primary" />
-        <div className="flex flex-col">
-          <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground leading-none mb-1">{label}</span>
-          <select 
-            className="bg-transparent border-none p-0 text-xs font-bold text-white outline-none cursor-pointer appearance-none min-w-[80px]"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-          >
-            {options.map((opt: any) => (
-              <option key={opt.value} value={opt.value} className="bg-black text-white">{opt.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ExecutiveKpi({ title, value, icon: Icon, trend, color, critical }: any) {
-  const colorMap: any = {
-    emerald: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
-    blue: "text-blue-500 bg-blue-500/10 border-blue-500/20",
-    purple: "text-purple-500 bg-purple-500/10 border-purple-500/20",
-    indigo: "text-indigo-500 bg-indigo-500/10 border-indigo-500/20",
-    amber: "text-amber-500 bg-amber-500/10 border-amber-500/20",
-    cyan: "text-cyan-500 bg-cyan-500/10 border-cyan-500/20",
-    rose: "text-rose-500 bg-rose-500/10 border-rose-500/20",
-    teal: "text-teal-500 bg-teal-500/10 border-teal-500/20",
-  };
-
-  return (
-    <div className={cn(
-      "p-5 rounded-[1.5rem] border bg-secondary/5 backdrop-blur-sm transition-all hover:bg-secondary/10 group",
-      critical ? "border-rose-500/50 bg-rose-500/5 animate-pulse" : "border-white/5"
-    )}>
-      <div className="flex justify-between items-start mb-4">
-        <div className={cn("p-2.5 rounded-xl border", colorMap[color] || "text-primary bg-primary/10 border-primary/20")}>
-          <Icon size={20} />
-        </div>
-        {trend && (
-          <div className={cn(
-            "flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-full",
-            trend.isPositive ? "text-emerald-500 bg-emerald-500/10" : "text-rose-500 bg-rose-500/10"
-          )}>
-            {trend.isPositive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />} {trend.value}
-          </div>
-        )}
-      </div>
-      <div>
-        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-1 group-hover:text-white/60 transition-colors">{title}</p>
-        <p className="text-2xl font-mono font-black text-white tracking-tighter leading-none">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function CustomTooltip({ active, payload, label }: any) {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-black/90 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl">
-        <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-2">{label}</p>
-        <p className="text-xl font-mono font-black text-emerald-500 tracking-tighter">
-          {formatCurrency(payload[0].value)}
-        </p>
-        <p className="text-[9px] text-white/40 uppercase font-bold mt-1">Receita Real Consolidada</p>
-      </div>
-    );
-  }
-  return null;
-}
-
 // Helpers
 function formatCompact(v: number) {
   if (v >= 1000000) return `${(v / 1000000).toFixed(0)}M`;
   if (v >= 1000) return `${(v / 1000).toFixed(0)}k`;
   return v.toString();
-}
-
-function formatDayLabel(d: string) {
-  const [, month, day] = d.split("-");
-  return `${day}/${month}`;
 }
