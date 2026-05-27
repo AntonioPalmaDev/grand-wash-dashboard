@@ -383,13 +383,15 @@ export default function OperationsPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="bg-secondary/20 rounded p-2">
-                      <div className="text-[10px] text-muted-foreground uppercase">Total</div>
-                      <div className="font-mono font-semibold">{formatCurrency(op.valorBruto)}</div>
+                      <div className="text-[10px] text-muted-foreground uppercase">Total / Lucro</div>
+                      <div className="font-mono font-semibold text-primary">{formatCurrency(op.valorBruto)}</div>
                     </div>
-                    <div className="bg-secondary/20 rounded p-2">
-                      <div className="text-[10px] text-muted-foreground uppercase">{op.category === 'itens' ? 'Lucro' : 'Lucro Líq.'}</div>
-                      <div className="font-mono font-semibold text-primary">{formatCurrency(op.lucroLiquido)}</div>
-                    </div>
+                    {op.category === 'dinheiro' && (
+                      <div className="bg-secondary/20 rounded p-2">
+                        <div className="text-[10px] text-muted-foreground uppercase">Lucro Líq.</div>
+                        <div className="font-mono font-semibold text-primary">{formatCurrency(op.lucroLiquido)}</div>
+                      </div>
+                    )}
                     {op.category === 'dinheiro' && (
                       <>
                         <div className="bg-secondary/20 rounded p-2">
