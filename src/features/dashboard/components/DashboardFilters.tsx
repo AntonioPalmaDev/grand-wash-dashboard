@@ -32,6 +32,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DashboardFiltersState } from "../hooks/useDashboardData";
 import { cn } from "@/lib/utils";
+import { DateRange } from "react-day-picker";
 
 interface DashboardFiltersProps {
   filtros: DashboardFiltersState;
@@ -46,7 +47,10 @@ export function DashboardFilters({
   responsaveis, 
   clients 
 }: DashboardFiltersProps) {
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [range, setRange] = React.useState<DateRange | undefined>({
+    from: filtros.startDate,
+    to: filtros.endDate
+  });
   
   const hasActiveFilters = 
     filtros.periodo !== "30d" || 
@@ -59,6 +63,8 @@ export function DashboardFilters({
   const clearFilters = () => {
     setFiltros({
       periodo: "30d",
+      startDate: undefined,
+      endDate: undefined,
       tipoOperacao: "ALL",
       clienteId: "ALL",
       responsavel: "ALL",
@@ -66,6 +72,21 @@ export function DashboardFilters({
       status: "concluido",
       camada: "ALL",
     });
+    setRange(undefined);
+  };
+
+  const handleRangeChange = (newRange: DateRange | undefined) => {
+    setRange(newRange);
+    if (newRange?.from && newRange?.to) {
+      setFiltros(f => ({ 
+        ...f, 
+        periodo: "custom", 
+        startDate: newRange.from, 
+        endDate: newRange.to 
+      }));
+    } else if (!newRange) {
+      setFiltros(f => ({ ...f, periodo: "30d", startDate: undefined, endDate: undefined }));
+    }
   };
 
   return (
@@ -91,21 +112,77 @@ export function DashboardFilters({
             />
           </div>
 
-          {/* Período */}
-          <Select 
-            value={filtros.periodo} 
-            onValueChange={(v) => setFiltros(f => ({ ...f, periodo: v }))}
-          >
-            <SelectTrigger className="w-full sm:w-[160px] bg-secondary/30 border-white/10 h-11 rounded-xl">
-              <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
-              <SelectValue placeholder="Período" />
-            </SelectTrigger>
-            <SelectContent className="bg-black/90 border-white/10 backdrop-blur-xl">
-              <SelectItem value="7d">Últimos 7 dias</SelectItem>
-              <SelectItem value="30d">Últimos 30 dias</SelectItem>
-              <SelectItem value="ALL">Todo o período</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Período (Date Range Picker) */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full sm:w-[260px] justify-start text-left font-normal bg-secondary/30 border-white/10 h-11 rounded-xl transition-all hover:bg-white/5 hover:border-white/20",
+                  !range && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+                {range?.from ? (
+                  range.to ? (
+                    <>
+                      {format(range.from, "dd MMM, yyyy", { locale: ptBR })} -{" "}
+                      {format(range.to, "dd MMM, yyyy", { locale: ptBR })}
+                    </>
+                  ) : (
+                    format(range.from, "dd MMM, yyyy", { locale: ptBR })
+                  )
+                ) : (
+                  <span>Selecionar período</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-black/90 border-white/10 backdrop-blur-xl" align="start">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={range?.from}
+                selected={range}
+                onSelect={handleRangeChange}
+                numberOfMonths={2}
+                locale={ptBR}
+              />
+              <div className="p-3 border-t border-white/10 flex flex-wrap gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-[10px] uppercase font-bold"
+                  onClick={() => {
+                    const d = new Date();
+                    d.setDate(d.getDate() - 7);
+                    handleRangeChange({ from: d, to: new Date() });
+                  }}
+                >
+                  7 Dias
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-[10px] uppercase font-bold"
+                  onClick={() => {
+                    const d = new Date();
+                    d.setDate(d.getDate() - 30);
+                    handleRangeChange({ from: d, to: new Date() });
+                  }}
+                >
+                  30 Dias
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-[10px] uppercase font-bold"
+                  onClick={() => setFiltros(f => ({ ...f, periodo: "ALL", startDate: undefined, endDate: undefined }))}
+                >
+                  Total
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
 
           {/* Camada */}
           <Select 
