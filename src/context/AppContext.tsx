@@ -265,11 +265,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!client) return;
     
     const category = o.category || "dinheiro";
-    const taxa = getClientRate(client);
-    const lucroBruto = o.valorBruto * (taxa / 100);
-    const custoMaquina = o.valorBruto * (config.taxaMaquina / 100);
-    const lucroLiquido = lucroBruto - custoMaquina;
-    const valorCliente = o.valorBruto - lucroBruto;
+    let taxa = 0;
+    let lucroBruto = 0;
+    let custoMaquina = 0;
+    let lucroLiquido = 0;
+    let valorCliente = 0;
+
+    if (category === "itens") {
+      // Venda de itens: o lucro é o valor bruto total (100% de margem no sistema)
+      taxa = 0;
+      lucroBruto = o.valorBruto;
+      custoMaquina = 0;
+      lucroLiquido = o.valorBruto;
+      valorCliente = 0;
+    } else {
+      // Operação de dinheiro (lavagem): lógica padrão de taxas
+      taxa = getClientRate(client);
+      lucroBruto = o.valorBruto * (taxa / 100);
+      custoMaquina = o.valorBruto * (config.taxaMaquina / 100);
+      lucroLiquido = lucroBruto - custoMaquina;
+      valorCliente = o.valorBruto - lucroBruto;
+    }
     const responsavel = o.responsavel || getUserName();
     const pix = o.pix && /^\d+$/.test(o.pix) ? o.pix : null;
 
