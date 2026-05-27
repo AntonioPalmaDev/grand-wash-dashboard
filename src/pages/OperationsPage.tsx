@@ -354,6 +354,7 @@ export default function OperationsPage() {
           {/* Mobile: cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:hidden">
             {sorted.map(op => {
+              console.log("Rendering OP:", op.id, "Category:", op.category, "Items:", op.items?.length);
               const client = clients.find(c => c.id === op.clientId);
               const sc = statusConfig[op.status];
               const StatusIcon = sc.icon;
