@@ -83,11 +83,6 @@ export default function HistoryPage() {
                   <th className="text-left p-3">Data</th>
                 </tr>
               </thead>
-                  <th className="text-center p-3">Status</th>
-                  <th className="text-left p-3">Responsável</th>
-                  <th className="text-left p-3">Data</th>
-                </tr>
-              </thead>
               <tbody>
                 {sorted.map(op => {
                   const client = clients.find(c => c.id === op.clientId);
