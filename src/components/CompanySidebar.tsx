@@ -17,7 +17,8 @@ import {
   Briefcase,
   Zap,
   Bot,
-  Package
+  Package,
+  ShoppingCart
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/context/AuthContext";
@@ -48,8 +49,9 @@ const companyItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Gestão de Produtos", url: "/produtos", icon: Package, onlyFor: ["Black Dragons"] },
-  { title: "Operações", url: "/operacoes", icon: ArrowLeftRight },
-  { title: "Financeiro", url: "/financeiro", icon: DollarSign },
+  { title: "Operações Financeiras", url: "/operacoes-financeiras", icon: DollarSign },
+  { title: "Operações de Produtos", url: "/operacoes-produtos", icon: ShoppingCart },
+  { title: "Financeiro", url: "/financeiro", icon: Briefcase },
   { title: "Relatórios", url: "/painel-financeiro", icon: PieChart },
   { title: "Histórico", url: "/historico", icon: History },
   { title: "Logs da Empresa", url: "/logs", icon: FileText },
@@ -117,11 +119,9 @@ export function CompanySidebar() {
               {companyItems
                 .filter(item => {
                   if (role === "visualizador") {
-                    // Only Dashboard and Reports (Financial Panel) for anonymous users
                     return item.url === "/" || item.url === "/painel-financeiro";
                   }
                   
-                  // Regra para itens específicos de empresa
                   const companyItem = item as any;
                   if (companyItem.onlyFor && activeCompany) {
                     return companyItem.onlyFor.includes(activeCompany.name);
@@ -169,4 +169,3 @@ export function CompanySidebar() {
     </Sidebar>
   );
 }
-
