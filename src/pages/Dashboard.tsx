@@ -1,6 +1,8 @@
 import { useApp } from "@/context/AppContext";
+import { useCompany } from "@/context/CompanyContext";
 import { formatCurrency, formatDateOnly, formatPercent } from "@/lib/format";
 import { KpiCard } from "@/components/KpiCard";
+import { Button } from "@/components/ui/button";
 import {
   DollarSign,
   TrendingUp,
@@ -11,6 +13,8 @@ import {
   LineChart as LineChartIcon,
   BarChart as BarChartIcon,
   Check,
+  Package,
+  Zap
 } from "lucide-react";
 import {
   LineChart,
