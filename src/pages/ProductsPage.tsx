@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Search, Package, DollarSign, Tag, Info } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Package, DollarSign, Tag, Info, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import type { Product, ProductCategory } from "@/types";
 
 export default function ProductsPage() {
@@ -20,6 +21,7 @@ export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<"all" | ProductCategory>("all");
   const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Form state
   const [name, setName] = useState("");
@@ -43,36 +45,59 @@ export default function ProductsPage() {
     });
   }, [products, search, categoryFilter]);
 
-  function handleAdd() {
-    if (!name.trim()) return;
-    addProduct({
-      name: name.trim(),
-      category,
-      type: type.trim() || undefined,
-      baseValue: Number(baseValue) || 0,
-      percentage: Number(percentage) || 0,
-      stockQuantity: Number(stockQuantity) || 0,
-      description: description.trim() || undefined,
-      status
-    });
-    resetForm();
-    setOpen(false);
+  async function handleAdd() {
+    if (!name.trim()) {
+      toast.error("O nome do produto é obrigatório");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      await addProduct({
+        name: name.trim(),
+        category,
+        type: type.trim() || undefined,
+        baseValue: Number(baseValue) || 0,
+        percentage: Number(percentage) || 0,
+        stockQuantity: Number(stockQuantity) || 0,
+        description: description.trim() || undefined,
+        status
+      });
+      toast.success("Produto cadastrado com sucesso!");
+      resetForm();
+      setOpen(false);
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao cadastrar produto");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
-  function handleUpdate() {
+  async function handleUpdate() {
     if (!editingProduct || !name.trim()) return;
-    updateProduct(editingProduct.id, {
-      name: name.trim(),
-      category,
-      type: type.trim() || undefined,
-      baseValue: Number(baseValue) || 0,
-      percentage: Number(percentage) || 0,
-      stockQuantity: Number(stockQuantity) || 0,
-      description: description.trim() || undefined,
-      status
-    });
-    setEditingProduct(null);
-    resetForm();
+    
+    setIsSubmitting(true);
+    try {
+      await updateProduct(editingProduct.id, {
+        name: name.trim(),
+        category,
+        type: type.trim() || undefined,
+        baseValue: Number(baseValue) || 0,
+        percentage: Number(percentage) || 0,
+        stockQuantity: Number(stockQuantity) || 0,
+        description: description.trim() || undefined,
+        status
+      });
+      toast.success("Produto atualizado com sucesso!");
+      setEditingProduct(null);
+      resetForm();
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao atualizar produto");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function startEdit(p: Product) {
@@ -186,7 +211,8 @@ export default function ProductsPage() {
                   <Input id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Breve descrição do produto..." />
                 </div>
               </div>
-              <Button onClick={editingProduct ? handleUpdate : handleAdd} className="w-full">
+              <Button onClick={editingProduct ? handleUpdate : handleAdd} className="w-full" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {editingProduct ? "Salvar Alterações" : "Cadastrar Produto"}
               </Button>
             </DialogContent>
