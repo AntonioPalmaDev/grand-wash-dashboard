@@ -248,46 +248,65 @@ export default function OperationsPage() {
                   )}
                 </div>
 
-                {category === "dinheiro" ? (
+                {category === "dinheiro" && (
                   <div>
                     <Label>Valor Bruto (R$)</Label>
-                    <Input type="number" inputMode="decimal" value={valorBruto} onChange={e => setValorBruto(e.target.value)} placeholder="0.00" />
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <Label>Seleção de Itens</Label>
-                    <div className="grid grid-cols-1 gap-2">
-                      {products.filter(p => p.category === "itens" && p.status === "ativo").map(product => {
-                        const selected = selectedItems.find(i => i.productId === product.id);
-                        return (
-                          <div key={product.id} className={`flex items-center justify-between p-2 rounded-lg border ${selected ? 'border-primary bg-primary/5' : 'border-border'}`}>
-                            <div className="flex items-center gap-3">
-                              <Button 
-                                variant={selected ? "default" : "outline"} 
-                                size="icon" 
-                                className="h-8 w-8"
-                                onClick={() => toggleItem(product.id)}
-                              >
-                                {selected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                              </Button>
-                              <div>
-                                <p className="text-sm font-medium">{product.name}</p>
-                                <p className="text-xs text-muted-foreground">{formatCurrency(product.baseValue)} | Est: {product.stockQuantity}</p>
-                              </div>
-                            </div>
-                            {selected && (
-                              <div className="flex items-center gap-2">
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, -1)}><Minus className="h-3 w-3" /></Button>
-                                <span className="text-sm font-mono w-4 text-center">{selected.quantity}</span>
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, 1)}><Plus className="h-3 w-3" /></Button>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                    <Input 
+                      type="number" 
+                      inputMode="decimal" 
+                      value={valorBruto} 
+                      onChange={e => {
+                        setValorBruto(e.target.value);
+                        if (e.target.value) setSelectedItems([]);
+                      }} 
+                      placeholder="0.00" 
+                    />
                   </div>
                 )}
+
+                <div className="space-y-3">
+                  <Label>{category === "dinheiro" ? "Produtos / Serviços" : "Seleção de Itens"}</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {products.filter(p => p.category === category && p.status === "ativo").map(product => {
+                      const selected = selectedItems.find(i => i.productId === product.id);
+                      return (
+                        <div key={product.id} className={`flex items-center justify-between p-2 rounded-lg border ${selected ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                          <div className="flex items-center gap-3">
+                            <Button 
+                              variant={selected ? "default" : "outline"} 
+                              size="icon" 
+                              className="h-8 w-8"
+                              onClick={() => {
+                                toggleItem(product.id);
+                                if (!selected) setValorBruto(""); // Limpa valor manual se selecionar item
+                              }}
+                            >
+                              {selected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                            </Button>
+                            <div>
+                              <p className="text-sm font-medium">{product.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatCurrency(product.baseValue)} 
+                                {product.percentage > 0 && ` | Taxa: ${product.percentage}%`}
+                                {category === 'itens' && ` | Est: ${product.stockQuantity}`}
+                              </p>
+                            </div>
+                          </div>
+                          {selected && (
+                            <div className="flex items-center gap-2">
+                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, -1)}><Minus className="h-3 w-3" /></Button>
+                              <span className="text-sm font-mono w-4 text-center">{selected.quantity}</span>
+                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, 1)}><Plus className="h-3 w-3" /></Button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {products.filter(p => p.category === category && p.status === "ativo").length === 0 && (
+                      <p className="text-xs text-muted-foreground italic">Nenhum produto cadastrado nesta categoria.</p>
+                    )}
+                  </div>
+                </div>
 
                 <div>
                   <Label>PIX (opcional)</Label>
