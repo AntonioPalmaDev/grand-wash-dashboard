@@ -3,7 +3,7 @@ import { useApp } from "@/context/AppContext";
 import { useCompany } from "@/context/CompanyContext";
 import { Operation, Client } from "@/types";
 
-export interface DashboardFilters {
+export interface DashboardFiltersState {
   periodo: string;
   tipoOperacao: string;
   clienteId: string;
@@ -18,7 +18,7 @@ export function useDashboardData() {
   const { activeCompany } = useCompany();
 
   const [chartType, setChartType] = useState<"line" | "bar" | "area">("area");
-  const [filtros, setFiltros] = useState<DashboardFilters>({
+  const [filtros, setFiltros] = useState<DashboardFiltersState>({
     periodo: "30d",
     tipoOperacao: "ALL",
     clienteId: "ALL",
