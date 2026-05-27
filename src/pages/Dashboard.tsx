@@ -265,11 +265,11 @@ export default function Dashboard() {
           variant="success" 
         />
         {isBlackDragons ? (
-          <KpiCard title="Itens Vendidos" value={String(kpiStats.totalItensVendidos || 0)} icon={Package} />
+          <KpiCard title="Itens Vendidos" value={String(kpiStats.quantidadeTotalItens || 0)} icon={Package} />
         ) : (
-          <KpiCard title="Ticket Médio" value={formatCurrency(kpiStats.totalOperacoes > 0 ? kpiStats.totalMovimentado / kpiStats.totalOperacoes : 0)} icon={ArrowUpRight} />
+          <KpiCard title="Ticket Médio" value={formatCurrency(kpiStats.operacoesConcluidas > 0 ? kpiStats.totalMovimentado / kpiStats.operacoesConcluidas : 0)} icon={ArrowUpRight} />
         )}
-        <KpiCard title="Operações" value={String(kpiStats.totalOperacoes)} icon={BarChart3} />
+        <KpiCard title="Operações" value={String(kpiStats.operacoesConcluidas)} icon={BarChart3} />
         <KpiCard 
           title="Status" 
           value="Concluído" 
