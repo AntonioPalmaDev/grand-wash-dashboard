@@ -85,7 +85,7 @@ function mapOperation(r: any): Operation {
     createdAt: r.created_at,
     pix: (r as any).pix ?? null,
     category: (r as any).category as ProductCategory || "dinheiro",
-    items: (r as any).operation_items?.map((item: any) => ({
+    items: (r as any).operation_items ? (r as any).operation_items.map((item: any) => ({
       id: item.id,
       operationId: item.operation_id,
       productId: item.product_id,
@@ -94,7 +94,7 @@ function mapOperation(r: any): Operation {
       subtotal: Number(item.subtotal),
       createdAt: item.created_at,
       product: item.products ? mapProduct(item.products) : undefined
-    }))
+    })) : []
   };
 }
 
