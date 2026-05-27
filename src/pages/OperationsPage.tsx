@@ -494,6 +494,26 @@ export default function OperationsPage() {
                             <span className="font-medium">{client?.nome ?? "?"}</span>
                           </div>
                         </td>
+                        {!hasDinheiro && (
+                          <td className="p-3">
+                            <div className="flex flex-col gap-0.5">
+                              {op.items && op.items.length > 0 ? (
+                                op.items.map(item => (
+                                  <div key={item.id} className="text-[11px] flex items-center gap-1.5 whitespace-nowrap">
+                                    <Badge variant="secondary" className="h-4 px-1 text-[9px] font-mono min-w-[20px] justify-center">
+                                      {item.quantity}x
+                                    </Badge>
+                                    <span className="text-muted-foreground truncate max-w-[120px]">
+                                      {item.product?.name || "Produto"}
+                                    </span>
+                                  </div>
+                                ))
+                              ) : (
+                                <span className="text-muted-foreground text-xs">—</span>
+                              )}
+                            </div>
+                          </td>
+                        )}
                         <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
                         <td className="p-3 text-right font-mono font-semibold text-primary">{formatCurrency(op.valorBruto)}</td>
                         {hasDinheiro && (
