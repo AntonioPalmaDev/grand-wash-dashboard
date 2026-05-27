@@ -495,9 +495,13 @@ export default function OperationsPage() {
                         </td>
                         <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
                         <td className="p-3 text-right font-mono font-semibold text-primary">{formatCurrency(op.valorBruto)}</td>
-                        <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatPercent(op.taxaPercentual)}</td>
-                        <td className="p-3 text-right font-mono font-semibold">{op.category === 'itens' ? "—" : formatCurrency(op.lucroLiquido)}</td>
-                        <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatCurrency(op.valorCliente)}</td>
+                        {hasDinheiro && (
+                          <>
+                            <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatPercent(op.taxaPercentual)}</td>
+                            <td className="p-3 text-right font-mono font-semibold">{op.category === 'itens' ? "—" : formatCurrency(op.lucroLiquido)}</td>
+                            <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatCurrency(op.valorCliente)}</td>
+                          </>
+                        )}
                         <td className="p-3"><PixInlineEditor op={op} /></td>
                         <td className="p-3 text-center">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>
