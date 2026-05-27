@@ -268,8 +268,54 @@ export type Database = {
           },
         ]
       }
+      operation_items: {
+        Row: {
+          created_at: string
+          id: string
+          operation_id: string
+          product_id: string
+          quantity: number
+          subtotal: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          operation_id: string
+          product_id: string
+          quantity?: number
+          subtotal?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          operation_id?: string
+          product_id?: string
+          quantity?: number
+          subtotal?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operation_items_operation_id_fkey"
+            columns: ["operation_id"]
+            isOneToOne: false
+            referencedRelation: "operations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operation_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operations: {
         Row: {
+          category: Database["public"]["Enums"]["product_category"] | null
           client_id: string
           company_id: string | null
           created_at: string
@@ -288,6 +334,7 @@ export type Database = {
           valor_cliente: number
         }
         Insert: {
+          category?: Database["public"]["Enums"]["product_category"] | null
           client_id: string
           company_id?: string | null
           created_at?: string
@@ -306,6 +353,7 @@ export type Database = {
           valor_cliente: number
         }
         Update: {
+          category?: Database["public"]["Enums"]["product_category"] | null
           client_id?: string
           company_id?: string | null
           created_at?: string
@@ -333,6 +381,59 @@ export type Database = {
           },
           {
             foreignKeyName: "operations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          base_value: number
+          category: Database["public"]["Enums"]["product_category"]
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          percentage: number
+          status: string
+          stock_quantity: number
+          type: string | null
+          updated_at: string
+        }
+        Insert: {
+          base_value?: number
+          category?: Database["public"]["Enums"]["product_category"]
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          percentage?: number
+          status?: string
+          stock_quantity?: number
+          type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          base_value?: number
+          category?: Database["public"]["Enums"]["product_category"]
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          percentage?: number
+          status?: string
+          stock_quantity?: number
+          type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -475,6 +576,7 @@ export type Database = {
     }
     Enums: {
       app_role: "desenvolvedor" | "gestao" | "visualizador" | "admin_master"
+      product_category: "itens" | "dinheiro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -603,6 +705,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["desenvolvedor", "gestao", "visualizador", "admin_master"],
+      product_category: ["itens", "dinheiro"],
     },
   },
 } as const

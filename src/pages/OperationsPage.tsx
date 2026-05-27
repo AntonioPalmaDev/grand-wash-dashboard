@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
 import { useRole } from "@/hooks/useRole";
+import { useCompany } from "@/context/CompanyContext";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Check, X, Clock, Trash2, Lock, Pencil, Save } from "lucide-react";
-import type { Operation, OperationStatus } from "@/types";
+import { Plus, Check, X, Clock, Trash2, Lock, Pencil, Save, Package, DollarSign, ShoppingCart, Minus } from "lucide-react";
+import type { Operation, OperationStatus, ProductCategory } from "@/types";
 
 const statusConfig: Record<OperationStatus, { label: string; color: string; icon: typeof Check }> = {
   pendente: { label: "Pendente", color: "bg-warning/15 text-warning", icon: Clock },
@@ -75,37 +76,118 @@ function PixInlineEditor({ op }: { op: Operation }) {
 }
 
 export default function OperationsPage() {
-  const { operations, clients, addOperation, updateOperationStatus, deleteOperation, getUserName } = useApp();
+  const { operations, clients, products, addOperation, updateOperationStatus, deleteOperation, getUserName } = useApp();
+  const { activeCompany } = useCompany();
   const { isDev, canEdit } = useRole();
   const [open, setOpen] = useState(false);
+  
+  // Base form state
   const [clientId, setClientId] = useState("");
-  const [valorBruto, setValorBruto] = useState("");
   const [responsavel, setResponsavel] = useState("");
   const [pix, setPix] = useState("");
+  
+  // Specific form state
+  const [category, setCategory] = useState<ProductCategory>("dinheiro");
+  const [valorBruto, setValorBruto] = useState("");
+  const [selectedItems, setSelectedItems] = useState<{ productId: string, quantity: number }[]>([]);
 
   // Busca / filtros
   const [search, setSearch] = useState("");
   const [pixFilter, setPixFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | OperationStatus>("all");
 
+  const isBlackDragons = activeCompany?.name === "Black Dragons";
   const autoResponsavel = getUserName();
 
   const { config, getClientRate } = useApp();
+  
   const preview = useMemo(() => {
     const client = clients.find(c => c.id === clientId);
-    if (!client || !valorBruto || Number(valorBruto) <= 0) return null;
-    const vb = Number(valorBruto);
-    const taxa = getClientRate(client);
-    const lb = vb * (taxa / 100);
-    const cm = vb * (config.taxaMaquina / 100);
-    return { taxa, lucroBruto: lb, custoMaquina: cm, lucroLiquido: lb - cm, valorCliente: vb - lb };
-  }, [clientId, valorBruto, clients, getClientRate, config]);
+    if (!client) return null;
+
+    if (category === "dinheiro") {
+      if (!valorBruto || Number(valorBruto) <= 0) return null;
+      const vb = Number(valorBruto);
+      const taxa = getClientRate(client);
+      const lb = vb * (taxa / 100);
+      const cm = vb * (config.taxaMaquina / 100);
+      return { taxa, lucroBruto: lb, custoMaquina: cm, lucroLiquido: lb - cm, valorCliente: vb - lb };
+    } else {
+      // Itens flow
+      if (selectedItems.length === 0) return null;
+      let total = 0;
+      selectedItems.forEach(item => {
+        const product = products.find(p => p.id === item.productId);
+        if (product) total += product.baseValue * item.quantity;
+      });
+      
+      const vb = total;
+      const taxa = getClientRate(client);
+      const lb = vb * (taxa / 100);
+      const cm = vb * (config.taxaMaquina / 100);
+      return { taxa, lucroBruto: lb, custoMaquina: cm, lucroLiquido: lb - cm, valorCliente: vb - lb, totalBruto: total };
+    }
+  }, [clientId, valorBruto, clients, getClientRate, config, category, selectedItems, products]);
 
   function handleAdd() {
-    if (!clientId || !valorBruto || Number(valorBruto) <= 0) return;
+    if (!clientId) return;
     const finalResponsavel = isDev && responsavel.trim() ? responsavel.trim() : autoResponsavel;
-    addOperation({ clientId, valorBruto: Number(valorBruto), responsavel: finalResponsavel, pix: pix || null });
-    setClientId(""); setValorBruto(""); setResponsavel(""); setPix(""); setOpen(false);
+    
+    let finalValorBruto = Number(valorBruto);
+    let finalItems: any[] = [];
+    
+    if (category === "itens") {
+      finalValorBruto = preview?.totalBruto || 0;
+      finalItems = selectedItems.map(item => {
+        const product = products.find(p => p.id === item.productId);
+        return {
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: product?.baseValue || 0,
+          subtotal: (product?.baseValue || 0) * item.quantity
+        };
+      });
+    }
+
+    if (finalValorBruto <= 0) return;
+
+    addOperation({ 
+      clientId, 
+      valorBruto: finalValorBruto, 
+      responsavel: finalResponsavel, 
+      pix: pix || null,
+      category,
+      items: finalItems
+    });
+    
+    resetForm();
+    setOpen(false);
+  }
+
+  function resetForm() {
+    setClientId(""); 
+    setValorBruto(""); 
+    setResponsavel(""); 
+    setPix("");
+    setCategory("dinheiro");
+    setSelectedItems([]);
+  }
+
+  function toggleItem(productId: string) {
+    setSelectedItems(prev => {
+      const exists = prev.find(i => i.productId === productId);
+      if (exists) return prev.filter(i => i.productId !== productId);
+      return [...prev, { productId, quantity: 1 }];
+    });
+  }
+
+  function updateQuantity(productId: string, delta: number) {
+    setSelectedItems(prev => prev.map(item => {
+      if (item.productId === productId) {
+        return { ...item, quantity: Math.max(1, item.quantity + delta) };
+      }
+      return item;
+    }));
   }
 
   const sorted = useMemo(() => {
@@ -136,20 +218,72 @@ export default function OperationsPage() {
             </DialogTrigger>
             <DialogContent className="max-w-lg w-[calc(100vw-2rem)]">
               <DialogHeader><DialogTitle>Registrar Operação</DialogTitle></DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label>Cliente</Label>
-                  <Select value={clientId} onValueChange={setClientId}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.nome} ({c.tipo})</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Cliente</Label>
+                    <Select value={clientId} onValueChange={setClientId}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.nome} ({c.tipo})</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {isBlackDragons && (
+                    <div>
+                      <Label>Tipo de Operação</Label>
+                      <Select value={category} onValueChange={v => setCategory(v as ProductCategory)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                          <SelectItem value="itens">Venda de Itens</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <Label>Valor Bruto (R$)</Label>
-                  <Input type="number" inputMode="decimal" value={valorBruto} onChange={e => setValorBruto(e.target.value)} placeholder="0.00" />
-                </div>
+
+                {category === "dinheiro" ? (
+                  <div>
+                    <Label>Valor Bruto (R$)</Label>
+                    <Input type="number" inputMode="decimal" value={valorBruto} onChange={e => setValorBruto(e.target.value)} placeholder="0.00" />
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <Label>Seleção de Itens</Label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {products.filter(p => p.category === "itens" && p.status === "ativo").map(product => {
+                        const selected = selectedItems.find(i => i.productId === product.id);
+                        return (
+                          <div key={product.id} className={`flex items-center justify-between p-2 rounded-lg border ${selected ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                            <div className="flex items-center gap-3">
+                              <Button 
+                                variant={selected ? "default" : "outline"} 
+                                size="icon" 
+                                className="h-8 w-8"
+                                onClick={() => toggleItem(product.id)}
+                              >
+                                {selected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                              </Button>
+                              <div>
+                                <p className="text-sm font-medium">{product.name}</p>
+                                <p className="text-xs text-muted-foreground">{formatCurrency(product.baseValue)} | Est: {product.stockQuantity}</p>
+                              </div>
+                            </div>
+                            {selected && (
+                              <div className="flex items-center gap-2">
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, -1)}><Minus className="h-3 w-3" /></Button>
+                                <span className="text-sm font-mono w-4 text-center">{selected.quantity}</span>
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, 1)}><Plus className="h-3 w-3" /></Button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <Label>PIX (opcional)</Label>
                   <Input
@@ -159,7 +293,6 @@ export default function OperationsPage() {
                     pattern="[0-9]*"
                     placeholder="Somente números"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Aceita apenas dígitos. Bloqueia após conclusão.</p>
                 </div>
                 <div>
                   <Label>Responsável</Label>
@@ -168,7 +301,6 @@ export default function OperationsPage() {
                   ) : (
                     <Input value={autoResponsavel} disabled className="opacity-70" />
                   )}
-                  {!isDev && <p className="text-xs text-muted-foreground mt-1">Preenchido automaticamente com seu usuário</p>}
                 </div>
 
                 {preview && (
@@ -182,7 +314,7 @@ export default function OperationsPage() {
                   </div>
                 )}
 
-                <Button onClick={handleAdd} className="w-full" disabled={!clientId || !valorBruto || Number(valorBruto) <= 0}>Registrar</Button>
+                <Button onClick={handleAdd} className="w-full" disabled={!clientId || (category === "dinheiro" && (!valorBruto || Number(valorBruto) <= 0)) || (category === "itens" && selectedItems.length === 0)}>Registrar</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -229,7 +361,10 @@ export default function OperationsPage() {
                 <div key={op.id} className="glass-card rounded-lg p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="font-semibold truncate">{client?.nome ?? "?"}</div>
+                      <div className="font-semibold truncate flex items-center gap-2">
+                        {client?.nome ?? "?"}
+                        {op.category === 'itens' && <Package className="h-3 w-3 text-primary" />}
+                      </div>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="outline" className="text-[10px]">{client?.tipo}</Badge>
                         <span className="text-[11px] text-muted-foreground">{formatDate(op.data)}</span>
@@ -260,6 +395,19 @@ export default function OperationsPage() {
                       <div className="text-[10px] text-muted-foreground uppercase mb-1">PIX</div>
                       <PixInlineEditor op={op} />
                     </div>
+                    {op.category === 'itens' && op.items && op.items.length > 0 && (
+                      <div className="bg-primary/5 rounded p-2 col-span-2">
+                        <div className="text-[10px] text-muted-foreground uppercase mb-1">Itens</div>
+                        <div className="space-y-1">
+                          {op.items.map(item => (
+                            <div key={item.id} className="flex justify-between text-[10px]">
+                              <span>{item.product?.name} x{item.quantity}</span>
+                              <span className="font-mono">{formatCurrency(item.subtotal)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/30">
                     <span className="text-[11px] text-muted-foreground truncate">{op.responsavel}</span>
@@ -308,7 +456,12 @@ export default function OperationsPage() {
                     const StatusIcon = sc.icon;
                     return (
                       <tr key={op.id} className="border-b border-border/20 hover:bg-secondary/20 transition-colors">
-                        <td className="p-3 font-medium">{client?.nome ?? "?"}</td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            {op.category === 'itens' && <Package className="h-3 w-3 text-primary" />}
+                            <span className="font-medium">{client?.nome ?? "?"}</span>
+                          </div>
+                        </td>
                         <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
                         <td className="p-3 text-right font-mono">{formatCurrency(op.valorBruto)}</td>
                         <td className="p-3 text-right font-mono">{formatPercent(op.taxaPercentual)}</td>

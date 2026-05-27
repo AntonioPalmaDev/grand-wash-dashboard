@@ -14,6 +14,7 @@ import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import CompanySelectionPage from "@/pages/CompanySelectionPage";
 import ClientsPage from "@/pages/ClientsPage";
+import ProductsPage from "@/pages/ProductsPage";
 import OperationsPage from "@/pages/OperationsPage";
 import HistoryPage from "@/pages/HistoryPage";
 import FinancePage from "@/pages/FinancePage";
@@ -87,6 +88,7 @@ function CompanyWrapper() {
               <Route path="/painel-financeiro" element={<PainelFinanceiroPage />} />
               
               <Route path="/clientes" element={<ClientsPage />} />
+              <Route path="/produtos" element={<ProductsPage />} />
               <Route path="/operacoes" element={<OperationsPage />} />
               
               {role !== "visualizador" && (

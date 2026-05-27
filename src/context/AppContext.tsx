@@ -12,19 +12,30 @@ import {
   logExcluirCliente,
   logAlterarConfig,
 } from "@/lib/logging";
-import type { Client, Operation, AppConfig, DashboardStats, OperationStatus } from "@/types";
+import type { Client, Operation, AppConfig, DashboardStats, OperationStatus, Product, OperationItem, ProductCategory } from "@/types";
 
 const DEFAULT_CONFIG: AppConfig = { taxaPF: 30, taxaPJ: 25, taxaMaquina: 10, taxaLiquida: 15 };
 
 interface AppContextType {
   clients: Client[];
   operations: Operation[];
+  products: Product[];
   config: AppConfig;
   loading: boolean;
   addClient: (c: Omit<Client, "id" | "createdAt">) => Promise<void>;
   updateClient: (id: string, c: Partial<Client>) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
-  addOperation: (o: { clientId: string; valorBruto: number; responsavel?: string; pix?: string | null }) => Promise<void>;
+  addProduct: (p: Omit<Product, "id" | "createdAt" | "updatedAt" | "companyId">) => Promise<void>;
+  updateProduct: (id: string, p: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  addOperation: (o: { 
+    clientId: string; 
+    valorBruto: number; 
+    responsavel?: string; 
+    pix?: string | null; 
+    category?: ProductCategory;
+    items?: { productId: string; quantity: number; unitPrice: number; subtotal: number }[]
+  }) => Promise<void>;
   updateOperationStatus: (id: string, status: OperationStatus) => Promise<void>;
   updateOperationPix: (id: string, pix: string | null) => Promise<void>;
   deleteOperation: (id: string) => Promise<void>;
@@ -41,14 +52,49 @@ function mapClient(r: any): Client {
   return { id: r.id, nome: r.nome, tipo: r.tipo as "PF" | "PJ", taxa: Number(r.taxa), cor: r.cor || "#a855f7", createdAt: r.created_at };
 }
 
+function mapProduct(r: any): Product {
+  return {
+    id: r.id,
+    companyId: r.company_id,
+    name: r.name,
+    category: r.category as ProductCategory,
+    type: r.type,
+    baseValue: Number(r.base_value),
+    percentage: Number(r.percentage),
+    stockQuantity: Number(r.stock_quantity),
+    description: r.description,
+    status: r.status as "ativo" | "inativo",
+    createdAt: r.created_at,
+    updatedAt: r.updated_at
+  };
+}
+
 function mapOperation(r: any): Operation {
   return {
-    id: r.id, clientId: r.client_id, valorBruto: Number(r.valor_bruto),
-    taxaPercentual: Number(r.taxa_percentual), lucroBruto: Number(r.lucro_bruto),
-    custoMaquina: Number(r.custo_maquina), lucroLiquido: Number(r.lucro_liquido),
-    valorCliente: Number(r.valor_cliente), status: r.status as OperationStatus,
-    responsavel: r.responsavel, data: r.data, createdAt: r.created_at,
+    id: r.id, 
+    clientId: r.client_id, 
+    valorBruto: Number(r.valor_bruto),
+    taxaPercentual: Number(r.taxa_percentual), 
+    lucroBruto: Number(r.lucro_bruto),
+    custoMaquina: Number(r.custo_maquina), 
+    lucroLiquido: Number(r.lucro_liquido),
+    valorCliente: Number(r.valor_cliente), 
+    status: r.status as OperationStatus,
+    responsavel: r.responsavel, 
+    data: r.data, 
+    createdAt: r.created_at,
     pix: (r as any).pix ?? null,
+    category: (r as any).category as ProductCategory || "dinheiro",
+    items: (r as any).operation_items?.map((item: any) => ({
+      id: item.id,
+      operationId: item.operation_id,
+      productId: item.product_id,
+      quantity: item.quantity,
+      unitPrice: Number(item.unit_price),
+      subtotal: Number(item.subtotal),
+      createdAt: item.created_at,
+      product: item.products ? mapProduct(item.products) : undefined
+    }))
   };
 }
 
@@ -57,6 +103,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const { activeCompany } = useCompany();
   const [clients, setClients] = useState<Client[]>([]);
   const [operations, setOperations] = useState<Operation[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(true);
 
@@ -83,13 +130,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
     async function fetchAll() {
       setLoading(true);
-      const [cRes, oRes, cfgRes] = await Promise.all([
+      const [cRes, oRes, cfgRes, pRes] = await Promise.all([
         supabase.from("clients").select("*").eq("company_id", activeCompany.id).is("deleted_at", null).order("created_at", { ascending: false }),
-        supabase.from("operations").select("*").eq("company_id", activeCompany.id).is("deleted_at", null).order("data", { ascending: false }),
+        supabase.from("operations").select("*, operation_items(*, products(*))").eq("company_id", activeCompany.id).is("deleted_at", null).order("data", { ascending: false }),
         supabase.from("configs").select("*").eq("company_id", activeCompany.id).limit(1).single(),
+        supabase.from("products").select("*").eq("company_id", activeCompany.id).order("name", { ascending: true }),
       ]);
       if (cRes.data) setClients(cRes.data.map(mapClient));
       if (oRes.data) setOperations(oRes.data.map(mapOperation));
+      if (pRes.data) setProducts(pRes.data.map(mapProduct));
       if (cfgRes.data) {
         const d = cfgRes.data as any;
         setConfig({ taxaPF: Number(d.taxa_pf), taxaPJ: Number(d.taxa_pj), taxaMaquina: Number(d.taxa_maquina), taxaLiquida: d.taxa_liquida !== undefined ? Number(d.taxa_liquida) : 15 });
@@ -189,10 +238,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await registrarLog({ ...logBase(), action: "excluir", entity: "cliente", entityId: id, description: desc, beforeData: old });
   }, [user, clients, getUserName, logBase]);
 
-  const addOperation = useCallback(async (o: { clientId: string; valorBruto: number; responsavel?: string; pix?: string | null }) => {
+  const addOperation = useCallback(async (o: { 
+    clientId: string; 
+    valorBruto: number; 
+    responsavel?: string; 
+    pix?: string | null;
+    category?: ProductCategory;
+    items?: { productId: string; quantity: number; unitPrice: number; subtotal: number }[]
+  }) => {
     if (!user || !activeCompany) return;
     const client = clients.find(c => c.id === o.clientId);
     if (!client) return;
+    
+    const category = o.category || "dinheiro";
     const taxa = getClientRate(client);
     const lucroBruto = o.valorBruto * (taxa / 100);
     const custoMaquina = o.valorBruto * (config.taxaMaquina / 100);
@@ -201,21 +259,88 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const responsavel = o.responsavel || getUserName();
     const pix = o.pix && /^\d+$/.test(o.pix) ? o.pix : null;
 
-    const { data } = await supabase.from("operations").insert({
-      user_id: user.id, client_id: o.clientId, company_id: activeCompany.id, valor_bruto: o.valorBruto,
-      taxa_percentual: taxa, lucro_bruto: lucroBruto, custo_maquina: custoMaquina,
-      lucro_liquido: lucroLiquido, valor_cliente: valorCliente, responsavel,
+    const { data, error } = await supabase.from("operations").insert({
+      user_id: user.id, 
+      client_id: o.clientId, 
+      company_id: activeCompany.id, 
+      valor_bruto: o.valorBruto,
+      taxa_percentual: taxa, 
+      lucro_bruto: lucroBruto, 
+      custo_maquina: custoMaquina,
+      lucro_liquido: lucroLiquido, 
+      valor_cliente: valorCliente, 
+      responsavel,
       pix,
+      category
     } as any).select().single();
 
     if (data) {
+      // Se houver itens, inserir na tabela vinculada
+      if (category === "itens" && o.items && o.items.length > 0) {
+        const itemsToInsert = o.items.map(item => ({
+          operation_id: data.id,
+          product_id: item.productId,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          subtotal: item.subtotal
+        }));
+        
+        await supabase.from("operation_items").insert(itemsToInsert);
+        
+        // Atualizar estoque
+        for (const item of o.items) {
+          const product = products.find(p => p.id === item.productId);
+          if (product) {
+            await supabase.from("products").update({
+              stock_quantity: Math.max(0, product.stockQuantity - item.quantity)
+            }).eq("id", item.productId);
+          }
+        }
+      }
+
       const desc = logCriarOperacao({ responsavel, nomeCliente: client.nome, valorBruto: o.valorBruto });
-      await registrarLog({ ...logBase(), action: "criar", entity: "operação", entityId: data.id, description: desc, afterData: { valorBruto: o.valorBruto, cliente: client.nome, responsavel, pix } });
+      await registrarLog({ ...logBase(), action: "criar", entity: "operação", entityId: data.id, description: desc, afterData: { valorBruto: o.valorBruto, cliente: client.nome, responsavel, pix, category } });
+      
       supabase.functions.invoke("discord-notify", {
-        body: { type: "nova_operacao", nome: client.nome, responsavel, status: "pendente" },
+        body: { type: "nova_operacao", nome: client.nome, responsavel, status: "pendente", category },
       }).catch(console.error);
     }
-  }, [user, clients, config, getClientRate, getUserName, logBase]);
+  }, [user, clients, config, getClientRate, getUserName, logBase, activeCompany, products]);
+
+  const addProduct = useCallback(async (p: Omit<Product, "id" | "createdAt" | "updatedAt" | "companyId">) => {
+    if (!user || !activeCompany) return;
+    const { data, error } = await supabase.from("products").insert({
+      ...p,
+      company_id: activeCompany.id,
+      base_value: p.baseValue,
+      stock_quantity: p.stockQuantity
+    } as any).select().single();
+    
+    if (error) { console.error("Erro ao inserir produto:", error.message); return; }
+    if (data) {
+      await registrarLog({ ...logBase(), action: "criar", entity: "produto", entityId: data.id, description: `${getUserName()} criou o produto ${p.name}`, afterData: p });
+    }
+  }, [user, activeCompany, logBase, getUserName]);
+
+  const updateProduct = useCallback(async (id: string, p: Partial<Product>) => {
+    if (!user) return;
+    const updatePayload: any = { ...p };
+    if (p.baseValue !== undefined) updatePayload.base_value = p.baseValue;
+    if (p.stockQuantity !== undefined) updatePayload.stock_quantity = p.stockQuantity;
+    
+    const { error } = await supabase.from("products").update(updatePayload).eq("id", id);
+    if (error) { console.error("Erro ao atualizar produto:", error.message); return; }
+    
+    await registrarLog({ ...logBase(), action: "editar", entity: "produto", entityId: id, description: `${getUserName()} editou o produto ${id}`, afterData: p });
+  }, [user, logBase, getUserName]);
+
+  const deleteProduct = useCallback(async (id: string) => {
+    if (!user) return;
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) { console.error("Erro ao excluir produto:", error.message); return; }
+    
+    await registrarLog({ ...logBase(), action: "excluir", entity: "produto", entityId: id, description: `${getUserName()} excluiu o produto ${id}` });
+  }, [user, logBase, getUserName]);
 
   const updateOperationStatus = useCallback(async (id: string, status: OperationStatus) => {
     if (!user) return;
@@ -291,7 +416,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [operations]);
 
   return (
-    <AppContext.Provider value={{ clients, operations, config, loading, addClient, updateClient, deleteClient, addOperation, updateOperationStatus, updateOperationPix, deleteOperation, updateConfig, getStats, getClientStats, getClientRate, getUserName }}>
+    <AppContext.Provider value={{ 
+      clients, operations, products, config, loading, 
+      addClient, updateClient, deleteClient, 
+      addProduct, updateProduct, deleteProduct,
+      addOperation, updateOperationStatus, updateOperationPix, deleteOperation, 
+      updateConfig, getStats, getClientStats, getClientRate, getUserName 
+    }}>
       {children}
     </AppContext.Provider>
   );

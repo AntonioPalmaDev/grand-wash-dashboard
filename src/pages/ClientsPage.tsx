@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useApp } from "@/context/AppContext";
+import { useCompany } from "@/context/CompanyContext";
 import { useRole } from "@/hooks/useRole";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,8 @@ import type { Client, ClientType } from "@/types";
 
 export default function ClientsPage() {
   const { clients, addClient, updateClient, deleteClient, getClientStats, getClientRate, config } = useApp();
+  const { activeCompany } = useCompany();
+  const isBlackDragons = activeCompany?.name === "Black Dragons";
   const { isDev, canEdit } = useRole();
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState("");
@@ -138,7 +141,7 @@ export default function ClientsPage() {
                   <div className="font-mono font-bold text-lg">{s.totalOps}</div>
                 </div>
                 <div className="bg-secondary/20 p-2 rounded text-center col-span-2">
-                  <div className="text-[10px] text-muted-foreground uppercase">Total Lavado</div>
+                  <div className="text-[10px] text-muted-foreground uppercase">{isBlackDragons ? "Total Comprado" : "Total Lavado"}</div>
                   <div className="font-mono font-bold text-lg text-emerald-400">{formatCurrency(s.totalLavado)}</div>
                 </div>
               </div>
