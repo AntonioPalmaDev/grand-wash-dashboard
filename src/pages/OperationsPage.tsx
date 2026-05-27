@@ -250,16 +250,18 @@ export default function OperationsPage() {
 
                 {category === "dinheiro" && (
                   <div>
-                    <Label>Valor Bruto (R$)</Label>
+                    <Label>Valor Bruto {selectedItems.length > 0 ? "(Calculado via Itens)" : "(R$)"}</Label>
                     <Input 
                       type="number" 
                       inputMode="decimal" 
-                      value={valorBruto} 
+                      value={selectedItems.length > 0 ? preview?.totalBruto || "" : valorBruto} 
                       onChange={e => {
                         setValorBruto(e.target.value);
                         if (e.target.value) setSelectedItems([]);
                       }} 
-                      placeholder="0.00" 
+                      placeholder="0.00"
+                      disabled={selectedItems.length > 0}
+                      className={selectedItems.length > 0 ? "bg-secondary/20 font-mono font-bold" : ""}
                     />
                   </div>
                 )}
