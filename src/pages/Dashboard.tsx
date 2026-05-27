@@ -107,9 +107,35 @@ export default function Dashboard() {
     return filtered;
   }, [operations, filtros, clients]);
 
-  const stats = useMemo(() => {
-    return getStats(filteredOperations);
-  }, [getStats, filteredOperations]);
+  const { stats, previousStats } = useMemo(() => {
+    const current = getStats(filteredOperations);
+    
+    // Calculate previous period for comparison
+    const now = new Date();
+    const days = filtros.periodo === \"ALL\" ? 30 : Number(filtros.periodo.replace(\"d\", \"\"));
+    const limitDate = new Date();
+    limitDate.setDate(now.getDate() - days);
+    const startPreviousDate = new Date();
+    startPreviousDate.setDate(limitDate.getDate() - days);
+
+    const previousOps = operations.filter(op => {
+      const opDate = new Date(op.data);
+      return op.status === \"concluido\" && opDate >= startPreviousDate && opDate < limitDate;
+    });
+
+    const previous = getStats(previousOps);
+    
+    return { stats: current, previousStats: previous };
+  }, [getStats, filteredOperations, operations, filtros.periodo]);
+
+  const calculateGrowth = (current: number, previous: number) => {
+    if (!previous) return null;
+    const growth = ((current - previous) / previous) * 100;
+    return {
+      value: `${growth > 0 ? \"+\" : \"\"}${growth.toFixed(1)}%`,
+      isPositive: growth >= 0
+    };
+  };
 
   const chartData = useMemo(() => {
     const result: Record<string, number> = {};
