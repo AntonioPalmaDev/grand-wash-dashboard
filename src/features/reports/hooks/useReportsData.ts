@@ -62,35 +62,20 @@ export function useReportsData() {
     return ops.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
   }, [operations, clients, filters]);
 
-  const stats = useMemo(() => {
-    const totalBruto = filteredOperations.reduce((acc, op) => acc + op.valorBruto, 0);
-    const lucroLiquido = filteredOperations.reduce((acc, op) => acc + op.lucroLiquido, 0);
-    const count = filteredOperations.length;
-    const completedCount = filteredOperations.filter(op => op.status === 'concluido').length;
-    
-    return {
-      totalBruto,
-      lucroLiquido,
-      count,
-      completedCount,
-    };
-  }, [filteredOperations]);
+  const stats = useMemo(() => calculateReportStats(filteredOperations), [filteredOperations]);
 
-  const chartData = useMemo(() => {
-    // Group by date for charts
-    const groups: Record<string, { date: string; bruto: number; liquido: number }> = {};
-    
-    filteredOperations.forEach(op => {
-      const date = new Date(op.data).toLocaleDateString();
-      if (!groups[date]) {
-        groups[date] = { date, bruto: 0, liquido: 0 };
-      }
-      groups[date].bruto += op.valorBruto;
-      groups[date].liquido += op.lucroLiquido;
-    });
+  const chartData = useMemo(() => groupOperationsByDate(filteredOperations), [filteredOperations]);
 
-    return Object.values(groups).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [filteredOperations]);
+  return {
+    operations: filteredOperations,
+    clients,
+    filters,
+    setFilters,
+    stats,
+    chartData,
+  };
+}
+
 
   return {
     operations: filteredOperations,
