@@ -303,11 +303,20 @@ export default function OperationsPage() {
                 {preview && (
                   <div className="bg-secondary/30 rounded-lg p-4 space-y-2 text-sm">
                     <div className="text-xs font-semibold text-primary mb-2">🧠 Simulação</div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Taxa</span><span className="font-mono">{formatPercent(preview.taxa)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Lucro Bruto</span><span className="font-mono">{formatCurrency(preview.lucroBruto)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Custo Máquina</span><span className="font-mono">{formatCurrency(preview.custoMaquina)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Lucro Líquido</span><span className="font-mono font-bold text-primary">{formatCurrency(preview.lucroLiquido)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Valor ao Cliente</span><span className="font-mono">{formatCurrency(preview.valorCliente)}</span></div>
+                    {category === 'dinheiro' && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">Taxa</span><span className="font-mono">{formatPercent(preview.taxa)}</span></div>
+                    )}
+                    <div className="flex justify-between"><span className="text-muted-foreground">Valor Total</span><span className="font-mono">{formatCurrency(preview.totalBruto)}</span></div>
+                    {category === 'dinheiro' && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">Custo Máquina</span><span className="font-mono">{formatCurrency(preview.custoMaquina)}</span></div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">{category === 'itens' ? 'Lucro Total' : 'Lucro Líquido'}</span>
+                      <span className="font-mono font-bold text-primary">{formatCurrency(preview.lucroLiquido)}</span>
+                    </div>
+                    {category === 'dinheiro' && (
+                      <div className="flex justify-between"><span className="text-muted-foreground">Valor ao Cliente</span><span className="font-mono">{formatCurrency(preview.valorCliente)}</span></div>
+                    )}
                   </div>
                 )}
 
