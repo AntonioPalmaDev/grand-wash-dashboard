@@ -95,6 +95,7 @@ export default function OperationsPage() {
   const [search, setSearch] = useState("");
   const [pixFilter, setPixFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | OperationStatus>("all");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | ProductCategory>("all");
 
   const isBlackDragons = activeCompany?.name === "Black Dragons";
   const autoResponsavel = getUserName();
