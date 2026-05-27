@@ -325,6 +325,7 @@ export type Database = {
           id: string
           lucro_bruto: number
           lucro_liquido: number
+          operation_type: string | null
           pix: string | null
           responsavel: string
           status: string
@@ -344,6 +345,7 @@ export type Database = {
           id?: string
           lucro_bruto: number
           lucro_liquido: number
+          operation_type?: string | null
           pix?: string | null
           responsavel?: string
           status?: string
@@ -363,6 +365,7 @@ export type Database = {
           id?: string
           lucro_bruto?: number
           lucro_liquido?: number
+          operation_type?: string | null
           pix?: string | null
           responsavel?: string
           status?: string
