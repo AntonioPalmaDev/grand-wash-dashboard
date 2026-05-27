@@ -15,9 +15,9 @@ import Dashboard from "@/pages/Dashboard";
 import CompanySelectionPage from "@/pages/CompanySelectionPage";
 import ClientsPage from "@/pages/ClientsPage";
 import ProductsPage from "@/pages/ProductsPage";
-import OperationsPage from "@/pages/OperationsPage";
+import FinancialOperationsPage from "@/pages/FinancialOperationsPage";
+import ProductOperationsPage from "@/pages/ProductOperationsPage";
 import HistoryPage from "@/pages/HistoryPage";
-import FinancePage from "@/pages/FinancePage";
 import RankingPage from "@/pages/RankingPage";
 import SettingsPage from "@/pages/SettingsPage";
 import UsersPage from "@/pages/UsersPage";
@@ -89,7 +89,8 @@ function CompanyWrapper() {
               
               <Route path="/clientes" element={<ClientsPage />} />
               <Route path="/produtos" element={<ProductsPage />} />
-              <Route path="/operacoes" element={<OperationsPage />} />
+              <Route path="/operacoes-financeiras" element={<FinancialOperationsPage />} />
+              <Route path="/operacoes-produtos" element={<ProductOperationsPage />} />
               
               {role !== "visualizador" && (
                 <>

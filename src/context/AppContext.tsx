@@ -470,15 +470,51 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const getStats = useCallback((opsOverride?: Operation[]): DashboardStats => {
     const opsToUse = opsOverride || operations;
     const completed = opsToUse.filter(op => op.status === "concluido");
+    
+    // Financial stats (dinheiro category)
+    const financialOps = completed.filter(op => op.category === "dinheiro");
+    const totalMovimentado = financialOps.reduce((s, op) => s + op.valorBruto, 0);
+    const lucroLiquidoTotal = completed.reduce((s, op) => s + op.lucroLiquido, 0);
+    const taxaMedia = financialOps.length > 0 
+      ? financialOps.reduce((s, op) => s + op.taxaPercentual, 0) / financialOps.length 
+      : 0;
+
+    // Product stats (itens category)
+    const productOps = completed.filter(op => op.category === "itens");
+    const produtosVendidos = productOps.length;
+    
+    // Calculate total items quantity from operation_items
+    let quantidadeTotalItens = 0;
+    const productSalesMap: Record<string, number> = {};
+    
+    completed.forEach(op => {
+      if (op.items) {
+        op.items.forEach(item => {
+          quantidadeTotalItens += item.quantity;
+          const productName = item.product?.name || "Produto Desconhecido";
+          productSalesMap[productName] = (productSalesMap[productName] || 0) + item.quantity;
+        });
+      }
+    });
+
+    const produtosMaisVendidos = Object.entries(productSalesMap)
+      .map(([name, quantity]) => ({ name, quantity }))
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5);
+
+    const estoqueBaixoCount = products.filter(p => p.status === "ativo" && p.stockQuantity <= 5).length;
+
     return {
-      totalMovimentado: completed.reduce((s, op) => s + op.valorBruto, 0),
-      lucroBrutoTotal: completed.reduce((s, op) => s + op.lucroBruto, 0),
-      totalMaquina: completed.reduce((s, op) => s + op.custoMaquina, 0),
-      lucroLiquidoTotal: completed.reduce((s, op) => s + op.lucroLiquido, 0),
-      totalRepassado: completed.reduce((s, op) => s + op.valorCliente, 0),
-      totalOperacoes: completed.length,
+      totalMovimentado,
+      lucroLiquidoTotal,
+      taxaMedia,
+      operacoesConcluidas: completed.length,
+      produtosVendidos,
+      quantidadeTotalItens,
+      estoqueBaixoCount,
+      produtosMaisVendidos
     };
-  }, [operations]);
+  }, [operations, products]);
 
   const getClientStats = useCallback((id: string) => {
     const ops = operations.filter(op => op.clientId === id && op.status === "concluido");

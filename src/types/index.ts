@@ -80,11 +80,15 @@ export interface AppConfig {
 }
 
 export interface DashboardStats {
+  // Financeiro
   totalMovimentado: number;
-  lucroBrutoTotal: number;
-  totalMaquina: number;
   lucroLiquidoTotal: number;
-  totalRepassado: number;
-  totalOperacoes: number;
-  totalItensVendidos?: number;
+  taxaMedia: number;
+  operacoesConcluidas: number;
+  
+  // Produtos
+  produtosVendidos: number;
+  quantidadeTotalItens: number;
+  estoqueBaixoCount: number;
+  produtosMaisVendidos: { name: string; quantity: number }[];
 }
