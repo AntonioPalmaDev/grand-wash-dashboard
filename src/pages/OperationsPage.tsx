@@ -250,16 +250,18 @@ export default function OperationsPage() {
 
                 {category === "dinheiro" && (
                   <div>
-                    <Label>Valor Bruto (R$)</Label>
+                    <Label>Valor Bruto {selectedItems.length > 0 ? "(Calculado via Itens)" : "(R$)"}</Label>
                     <Input 
                       type="number" 
                       inputMode="decimal" 
-                      value={valorBruto} 
+                      value={selectedItems.length > 0 ? preview?.totalBruto || "" : valorBruto} 
                       onChange={e => {
                         setValorBruto(e.target.value);
                         if (e.target.value) setSelectedItems([]);
                       }} 
-                      placeholder="0.00" 
+                      placeholder="0.00"
+                      disabled={selectedItems.length > 0}
+                      className={selectedItems.length > 0 ? "bg-secondary/20 font-mono font-bold" : ""}
                     />
                   </div>
                 )}
@@ -294,9 +296,28 @@ export default function OperationsPage() {
                           </div>
                           {selected && (
                             <div className="flex items-center gap-2">
-                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, -1)}><Minus className="h-3 w-3" /></Button>
-                              <span className="text-sm font-mono w-4 text-center">{selected.quantity}</span>
-                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, 1)}><Plus className="h-3 w-3" /></Button>
+                              {category === 'dinheiro' ? (
+                                <Input
+                                  type="number"
+                                  value={selected.quantity}
+                                  onChange={(e) => {
+                                    const val = Number(e.target.value);
+                                    if (val >= 0) {
+                                      setSelectedItems(prev => prev.map(item => 
+                                        item.productId === product.id ? { ...item, quantity: val } : item
+                                      ));
+                                    }
+                                  }}
+                                  className="h-8 w-24 text-right font-mono"
+                                  placeholder="Valor"
+                                />
+                              ) : (
+                                <>
+                                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, -1)}><Minus className="h-3 w-3" /></Button>
+                                  <span className="text-sm font-mono w-4 text-center">{selected.quantity}</span>
+                                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, 1)}><Plus className="h-3 w-3" /></Button>
+                                </>
+                              )}
                             </div>
                           )}
                         </div>
@@ -520,7 +541,7 @@ export default function OperationsPage() {
                         </td>
                         <td className="p-3">
                           <div className="flex flex-col gap-0.5 min-w-[120px]">
-                            {op.category === 'itens' && op.items && op.items.length > 0 ? (
+                            {op.items && op.items.length > 0 ? (
                               op.items.map(item => (
                                 <div key={item.id} className="text-[11px] flex items-center gap-1.5 whitespace-nowrap">
                                   <Badge variant="secondary" className="h-4 px-1 text-[9px] font-mono min-w-[20px] justify-center bg-white/10">

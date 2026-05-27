@@ -320,7 +320,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     if (data) {
       // Se houver itens, inserir na tabela vinculada
-      if (category === "itens" && o.items && o.items.length > 0) {
+      if (o.items && o.items.length > 0) {
         const itemsToInsert = o.items.map(item => ({
           operation_id: data.id,
           product_id: item.productId,
