@@ -11,6 +11,7 @@ export default function HistoryPage() {
   const { operations, clients } = useApp();
   const [search, setSearch] = useState("");
   const [tipoFilter, setTipoFilter] = useState<"all" | ClientType>("all");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | "dinheiro" | "itens">("all");
 
   const sorted = useMemo(() => {
     let ops = [...operations].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
@@ -27,8 +28,13 @@ export default function HistoryPage() {
         return c?.nome.toLowerCase().includes(q);
       });
     }
+    if (categoryFilter !== "all") {
+      ops = ops.filter(op => op.category === categoryFilter);
+    }
     return ops;
-  }, [operations, clients, search, tipoFilter]);
+  }, [operations, clients, search, tipoFilter, categoryFilter]);
+
+  const hasDinheiro = useMemo(() => sorted.some(op => op.category === 'dinheiro'), [sorted]);
 
   return (
     <div className="space-y-6">
@@ -36,11 +42,19 @@ export default function HistoryPage() {
       <div className="flex gap-3 flex-wrap">
         <Input placeholder="Buscar cliente..." value={search} onChange={e => setSearch(e.target.value)} className="max-w-xs" />
         <Select value={tipoFilter} onValueChange={v => setTipoFilter(v as any)}>
-          <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-32"><SelectValue placeholder="Tipo" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="all">Todos PF/PJ</SelectItem>
             <SelectItem value="PF">PF</SelectItem>
             <SelectItem value="PJ">PJ</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={categoryFilter} onValueChange={v => setCategoryFilter(v as any)}>
+          <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Categoria" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas categorias</SelectItem>
+            <SelectItem value="dinheiro">Dinheiro</SelectItem>
+            <SelectItem value="itens">Venda de Itens</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -55,10 +69,14 @@ export default function HistoryPage() {
                 <tr className="border-b border-border/50 text-muted-foreground">
                   <th className="text-left p-3">Cliente</th>
                   <th className="text-left p-3">Tipo</th>
-                  <th className="text-right p-3">Valor Bruto</th>
-                  <th className="text-right p-3">Taxa</th>
-                  <th className="text-right p-3">Lucro Líq.</th>
-                  <th className="text-right p-3">Ao Cliente</th>
+                  <th className="text-right p-3">{!hasDinheiro ? "Total / Lucro" : "Valor Bruto"}</th>
+                  {hasDinheiro && (
+                    <>
+                      <th className="text-right p-3">Taxa</th>
+                      <th className="text-right p-3">Lucro Líq.</th>
+                      <th className="text-right p-3">Ao Cliente</th>
+                    </>
+                  )}
                   <th className="text-center p-3">Status</th>
                   <th className="text-left p-3">Responsável</th>
                   <th className="text-left p-3">Data</th>
@@ -77,9 +95,13 @@ export default function HistoryPage() {
                       </td>
                       <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
                       <td className="p-3 text-right font-mono font-semibold text-primary">{formatCurrency(op.valorBruto)}</td>
-                      <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatPercent(op.taxaPercentual)}</td>
-                      <td className="p-3 text-right font-mono font-semibold">{op.category === 'itens' ? "—" : formatCurrency(op.lucroLiquido)}</td>
-                      <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatCurrency(op.valorCliente)}</td>
+                      {hasDinheiro && (
+                        <>
+                          <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatPercent(op.taxaPercentual)}</td>
+                          <td className="p-3 text-right font-mono font-semibold">{op.category === 'itens' ? "—" : formatCurrency(op.lucroLiquido)}</td>
+                          <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatCurrency(op.valorCliente)}</td>
+                        </>
+                      )}
                       <td className="p-3 text-center">
                         <Badge variant={op.status === "concluido" ? "default" : op.status === "cancelado" ? "destructive" : "secondary"} className="text-xs">
                           {op.status === "concluido" ? "Concluído" : op.status === "cancelado" ? "Cancelado" : "Pendente"}

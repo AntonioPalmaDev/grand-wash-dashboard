@@ -95,6 +95,7 @@ export default function OperationsPage() {
   const [search, setSearch] = useState("");
   const [pixFilter, setPixFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | OperationStatus>("all");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | ProductCategory>("all");
 
   const isBlackDragons = activeCompany?.name === "Black Dragons";
   const autoResponsavel = getUserName();
@@ -201,8 +202,11 @@ export default function OperationsPage() {
       if (pf) list = list.filter(op => (op.pix ?? "").includes(pf));
     }
     if (statusFilter !== "all") list = list.filter(op => op.status === statusFilter);
+    if (categoryFilter !== "all") list = list.filter(op => op.category === categoryFilter);
     return list;
-  }, [operations, clients, search, pixFilter, statusFilter]);
+  }, [operations, clients, search, pixFilter, statusFilter, categoryFilter]);
+
+  const hasDinheiro = useMemo(() => sorted.some(op => op.category === 'dinheiro'), [sorted]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -328,22 +332,22 @@ export default function OperationsPage() {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+      <div className="flex flex-wrap gap-2 sm:gap-3">
         <Input
           placeholder="Buscar cliente ou PIX..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="sm:max-w-xs"
+          className="w-full sm:max-w-xs"
         />
         <Input
-          placeholder="Filtrar por PIX (números)"
+          placeholder="Filtrar por PIX"
           value={pixFilter}
           onChange={e => setPixFilter(onlyDigits(e.target.value))}
           inputMode="numeric"
-          className="sm:max-w-xs font-mono"
+          className="w-full sm:max-w-[150px] font-mono"
         />
         <Select value={statusFilter} onValueChange={v => setStatusFilter(v as any)}>
-          <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos status</SelectItem>
             <SelectItem value="pendente">Pendente</SelectItem>
@@ -351,6 +355,16 @@ export default function OperationsPage() {
             <SelectItem value="cancelado">Cancelado</SelectItem>
           </SelectContent>
         </Select>
+        {isBlackDragons && (
+          <Select value={categoryFilter} onValueChange={v => setCategoryFilter(v as any)}>
+            <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Categoria" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas categorias</SelectItem>
+              <SelectItem value="dinheiro">Dinheiro</SelectItem>
+              <SelectItem value="itens">Venda de Itens</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {sorted.length === 0 ? (
@@ -451,10 +465,14 @@ export default function OperationsPage() {
                   <tr className="border-b border-border/50 text-muted-foreground">
                     <th className="text-left p-3">Cliente</th>
                     <th className="text-left p-3">Tipo</th>
-                    <th className="text-right p-3">Valor Bruto</th>
-                    <th className="text-right p-3">Taxa</th>
-                    <th className="text-right p-3">Lucro Líq.</th>
-                    <th className="text-right p-3">Ao Cliente</th>
+                    <th className="text-right p-3">{!hasDinheiro ? "Total / Lucro" : "Valor Bruto"}</th>
+                    {hasDinheiro && (
+                      <>
+                        <th className="text-right p-3">Taxa</th>
+                        <th className="text-right p-3">Lucro Líq.</th>
+                        <th className="text-right p-3">Ao Cliente</th>
+                      </>
+                    )}
                     <th className="text-left p-3">PIX</th>
                     <th className="text-center p-3">Status</th>
                     <th className="text-left p-3">Responsável</th>
@@ -477,9 +495,13 @@ export default function OperationsPage() {
                         </td>
                         <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
                         <td className="p-3 text-right font-mono font-semibold text-primary">{formatCurrency(op.valorBruto)}</td>
-                        <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatPercent(op.taxaPercentual)}</td>
-                        <td className="p-3 text-right font-mono font-semibold">{op.category === 'itens' ? "—" : formatCurrency(op.lucroLiquido)}</td>
-                        <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatCurrency(op.valorCliente)}</td>
+                        {hasDinheiro && (
+                          <>
+                            <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatPercent(op.taxaPercentual)}</td>
+                            <td className="p-3 text-right font-mono font-semibold">{op.category === 'itens' ? "—" : formatCurrency(op.lucroLiquido)}</td>
+                            <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatCurrency(op.valorCliente)}</td>
+                          </>
+                        )}
                         <td className="p-3"><PixInlineEditor op={op} /></td>
                         <td className="p-3 text-center">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>
