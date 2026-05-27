@@ -53,12 +53,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </Button>
             )}
           </header>
-          <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-auto">
-            {children}
+          <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 overflow-auto">
+            <div className="max-w-[1600px] mx-auto w-full">
+              {children}
+            </div>
           </main>
         </div>
       </div>
     </SidebarProvider>
   );
 }
-
