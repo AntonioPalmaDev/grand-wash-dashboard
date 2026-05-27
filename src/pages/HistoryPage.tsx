@@ -28,8 +28,13 @@ export default function HistoryPage() {
         return c?.nome.toLowerCase().includes(q);
       });
     }
+    if (categoryFilter !== "all") {
+      ops = ops.filter(op => op.category === categoryFilter);
+    }
     return ops;
-  }, [operations, clients, search, tipoFilter]);
+  }, [operations, clients, search, tipoFilter, categoryFilter]);
+
+  const hasDinheiro = useMemo(() => sorted.some(op => op.category === 'dinheiro'), [sorted]);
 
   return (
     <div className="space-y-6">
