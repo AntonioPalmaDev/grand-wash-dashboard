@@ -599,8 +599,8 @@ function CustomTooltip({ active, payload, label }: any) {
 
 // Helpers
 function formatCompact(v: number) {
-  if (v >= 1000000) return `${(v / 1000000).toFixed(1)}M`;
-  if (v >= 1000) return `${(v / 1000).toFixed(1)}k`;
+  if (v >= 1000000) return `${(v / 1000000).toFixed(0)}M`;
+  if (v >= 1000) return `${(v / 1000).toFixed(0)}k`;
   return v.toString();
 }
 
