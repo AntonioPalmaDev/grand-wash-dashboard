@@ -18,6 +18,7 @@ import ProductsPage from "@/pages/ProductsPage";
 import FinancialOperationsPage from "@/pages/FinancialOperationsPage";
 import ProductOperationsPage from "@/pages/ProductOperationsPage";
 import HistoryPage from "@/pages/HistoryPage";
+import FinancePage from "@/pages/FinancePage";
 import RankingPage from "@/pages/RankingPage";
 import SettingsPage from "@/pages/SettingsPage";
 import UsersPage from "@/pages/UsersPage";
