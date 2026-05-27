@@ -571,7 +571,16 @@ export default function OperationsPage() {
                             )}
                           </div>
                         </td>
-                        <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
+                        <td className="p-3">
+                          <div className="flex flex-col gap-1">
+                            <Badge variant="outline" className="text-[10px] w-fit">{client?.tipo}</Badge>
+                            {op.operationType && (
+                              <span className="text-[10px] font-bold text-primary uppercase tracking-tighter">
+                                {op.operationType}
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="p-3 text-right font-mono font-bold text-white text-base drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
                           {formatCurrency(op.valorBruto)}
                         </td>
