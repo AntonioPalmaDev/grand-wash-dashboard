@@ -1,7 +1,6 @@
 import { 
   LayoutDashboard, 
   Users, 
-  ArrowLeftRight, 
   History, 
   Settings, 
   DollarSign, 
@@ -17,7 +16,8 @@ import {
   Briefcase,
   Zap,
   Bot,
-  Package
+  Package,
+  ShoppingCart
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/context/AuthContext";
