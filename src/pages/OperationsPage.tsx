@@ -469,16 +469,12 @@ export default function OperationsPage() {
                 <thead>
                   <tr className="border-b border-border/50 text-muted-foreground">
                     <th className="text-left p-3">Cliente</th>
-                    {!hasDinheiro && <th className="text-left p-3">Produtos</th>}
+                    <th className="text-left p-3">Produtos</th>
                     <th className="text-left p-3">Tipo</th>
-                    <th className="text-right p-3 font-medium text-muted-foreground uppercase tracking-wider">{!hasDinheiro ? "TOTAL / LUCRO" : "VALOR BRUTO"}</th>
-                    {hasDinheiro && (
-                      <>
-                        <th className="text-right p-3">Taxa</th>
-                        <th className="text-right p-3">Lucro Líq.</th>
-                        <th className="text-right p-3">Ao Cliente</th>
-                      </>
-                    )}
+                    <th className="text-right p-3 font-medium text-muted-foreground uppercase tracking-wider">Valor Bruto / Total</th>
+                    <th className="text-right p-3">Taxa / Info</th>
+                    <th className="text-right p-3">Lucro Líq.</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground uppercase tracking-wider">Ao Cliente</th>
                     <th className="text-left p-3">PIX</th>
                     <th className="text-center p-3">Status</th>
                     <th className="text-left p-3">Responsável</th>
@@ -499,35 +495,45 @@ export default function OperationsPage() {
                             <span className="font-medium">{client?.nome ?? "?"}</span>
                           </div>
                         </td>
-                        {!hasDinheiro && (
-                          <td className="p-3">
-                            <div className="flex flex-col gap-0.5">
-                              {op.items && op.items.length > 0 ? (
-                                op.items.map(item => (
-                                  <div key={item.id} className="text-[11px] flex items-center gap-1.5 whitespace-nowrap">
-                                    <Badge variant="secondary" className="h-4 px-1 text-[9px] font-mono min-w-[20px] justify-center">
-                                      {item.quantity}x
-                                    </Badge>
-                                    <span className="text-muted-foreground truncate max-w-[120px]">
-                                      {item.product?.name || "Produto"}
-                                    </span>
-                                  </div>
-                                ))
-                              ) : (
-                                <span className="text-muted-foreground text-xs">—</span>
-                              )}
-                            </div>
-                          </td>
-                        )}
+                        <td className="p-3">
+                          <div className="flex flex-col gap-0.5 min-w-[120px]">
+                            {op.category === 'itens' && op.items && op.items.length > 0 ? (
+                              op.items.map(item => (
+                                <div key={item.id} className="text-[11px] flex items-center gap-1.5 whitespace-nowrap">
+                                  <Badge variant="secondary" className="h-4 px-1 text-[9px] font-mono min-w-[20px] justify-center bg-white/10">
+                                    {item.quantity}x
+                                  </Badge>
+                                  <span className="text-white/80 truncate max-w-[100px]">
+                                    {item.product?.name || "Produto"}
+                                  </span>
+                                </div>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
+                          </div>
+                        </td>
                         <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
-                        <td className="p-3 text-right font-mono font-bold text-white text-base drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{formatCurrency(op.valorBruto)}</td>
-                        {hasDinheiro && (
-                          <>
-                            <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatPercent(op.taxaPercentual)}</td>
-                            <td className="p-3 text-right font-mono font-semibold">{op.category === 'itens' ? "—" : formatCurrency(op.lucroLiquido)}</td>
-                            <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatCurrency(op.valorCliente)}</td>
-                          </>
-                        )}
+                        <td className="p-3 text-right font-mono font-bold text-white text-base drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+                          {formatCurrency(op.valorBruto)}
+                        </td>
+                        <td className="p-3 text-right font-mono text-muted-foreground">
+                          {op.category === 'itens' ? (
+                            <Badge variant="outline" className="text-[10px] border-primary/30 text-primary uppercase">Venda</Badge>
+                          ) : (
+                            formatPercent(op.taxaPercentual)
+                          )}
+                        </td>
+                        <td className="p-3 text-right font-mono font-semibold">
+                          {op.category === 'itens' ? (
+                            <span className="text-white font-bold">{formatCurrency(op.valorBruto)}</span>
+                          ) : (
+                            formatCurrency(op.lucroLiquido)
+                          )}
+                        </td>
+                        <td className="p-3 text-right font-mono text-muted-foreground">
+                          {op.category === 'itens' ? "—" : formatCurrency(op.valorCliente)}
+                        </td>
                         <td className="p-3"><PixInlineEditor op={op} /></td>
                         <td className="p-3 text-center">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>
