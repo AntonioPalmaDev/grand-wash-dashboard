@@ -1,7 +1,7 @@
 import { useApp } from "@/context/AppContext";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatPercent } from "@/lib/format";
 import { KpiCard } from "@/components/KpiCard";
-import { DollarSign, TrendingUp, Cpu, Wallet } from "lucide-react";
+import { DollarSign, TrendingUp, Cpu, Wallet, Package } from "lucide-react";
 
 export default function FinancePage() {
   const { getStats } = useApp();

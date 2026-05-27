@@ -31,11 +31,10 @@ import { useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Dashboard() {
-  const { operations, clients, products } = useApp();
+  const { operations, clients, products, getStats } = useApp();
   const { activeCompany } = useCompany();
   const isBlackDragons = activeCompany?.name === "Black Dragons";
 
-  // Estado para os filtros e para a visualização do gráfico
   const [chartView, setChartView] = useState<"line" | "bar">("line");
   const [filtros, setFiltros] = useState({
     periodo: "ALL",
@@ -45,7 +44,6 @@ export default function Dashboard() {
     mes: "ALL",
   });
 
-  // 1. FILTRAGEM COMPLETA (Sincroniza tudo: Cards, Gráficos e Ranking)
   const filteredOperations = useMemo(() => {
     let filtered = operations.filter(op => op.status === "concluido");
     const now = new Date();
@@ -78,58 +76,18 @@ export default function Dashboard() {
     return filtered;
   }, [operations, filtros, clients]);
 
-  // 2. KPIs DINÂMICOS
-  const { getStats } = useApp();
   const kpiStats = useMemo(() => {
-    const stats = getStats(filteredOperations);
-    
-    // Add product specific stats
-    if (isBlackDragons) {
-      const totalItens = filteredOperations.reduce((sum, op) => {
-        if (op.category === 'itens' && op.items) {
-          return sum + op.items.reduce((iSum, item) => iSum + item.quantity, 0);
-        }
-        return sum;
-      }, 0);
-      return { ...stats, totalItensVendidos: totalItens };
-    }
-    
-    return stats;
-  }, [getStats, filteredOperations, isBlackDragons]);
+    return getStats(filteredOperations);
+  }, [getStats, filteredOperations]);
 
-  // Produtos mais vendidos
   const topProducts = useMemo(() => {
-    if (!isBlackDragons) return [];
-    
-    const productSales: Record<string, { name: string, quantity: number, total: number }> = {};
-    
-    filteredOperations.forEach(op => {
-      if (op.category === 'itens' && op.items) {
-        op.items.forEach(item => {
-          if (!productSales[item.productId]) {
-            productSales[item.productId] = { 
-              name: item.product?.name || "Desconhecido", 
-              quantity: 0, 
-              total: 0 
-            };
-          }
-          productSales[item.productId].quantity += item.quantity;
-          productSales[item.productId].total += item.subtotal;
-        });
-      }
-    });
-    
-    return Object.values(productSales)
-      .sort((a, b) => b.quantity - a.quantity)
-      .slice(0, 5);
-  }, [filteredOperations, isBlackDragons]);
+    return kpiStats.produtosMaisVendidos;
+  }, [kpiStats]);
 
-  // 3. DADOS DO GRÁFICO
   const chartData = useMemo(() => {
     const result: Record<string, number> = {};
     const now = new Date();
 
-    // Helper: pega YYYY-MM-DD no fuso de São Paulo
     const getSPDateKey = (date: Date) => {
       const parts = new Intl.DateTimeFormat("en-CA", {
         year: "numeric", month: "2-digit", day: "2-digit",
@@ -168,7 +126,7 @@ export default function Dashboard() {
     });
 
     return Object.entries(result)
-      .sort(([a], [b]) => (filtros.agrupamento === "empresa" ? a.localeCompare(b) : a.localeCompare(b)))
+      .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, total]) => ({
         label: filtros.agrupamento === "dia" ? formatDayLabel(key) : key,
         total,
@@ -180,7 +138,6 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <h1 className="text-xl sm:text-2xl font-bold">Dashboard</h1>
         
-        {/* Alternador de visualização */}
         <Tabs value={chartView} onValueChange={(v) => setChartView(v as "line" | "bar")} className="w-full sm:w-auto">
           <TabsList className="bg-secondary w-full sm:w-auto">
             <TabsTrigger value="line" className="gap-2 flex-1 sm:flex-none">
@@ -193,7 +150,6 @@ export default function Dashboard() {
         </Tabs>
       </div>
 
-      {/* FILTROS - grid responsivo */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 bg-secondary/10 p-3 sm:p-4 rounded-xl border border-white/5">
         <select className="bg-secondary p-2 rounded text-sm outline-none min-w-0 w-full" value={filtros.mes} onChange={(e) => setFiltros({ ...filtros, mes: e.target.value })}>
           <option value="ALL">Todos os meses</option>
@@ -226,7 +182,6 @@ export default function Dashboard() {
         </select>
       </div>
 
-      {/* ÁREA DO GRÁFICO DINÂMICO */}
       <div className="glass-card rounded-2xl p-3 sm:p-6 border border-white/5 bg-gradient-to-b from-white/5 to-transparent">
         <div className="h-[250px] sm:h-[350px] w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -254,13 +209,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPIs - grid responsivo */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-        <KpiCard title={isBlackDragons ? "Vendas Totais" : "Movimentado"} value={formatCurrency(kpiStats.totalMovimentado)} icon={DollarSign} />
+        <KpiCard title={isBlackDragons ? "Movimentação Financeira" : "Movimentado"} value={formatCurrency(kpiStats.totalMovimentado)} icon={DollarSign} />
         <KpiCard title="Lucro Líquido" value={formatCurrency(kpiStats.lucroLiquidoTotal)} icon={Wallet} variant="primary" />
         <KpiCard 
-          title="Margem" 
-          value={formatPercent(kpiStats.totalMovimentado > 0 ? (kpiStats.lucroLiquidoTotal / kpiStats.totalMovimentado) * 100 : 0)} 
+          title="Taxa Média" 
+          value={formatPercent(kpiStats.taxaMedia)} 
           icon={TrendingUp} 
           variant="success" 
         />
@@ -298,7 +252,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-mono font-bold text-sm">{formatCurrency(p.total)}</p>
+                    <p className="font-mono font-bold text-sm">{formatCurrency(p.quantity * 0)}</p>
                   </div>
                 </div>
               ))}
@@ -315,7 +269,7 @@ export default function Dashboard() {
                   Sistema adaptado para venda de itens e operações financeiras dinâmicas.
                 </p>
              </div>
-             <Button variant="outline" className="mt-4" onClick={() => window.location.href='/operacoes'}>
+             <Button variant="outline" className="mt-4" onClick={() => window.location.href='/operacoes-financeiras'}>
                 Ver Operações
              </Button>
           </div>
@@ -325,7 +279,6 @@ export default function Dashboard() {
   );
 }
 
-// Helpers
 function formatCompact(v: number) {
   if (v >= 1000000) return `${(v / 1000000).toFixed(1)}M`;
   if (v >= 1000) return `${(v / 1000).toFixed(1)}k`;
