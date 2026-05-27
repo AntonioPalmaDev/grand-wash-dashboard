@@ -85,6 +85,7 @@ function mapOperation(r: any): Operation {
     createdAt: r.created_at,
     pix: (r as any).pix ?? null,
     category: (r as any).category as ProductCategory || "dinheiro",
+    operationType: r.operation_type || null,
     items: (r as any).operation_items ? (r as any).operation_items.map((item: any) => ({
       id: item.id,
       operationId: item.operation_id,

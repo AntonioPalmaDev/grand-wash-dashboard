@@ -65,7 +65,7 @@ export interface Operation {
   data: string;
   createdAt: string;
   pix?: string | null;
-  tipo?: string;
+  operationType?: string;
   companyId?: string;
   category: ProductCategory;
   items?: OperationItem[];
