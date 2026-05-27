@@ -34,6 +34,7 @@ interface AppContextType {
     responsavel?: string; 
     pix?: string | null; 
     category?: ProductCategory;
+    operationType?: string | null;
     items?: { productId: string; quantity: number; unitPrice: number; subtotal: number }[]
   }) => Promise<void>;
   updateOperationStatus: (id: string, status: OperationStatus) => Promise<void>;
