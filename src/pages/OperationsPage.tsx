@@ -250,6 +250,17 @@ export default function OperationsPage() {
                     </div>
                   )}
                 </div>
+                
+                {isBlackDragons && (
+                  <div>
+                    <Label>Subtipo (ex: Lavagem, Câmbio)</Label>
+                    <Input 
+                      value={operationType} 
+                      onChange={e => setOperationType(e.target.value)} 
+                      placeholder="Identifique o tipo específico..."
+                    />
+                  </div>
+                )}
 
                 {category === "dinheiro" && (
                   <div>
