@@ -272,7 +272,7 @@ export default function ProductOperationsPage() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Faturamento Total</p>
-                <h3 className="text-2xl font-black text-success">{formatCurrency(stats.lucroLiquidoTotal)}</h3>
+                <h3 className="text-2xl font-black text-success">{formatCurrency(stats.faturamentoProdutos)}</h3>
               </div>
               <div className="bg-success/10 p-2 rounded-lg"><TrendingUp className="h-5 w-5 text-success" /></div>
             </div>

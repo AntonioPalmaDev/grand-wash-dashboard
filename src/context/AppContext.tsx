@@ -474,7 +474,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Financial stats (dinheiro category)
     const financialOps = completed.filter(op => op.category === "dinheiro");
     const totalMovimentado = financialOps.reduce((s, op) => s + op.valorBruto, 0);
-    const lucroLiquidoTotal = completed.reduce((s, op) => s + op.lucroLiquido, 0);
+    const lucroLiquidoTotal = financialOps.reduce((s, op) => s + op.lucroLiquido, 0);
     const taxaMedia = financialOps.length > 0 
       ? financialOps.reduce((s, op) => s + op.taxaPercentual, 0) / financialOps.length 
       : 0;
@@ -482,6 +482,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Product stats (itens category)
     const productOps = completed.filter(op => op.category === "itens");
     const produtosVendidos = productOps.length;
+    const faturamentoProdutos = productOps.reduce((s, op) => s + op.valorBruto, 0);
     
     // Calculate total items quantity from operation_items
     let quantidadeTotalItens = 0;
@@ -510,6 +511,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       taxaMedia,
       operacoesConcluidas: completed.length,
       produtosVendidos,
+      faturamentoProdutos,
       quantidadeTotalItens,
       estoqueBaixoCount,
       produtosMaisVendidos
