@@ -539,7 +539,7 @@ export default function OperationsPage() {
                         </td>
                         <td className="p-3">
                           <div className="flex flex-col gap-0.5 min-w-[120px]">
-                            {op.category === 'itens' && op.items && op.items.length > 0 ? (
+                            {op.items && op.items.length > 0 ? (
                               op.items.map(item => (
                                 <div key={item.id} className="text-[11px] flex items-center gap-1.5 whitespace-nowrap">
                                   <Badge variant="secondary" className="h-4 px-1 text-[9px] font-mono min-w-[20px] justify-center bg-white/10">
