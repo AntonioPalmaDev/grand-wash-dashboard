@@ -332,22 +332,22 @@ export default function OperationsPage() {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+      <div className="flex flex-wrap gap-2 sm:gap-3">
         <Input
           placeholder="Buscar cliente ou PIX..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="sm:max-w-xs"
+          className="w-full sm:max-w-xs"
         />
         <Input
-          placeholder="Filtrar por PIX (números)"
+          placeholder="Filtrar por PIX"
           value={pixFilter}
           onChange={e => setPixFilter(onlyDigits(e.target.value))}
           inputMode="numeric"
-          className="sm:max-w-xs font-mono"
+          className="w-full sm:max-w-[150px] font-mono"
         />
         <Select value={statusFilter} onValueChange={v => setStatusFilter(v as any)}>
-          <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos status</SelectItem>
             <SelectItem value="pendente">Pendente</SelectItem>
@@ -355,6 +355,16 @@ export default function OperationsPage() {
             <SelectItem value="cancelado">Cancelado</SelectItem>
           </SelectContent>
         </Select>
+        {isBlackDragons && (
+          <Select value={categoryFilter} onValueChange={v => setCategoryFilter(v as any)}>
+            <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Categoria" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas categorias</SelectItem>
+              <SelectItem value="dinheiro">Dinheiro</SelectItem>
+              <SelectItem value="itens">Venda de Itens</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {sorted.length === 0 ? (
