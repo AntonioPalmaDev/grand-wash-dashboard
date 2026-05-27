@@ -450,6 +450,11 @@ export default function OperationsPage() {
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="outline" className="text-[10px]">{client?.tipo}</Badge>
+                        {op.operationType && (
+                          <Badge variant="secondary" className="text-[10px] bg-primary/20 text-primary border-primary/20">
+                            {op.operationType}
+                          </Badge>
+                        )}
                         <span className="text-[11px] text-muted-foreground">{formatDate(op.data)}</span>
                       </div>
                     </div>
