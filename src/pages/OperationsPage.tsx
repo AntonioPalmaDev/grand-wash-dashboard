@@ -202,8 +202,11 @@ export default function OperationsPage() {
       if (pf) list = list.filter(op => (op.pix ?? "").includes(pf));
     }
     if (statusFilter !== "all") list = list.filter(op => op.status === statusFilter);
+    if (categoryFilter !== "all") list = list.filter(op => op.category === categoryFilter);
     return list;
-  }, [operations, clients, search, pixFilter, statusFilter]);
+  }, [operations, clients, search, pixFilter, statusFilter, categoryFilter]);
+
+  const hasDinheiro = useMemo(() => sorted.some(op => op.category === 'dinheiro'), [sorted]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
