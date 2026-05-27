@@ -111,9 +111,9 @@ export default function OperationsPage() {
       const taxa = getClientRate(client);
       const lb = vb * (taxa / 100);
       const cm = vb * (config.taxaMaquina / 100);
-      return { taxa, lucroBruto: lb, custoMaquina: cm, lucroLiquido: lb - cm, valorCliente: vb - lb };
+      return { taxa, lucroBruto: lb, custoMaquina: cm, lucroLiquido: lb - cm, valorCliente: vb - lb, totalBruto: vb };
     } else {
-      // Itens flow
+      // Itens flow: 100% de lucro para a empresa, sem taxas ou repasse ao cliente
       if (selectedItems.length === 0) return null;
       let total = 0;
       selectedItems.forEach(item => {
@@ -122,10 +122,7 @@ export default function OperationsPage() {
       });
       
       const vb = total;
-      const taxa = getClientRate(client);
-      const lb = vb * (taxa / 100);
-      const cm = vb * (config.taxaMaquina / 100);
-      return { taxa, lucroBruto: lb, custoMaquina: cm, lucroLiquido: lb - cm, valorCliente: vb - lb, totalBruto: total };
+      return { taxa: 0, lucroBruto: vb, custoMaquina: 0, lucroLiquido: vb, valorCliente: 0, totalBruto: total };
     }
   }, [clientId, valorBruto, clients, getClientRate, config, category, selectedItems, products]);
 
