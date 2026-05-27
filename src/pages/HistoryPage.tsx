@@ -11,6 +11,7 @@ export default function HistoryPage() {
   const { operations, clients } = useApp();
   const [search, setSearch] = useState("");
   const [tipoFilter, setTipoFilter] = useState<"all" | ClientType>("all");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | "dinheiro" | "itens">("all");
 
   const sorted = useMemo(() => {
     let ops = [...operations].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
