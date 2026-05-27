@@ -19,28 +19,28 @@ export function ReportKpiGrid({ stats }: ReportKpiGridProps) {
         value={formatCurrency(stats.totalBruto)}
         icon={DollarSign}
         variant="primary"
-        description="Volume total de movimentação"
+        description="Volume total"
       />
       <KpiCard
         title="Lucro Líquido"
         value={formatCurrency(stats.lucroLiquido)}
         icon={Wallet}
         variant="success"
-        description="Resultado real da empresa"
+        description="Resultado real"
       />
       <KpiCard
-        title="Total de Operações"
+        title="Operações"
         value={String(stats.count)}
         icon={List}
         variant="default"
-        description="Quantidade total filtrada"
+        description="Quantidade total"
       />
       <KpiCard
-        title="Operações Concluídas"
+        title="Concluídas"
         value={String(stats.completedCount)}
         icon={CheckCircle2}
         variant="success"
-        description="Sucesso de execução"
+        description="Sucesso"
       />
     </div>
   );
