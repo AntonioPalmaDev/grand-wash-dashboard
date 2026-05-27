@@ -397,12 +397,12 @@ export default function OperationsPage() {
                       <PixInlineEditor op={op} />
                     </div>
                     {op.category === 'itens' && op.items && op.items.length > 0 && (
-                      <div className="bg-primary/5 rounded p-2 col-span-2">
-                        <div className="text-[10px] text-muted-foreground uppercase mb-1">Itens</div>
+                      <div className="bg-primary/5 rounded p-2 col-span-2 border border-primary/10">
+                        <div className="text-[10px] text-muted-foreground uppercase mb-1">Itens Vendidos</div>
                         <div className="space-y-1">
                           {op.items.map(item => (
                             <div key={item.id} className="flex justify-between text-[10px]">
-                              <span>{item.product?.name} x{item.quantity}</span>
+                              <span>{item.product?.name || "Produto Removido"} x{item.quantity}</span>
                               <span className="font-mono">{formatCurrency(item.subtotal)}</span>
                             </div>
                           ))}
