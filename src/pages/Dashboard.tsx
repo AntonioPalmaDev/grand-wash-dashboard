@@ -197,7 +197,7 @@ export default function Dashboard() {
           <KpiCard title="Total Movimentado" value={formatCurrency(kpiStats.totalMovimentado)} icon={DollarSign} variant="primary" />
           <KpiCard title="Lucro Líquido" value={formatCurrency(kpiStats.lucroLiquidoTotal)} icon={Wallet} variant="success" />
           <KpiCard title="Taxa Média" value={formatPercent(kpiStats.taxaMedia)} icon={Zap} variant="primary" />
-          <KpiCard title="Operações Concluídas" value={String(kpiStats.operacoesConcluidas)} icon={Check} variant="secondary" />
+          <KpiCard title="Operações Concluídas" value={String(kpiStats.operacoesConcluidas)} icon={Check} variant="default" />
         </div>
       </section>
 
@@ -207,10 +207,10 @@ export default function Dashboard() {
           <Package className="h-4 w-4" /> Operações de Produtos
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <KpiCard title="Produtos Vendidos" value={String(kpiStats.produtosVendidos)} icon={ShoppingBag} variant="secondary" />
+          <KpiCard title="Produtos Vendidos" value={String(kpiStats.produtosVendidos)} icon={ShoppingBag} variant="default" />
           <KpiCard title="Quantidade Total" value={String(kpiStats.quantidadeTotalItens)} icon={Package} variant="primary" />
           <KpiCard title="Estoque Baixo" value={String(kpiStats.estoqueBaixoCount)} icon={AlertTriangle} variant="destructive" />
-          <KpiCard title="Ticket Médio" value={formatCurrency(kpiStats.operacoesConcluidas > 0 ? kpiStats.totalMovimentado / kpiStats.operacoesConcluidas : 0)} icon={ArrowUpRight} variant="secondary" />
+          <KpiCard title="Ticket Médio" value={formatCurrency(kpiStats.operacoesConcluidas > 0 ? kpiStats.totalMovimentado / kpiStats.operacoesConcluidas : 0)} icon={ArrowUpRight} variant="default" />
         </div>
       </section>
 
