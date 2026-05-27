@@ -239,7 +239,7 @@ export default function OperationsPage() {
                   </div>
                   {isBlackDragons && (
                     <div>
-                      <Label>Tipo de Operação</Label>
+                      <Label>Categoria</Label>
                       <Select value={category} onValueChange={v => setCategory(v as ProductCategory)}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
