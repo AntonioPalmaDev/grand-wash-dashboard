@@ -106,24 +106,33 @@ export default function OperationsPage() {
     const client = clients.find(c => c.id === clientId);
     if (!client) return null;
 
-    if (category === "dinheiro") {
-      if (!valorBruto || Number(valorBruto) <= 0) return null;
-      const vb = Number(valorBruto);
-      const taxa = getClientRate(client);
-      const lb = vb * (taxa / 100);
-      const cm = vb * (config.taxaMaquina / 100);
-      return { taxa, lucroBruto: lb, custoMaquina: cm, lucroLiquido: lb - cm, valorCliente: vb - lb, totalBruto: vb };
-    } else {
-      // Itens flow: 100% de lucro para a empresa, sem taxas ou repasse ao cliente
-      if (selectedItems.length === 0) return null;
-      let total = 0;
+    let totalBruto = 0;
+    let taxa = getClientRate(client);
+
+    if (selectedItems.length > 0) {
       selectedItems.forEach(item => {
         const product = products.find(p => p.id === item.productId);
-        if (product) total += product.baseValue * item.quantity;
+        if (product) {
+          totalBruto += product.baseValue * item.quantity;
+          // Se for dinheiro e o produto tiver uma porcentagem específica, usamos ela
+          if (category === "dinheiro" && product.percentage > 0) {
+            taxa = product.percentage;
+          }
+        }
       });
-      
-      const vb = total;
-      return { taxa: 0, lucroBruto: vb, custoMaquina: 0, lucroLiquido: vb, valorCliente: 0, totalBruto: total };
+    } else if (category === "dinheiro") {
+      totalBruto = Number(valorBruto);
+    }
+
+    if (totalBruto <= 0) return null;
+
+    if (category === "dinheiro") {
+      const lb = totalBruto * (taxa / 100);
+      const cm = totalBruto * (config.taxaMaquina / 100);
+      return { taxa, lucroBruto: lb, custoMaquina: cm, lucroLiquido: lb - cm, valorCliente: totalBruto - lb, totalBruto };
+    } else {
+      // Itens flow: 100% de lucro para a empresa, sem taxas ou repasse ao cliente
+      return { taxa: 0, lucroBruto: totalBruto, custoMaquina: 0, lucroLiquido: totalBruto, valorCliente: 0, totalBruto };
     }
   }, [clientId, valorBruto, clients, getClientRate, config, category, selectedItems, products]);
 
@@ -131,21 +140,16 @@ export default function OperationsPage() {
     if (!clientId) return;
     const finalResponsavel = isDev && responsavel.trim() ? responsavel.trim() : autoResponsavel;
     
-    let finalValorBruto = Number(valorBruto);
-    let finalItems: any[] = [];
-    
-    if (category === "itens") {
-      finalValorBruto = preview?.totalBruto || 0;
-      finalItems = selectedItems.map(item => {
-        const product = products.find(p => p.id === item.productId);
-        return {
-          productId: item.productId,
-          quantity: item.quantity,
-          unitPrice: product?.baseValue || 0,
-          subtotal: (product?.baseValue || 0) * item.quantity
-        };
-      });
-    }
+    const finalValorBruto = preview?.totalBruto || 0;
+    const finalItems = selectedItems.map(item => {
+      const product = products.find(p => p.id === item.productId);
+      return {
+        productId: item.productId,
+        quantity: item.quantity,
+        unitPrice: product?.baseValue || 0,
+        subtotal: (product?.baseValue || 0) * item.quantity
+      };
+    });
 
     if (finalValorBruto <= 0) return;
 
