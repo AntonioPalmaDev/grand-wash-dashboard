@@ -469,16 +469,12 @@ export default function OperationsPage() {
                 <thead>
                   <tr className="border-b border-border/50 text-muted-foreground">
                     <th className="text-left p-3">Cliente</th>
-                    {!hasDinheiro && <th className="text-left p-3">Produtos</th>}
+                    <th className="text-left p-3">Produtos</th>
                     <th className="text-left p-3">Tipo</th>
-                    <th className="text-right p-3 font-medium text-muted-foreground uppercase tracking-wider">{!hasDinheiro ? "TOTAL / LUCRO" : "VALOR BRUTO"}</th>
-                    {hasDinheiro && (
-                      <>
-                        <th className="text-right p-3">Taxa</th>
-                        <th className="text-right p-3">Lucro Líq.</th>
-                        <th className="text-right p-3">Ao Cliente</th>
-                      </>
-                    )}
+                    <th className="text-right p-3 font-medium text-muted-foreground uppercase tracking-wider">Valor Bruto / Total</th>
+                    <th className="text-right p-3">Taxa / Info</th>
+                    <th className="text-right p-3">Lucro Líq.</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground uppercase tracking-wider">Ao Cliente</th>
                     <th className="text-left p-3">PIX</th>
                     <th className="text-center p-3">Status</th>
                     <th className="text-left p-3">Responsável</th>
