@@ -88,6 +88,7 @@ export default function OperationsPage() {
   
   // Specific form state
   const [category, setCategory] = useState<ProductCategory>("dinheiro");
+  const [operationType, setOperationType] = useState("");
   const [valorBruto, setValorBruto] = useState("");
   const [selectedItems, setSelectedItems] = useState<{ productId: string, quantity: number }[]>([]);
 
