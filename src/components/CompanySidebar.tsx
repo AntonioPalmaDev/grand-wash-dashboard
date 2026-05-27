@@ -1,6 +1,7 @@
 import { 
   LayoutDashboard, 
   Users, 
+  ArrowLeftRight, 
   History, 
   Settings, 
   DollarSign, 
@@ -118,11 +119,9 @@ export function CompanySidebar() {
               {companyItems
                 .filter(item => {
                   if (role === "visualizador") {
-                    // Only Dashboard and Reports (Financial Panel) for anonymous users
                     return item.url === "/" || item.url === "/painel-financeiro";
                   }
                   
-                  // Regra para itens específicos de empresa
                   const companyItem = item as any;
                   if (companyItem.onlyFor && activeCompany) {
                     return companyItem.onlyFor.includes(activeCompany.name);
@@ -170,4 +169,3 @@ export function CompanySidebar() {
     </Sidebar>
   );
 }
-
