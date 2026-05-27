@@ -84,7 +84,8 @@ export function ReportDataTable({ operations, clients }: ReportDataTableProps) {
             })
           )}
         </TableBody>
-      </Table>
+        </Table>
+      </div>
     </div>
   );
 }
