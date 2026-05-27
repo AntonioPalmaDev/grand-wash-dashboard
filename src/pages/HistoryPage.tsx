@@ -69,10 +69,14 @@ export default function HistoryPage() {
                 <tr className="border-b border-border/50 text-muted-foreground">
                   <th className="text-left p-3">Cliente</th>
                   <th className="text-left p-3">Tipo</th>
-                  <th className="text-right p-3">Valor Bruto</th>
-                  <th className="text-right p-3">Taxa</th>
-                  <th className="text-right p-3">Lucro Líq.</th>
-                  <th className="text-right p-3">Ao Cliente</th>
+                  <th className="text-right p-3">{!hasDinheiro ? "Total / Lucro" : "Valor Bruto"}</th>
+                  {hasDinheiro && (
+                    <>
+                      <th className="text-right p-3">Taxa</th>
+                      <th className="text-right p-3">Lucro Líq.</th>
+                      <th className="text-right p-3">Ao Cliente</th>
+                    </>
+                  )}
                   <th className="text-center p-3">Status</th>
                   <th className="text-left p-3">Responsável</th>
                   <th className="text-left p-3">Data</th>
