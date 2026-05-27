@@ -92,18 +92,17 @@ export default function HistoryPage() {
                         <div className="flex items-center gap-2">
                           {op.category === 'itens' && <Package className="h-3 w-3 text-primary" />}
                           <span className="font-medium">{client?.nome ?? "?"}</span>
-                      </div>
-                    </td>
-                    {!hasDinheiro && (
+                        </div>
+                      </td>
                       <td className="p-3">
-                        <div className="flex flex-col gap-0.5">
-                          {op.items && op.items.length > 0 ? (
+                        <div className="flex flex-col gap-0.5 min-w-[120px]">
+                          {op.category === 'itens' && op.items && op.items.length > 0 ? (
                             op.items.map(item => (
                               <div key={item.id} className="text-[11px] flex items-center gap-1.5 whitespace-nowrap">
-                                <Badge variant="secondary" className="h-4 px-1 text-[9px] font-mono min-w-[20px] justify-center">
+                                <Badge variant="secondary" className="h-4 px-1 text-[9px] font-mono min-w-[20px] justify-center bg-white/10">
                                   {item.quantity}x
                                 </Badge>
-                                <span className="text-muted-foreground truncate max-w-[120px]">
+                                <span className="text-white/80 truncate max-w-[100px]">
                                   {item.product?.name || "Produto"}
                                 </span>
                               </div>
@@ -113,16 +112,27 @@ export default function HistoryPage() {
                           )}
                         </div>
                       </td>
-                    )}
-                    <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
-                      <td className="p-3 text-right font-mono font-bold text-white text-base drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{formatCurrency(op.valorBruto)}</td>
-                      {hasDinheiro && (
-                        <>
-                          <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatPercent(op.taxaPercentual)}</td>
-                          <td className="p-3 text-right font-mono font-semibold">{op.category === 'itens' ? "—" : formatCurrency(op.lucroLiquido)}</td>
-                          <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatCurrency(op.valorCliente)}</td>
-                        </>
-                      )}
+                      <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
+                      <td className="p-3 text-right font-mono font-bold text-white text-base drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+                        {formatCurrency(op.valorBruto)}
+                      </td>
+                      <td className="p-3 text-right font-mono text-muted-foreground">
+                        {op.category === 'itens' ? (
+                          <Badge variant="outline" className="text-[10px] border-primary/30 text-primary uppercase">Venda</Badge>
+                        ) : (
+                          formatPercent(op.taxaPercentual)
+                        )}
+                      </td>
+                      <td className="p-3 text-right font-mono font-semibold">
+                        {op.category === 'itens' ? (
+                          <span className="text-white font-bold">{formatCurrency(op.valorBruto)}</span>
+                        ) : (
+                          formatCurrency(op.lucroLiquido)
+                        )}
+                      </td>
+                      <td className="p-3 text-right font-mono text-muted-foreground">
+                        {op.category === 'itens' ? "—" : formatCurrency(op.valorCliente)}
+                      </td>
                       <td className="p-3 text-center">
                         <Badge variant={op.status === "concluido" ? "default" : op.status === "cancelado" ? "destructive" : "secondary"} className="text-xs">
                           {op.status === "concluido" ? "Concluído" : op.status === "cancelado" ? "Cancelado" : "Pendente"}
