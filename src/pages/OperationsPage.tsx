@@ -174,6 +174,7 @@ export default function OperationsPage() {
     setResponsavel(""); 
     setPix("");
     setCategory("dinheiro");
+    setOperationType("");
     setSelectedItems([]);
   }
 
