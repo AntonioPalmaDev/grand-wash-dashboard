@@ -347,7 +347,9 @@ export default function OperationsPage() {
           className="w-full sm:max-w-[150px] font-mono"
         />
         <Select value={statusFilter} onValueChange={v => setStatusFilter(v as any)}>
-          <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-40 bg-secondary/50 border-white/10 hover:bg-secondary/80 transition-colors">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos status</SelectItem>
             <SelectItem value="pendente">Pendente</SelectItem>
@@ -357,7 +359,9 @@ export default function OperationsPage() {
         </Select>
         {isBlackDragons && (
           <Select value={categoryFilter} onValueChange={v => setCategoryFilter(v as any)}>
-            <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Categoria" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-40 bg-secondary/50 border-white/10 hover:bg-secondary/80 transition-colors text-white font-semibold">
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas categorias</SelectItem>
               <SelectItem value="dinheiro">Dinheiro</SelectItem>
