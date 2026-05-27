@@ -136,7 +136,7 @@ export function CompanySidebar() {
                       to={item.url}
                       end={item.url === "/"}
                       className="flex items-center gap-3 px-4 py-2 hover:bg-secondary/50 rounded-md transition-all"
-                      activeClassName="bg-primary/10 text-primary font-semibold shadow-sm border-r-2 border-primary !rounded-r-none"
+                      activeClassName="bg-primary/20 text-white font-bold shadow-[0_0_15px_rgba(255,255,255,0.1)] border-r-4 border-primary !rounded-r-none drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]"
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       {!collapsed && <span className="text-sm">{item.title}</span>}
