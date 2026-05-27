@@ -316,7 +316,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       valor_cliente: valorCliente, 
       responsavel,
       pix,
-      category
+      category,
+      operation_type: o.operationType
     } as any).select().single();
 
     if (data) {
