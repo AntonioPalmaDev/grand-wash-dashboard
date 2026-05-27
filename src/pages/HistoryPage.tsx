@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
+import { Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ClientType } from "@/types";
@@ -68,7 +69,12 @@ export default function HistoryPage() {
                   const client = clients.find(c => c.id === op.clientId);
                   return (
                     <tr key={op.id} className="border-b border-border/20 hover:bg-secondary/20 transition-colors">
-                      <td className="p-3 font-medium">{client?.nome ?? "?"}</td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          {op.category === 'itens' && <Package className="h-3 w-3 text-primary" />}
+                          <span className="font-medium">{client?.nome ?? "?"}</span>
+                        </div>
+                      </td>
                       <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
                       <td className="p-3 text-right font-mono">{formatCurrency(op.valorBruto)}</td>
                       <td className="p-3 text-right font-mono">{formatPercent(op.taxaPercentual)}</td>
