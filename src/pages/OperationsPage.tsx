@@ -106,24 +106,33 @@ export default function OperationsPage() {
     const client = clients.find(c => c.id === clientId);
     if (!client) return null;
 
-    if (category === "dinheiro") {
-      if (!valorBruto || Number(valorBruto) <= 0) return null;
-      const vb = Number(valorBruto);
-      const taxa = getClientRate(client);
-      const lb = vb * (taxa / 100);
-      const cm = vb * (config.taxaMaquina / 100);
-      return { taxa, lucroBruto: lb, custoMaquina: cm, lucroLiquido: lb - cm, valorCliente: vb - lb, totalBruto: vb };
-    } else {
-      // Itens flow: 100% de lucro para a empresa, sem taxas ou repasse ao cliente
-      if (selectedItems.length === 0) return null;
-      let total = 0;
+    let totalBruto = 0;
+    let taxa = getClientRate(client);
+
+    if (selectedItems.length > 0) {
       selectedItems.forEach(item => {
         const product = products.find(p => p.id === item.productId);
-        if (product) total += product.baseValue * item.quantity;
+        if (product) {
+          totalBruto += product.baseValue * item.quantity;
+          // Se for dinheiro e o produto tiver uma porcentagem específica, usamos ela
+          if (category === "dinheiro" && product.percentage > 0) {
+            taxa = product.percentage;
+          }
+        }
       });
-      
-      const vb = total;
-      return { taxa: 0, lucroBruto: vb, custoMaquina: 0, lucroLiquido: vb, valorCliente: 0, totalBruto: total };
+    } else if (category === "dinheiro") {
+      totalBruto = Number(valorBruto);
+    }
+
+    if (totalBruto <= 0) return null;
+
+    if (category === "dinheiro") {
+      const lb = totalBruto * (taxa / 100);
+      const cm = totalBruto * (config.taxaMaquina / 100);
+      return { taxa, lucroBruto: lb, custoMaquina: cm, lucroLiquido: lb - cm, valorCliente: totalBruto - lb, totalBruto };
+    } else {
+      // Itens flow: 100% de lucro para a empresa, sem taxas ou repasse ao cliente
+      return { taxa: 0, lucroBruto: totalBruto, custoMaquina: 0, lucroLiquido: totalBruto, valorCliente: 0, totalBruto };
     }
   }, [clientId, valorBruto, clients, getClientRate, config, category, selectedItems, products]);
 
@@ -131,21 +140,16 @@ export default function OperationsPage() {
     if (!clientId) return;
     const finalResponsavel = isDev && responsavel.trim() ? responsavel.trim() : autoResponsavel;
     
-    let finalValorBruto = Number(valorBruto);
-    let finalItems: any[] = [];
-    
-    if (category === "itens") {
-      finalValorBruto = preview?.totalBruto || 0;
-      finalItems = selectedItems.map(item => {
-        const product = products.find(p => p.id === item.productId);
-        return {
-          productId: item.productId,
-          quantity: item.quantity,
-          unitPrice: product?.baseValue || 0,
-          subtotal: (product?.baseValue || 0) * item.quantity
-        };
-      });
-    }
+    const finalValorBruto = preview?.totalBruto || 0;
+    const finalItems = selectedItems.map(item => {
+      const product = products.find(p => p.id === item.productId);
+      return {
+        productId: item.productId,
+        quantity: item.quantity,
+        unitPrice: product?.baseValue || 0,
+        subtotal: (product?.baseValue || 0) * item.quantity
+      };
+    });
 
     if (finalValorBruto <= 0) return;
 
@@ -244,46 +248,65 @@ export default function OperationsPage() {
                   )}
                 </div>
 
-                {category === "dinheiro" ? (
+                {category === "dinheiro" && (
                   <div>
                     <Label>Valor Bruto (R$)</Label>
-                    <Input type="number" inputMode="decimal" value={valorBruto} onChange={e => setValorBruto(e.target.value)} placeholder="0.00" />
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <Label>Seleção de Itens</Label>
-                    <div className="grid grid-cols-1 gap-2">
-                      {products.filter(p => p.category === "itens" && p.status === "ativo").map(product => {
-                        const selected = selectedItems.find(i => i.productId === product.id);
-                        return (
-                          <div key={product.id} className={`flex items-center justify-between p-2 rounded-lg border ${selected ? 'border-primary bg-primary/5' : 'border-border'}`}>
-                            <div className="flex items-center gap-3">
-                              <Button 
-                                variant={selected ? "default" : "outline"} 
-                                size="icon" 
-                                className="h-8 w-8"
-                                onClick={() => toggleItem(product.id)}
-                              >
-                                {selected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                              </Button>
-                              <div>
-                                <p className="text-sm font-medium">{product.name}</p>
-                                <p className="text-xs text-muted-foreground">{formatCurrency(product.baseValue)} | Est: {product.stockQuantity}</p>
-                              </div>
-                            </div>
-                            {selected && (
-                              <div className="flex items-center gap-2">
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, -1)}><Minus className="h-3 w-3" /></Button>
-                                <span className="text-sm font-mono w-4 text-center">{selected.quantity}</span>
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, 1)}><Plus className="h-3 w-3" /></Button>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                    <Input 
+                      type="number" 
+                      inputMode="decimal" 
+                      value={valorBruto} 
+                      onChange={e => {
+                        setValorBruto(e.target.value);
+                        if (e.target.value) setSelectedItems([]);
+                      }} 
+                      placeholder="0.00" 
+                    />
                   </div>
                 )}
+
+                <div className="space-y-3">
+                  <Label>{category === "dinheiro" ? "Produtos / Serviços" : "Seleção de Itens"}</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {products.filter(p => p.category === category && p.status === "ativo").map(product => {
+                      const selected = selectedItems.find(i => i.productId === product.id);
+                      return (
+                        <div key={product.id} className={`flex items-center justify-between p-2 rounded-lg border ${selected ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                          <div className="flex items-center gap-3">
+                            <Button 
+                              variant={selected ? "default" : "outline"} 
+                              size="icon" 
+                              className="h-8 w-8"
+                              onClick={() => {
+                                toggleItem(product.id);
+                                if (!selected) setValorBruto(""); // Limpa valor manual se selecionar item
+                              }}
+                            >
+                              {selected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                            </Button>
+                            <div>
+                              <p className="text-sm font-medium">{product.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatCurrency(product.baseValue)} 
+                                {product.percentage > 0 && ` | Taxa: ${product.percentage}%`}
+                                {category === 'itens' && ` | Est: ${product.stockQuantity}`}
+                              </p>
+                            </div>
+                          </div>
+                          {selected && (
+                            <div className="flex items-center gap-2">
+                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, -1)}><Minus className="h-3 w-3" /></Button>
+                              <span className="text-sm font-mono w-4 text-center">{selected.quantity}</span>
+                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, 1)}><Plus className="h-3 w-3" /></Button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {products.filter(p => p.category === category && p.status === "ativo").length === 0 && (
+                      <p className="text-xs text-muted-foreground italic">Nenhum produto cadastrado nesta categoria.</p>
+                    )}
+                  </div>
+                </div>
 
                 <div>
                   <Label>PIX (opcional)</Label>
