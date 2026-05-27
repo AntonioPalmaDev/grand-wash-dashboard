@@ -297,7 +297,7 @@ export default function Dashboard() {
               <div className="flex items-center gap-6 bg-white/5 px-6 py-3 rounded-2xl border border-white/5">
                 <div className="text-center">
                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Total Período</p>
-                  <p className="text-xl font-mono font-bold text-white tracking-tighter">
+                  <p className="text-xl font-mono font-bold text-emerald-500 tracking-tighter">
                     {formatCurrency(chartData.reduce((acc, curr) => acc + curr.value, 0))}
                   </p>
                 </div>
