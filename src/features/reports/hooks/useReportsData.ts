@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
-import { ClientType, ProductCategory, OperationStatus, Operation } from "@/types";
+import { ClientType, ProductCategory, OperationStatus } from "@/types";
+import { calculateReportStats, groupOperationsByDate } from "../utils/reportCalculations";
 
 export interface ReportFilters {
   search: string;
@@ -65,17 +66,6 @@ export function useReportsData() {
   const stats = useMemo(() => calculateReportStats(filteredOperations), [filteredOperations]);
 
   const chartData = useMemo(() => groupOperationsByDate(filteredOperations), [filteredOperations]);
-
-  return {
-    operations: filteredOperations,
-    clients,
-    filters,
-    setFilters,
-    stats,
-    chartData,
-  };
-}
-
 
   return {
     operations: filteredOperations,
