@@ -126,6 +126,7 @@ export default function Dashboard() {
       if (filtros.agrupamento === "empresa") {
         key = clients.find(c => c.id === op.clientId)?.nome ?? "Desconhecido";
       }
+      // Se a operação for de dinheiro, usamos o valor bruto. Se for de produtos, também usamos o valor bruto (que é o faturamento).
       result[key] = (result[key] || 0) + op.valorBruto;
     });
 
@@ -207,10 +208,10 @@ export default function Dashboard() {
           <Package className="h-4 w-4" /> Operações de Produtos
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <KpiCard title="Produtos Vendidos" value={String(kpiStats.produtosVendidos)} icon={ShoppingBag} variant="default" />
-          <KpiCard title="Quantidade Total" value={String(kpiStats.quantidadeTotalItens)} icon={Package} variant="primary" />
+          <KpiCard title="Vendas Concluídas" value={String(kpiStats.produtosVendidos)} icon={ShoppingBag} variant="default" />
+          <KpiCard title="Faturamento" value={formatCurrency(kpiStats.faturamentoProdutos)} icon={TrendingUp} variant="success" />
+          <KpiCard title="Itens Vendidos" value={String(kpiStats.quantidadeTotalItens)} icon={Package} variant="primary" />
           <KpiCard title="Estoque Baixo" value={String(kpiStats.estoqueBaixoCount)} icon={AlertTriangle} variant="destructive" />
-          <KpiCard title="Ticket Médio" value={formatCurrency(kpiStats.operacoesConcluidas > 0 ? kpiStats.totalMovimentado / kpiStats.operacoesConcluidas : 0)} icon={ArrowUpRight} variant="default" />
         </div>
       </section>
 
