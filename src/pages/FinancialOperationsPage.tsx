@@ -252,7 +252,7 @@ export default function FinancialOperationsPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Valor ao Cliente</span>
-                      <span className="font-mono text-primary">{formatCurrency(preview.valorCliente)}</span>
+                      <span className="font-mono text-white">{formatCurrency(preview.valorCliente)}</span>
                     </div>
                   </div>
                 )}
@@ -392,7 +392,7 @@ export default function FinancialOperationsPage() {
                     <td className="p-4 text-right font-mono font-bold text-white">{formatCurrency(op.valorBruto)}</td>
                     <td className="p-4 text-right font-mono text-muted-foreground">{formatPercent(op.taxaPercentual)}</td>
                     <td className="p-4 text-right font-mono font-bold text-success">{formatCurrency(op.lucroLiquido)}</td>
-                    <td className="p-4 text-right font-mono text-primary">{formatCurrency(op.valorCliente)}</td>
+                    <td className="p-4 text-right font-mono text-white">{formatCurrency(op.valorCliente)}</td>
                     <td className="p-4"><PixInlineEditor op={op} /></td>
                     <td className="p-4 text-center">
                       <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold ${sc.color}`}>
