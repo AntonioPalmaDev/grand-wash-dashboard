@@ -394,7 +394,7 @@ export default function Dashboard() {
               title="Receita Real (Líquida)" 
               value={formatCurrency(stats.lucroLiquidoTotal)} 
               icon={Wallet} 
-              trend="+12.5%" 
+              trend={calculateGrowth(stats.lucroLiquidoTotal, previousStats.lucroLiquidoTotal)} 
               color="emerald"
             />
             <ExecutiveKpi 
@@ -407,6 +407,7 @@ export default function Dashboard() {
               title="Volume Bruto Lavado" 
               value={formatCurrency(stats.totalMovimentado)} 
               icon={TrendingUp} 
+              trend={calculateGrowth(stats.totalMovimentado, previousStats.totalMovimentado)}
               color="purple"
             />
             <ExecutiveKpi 
@@ -428,7 +429,7 @@ export default function Dashboard() {
               title="Faturamento Vendas" 
               value={formatCurrency(stats.faturamentoProdutos)} 
               icon={ShoppingBag} 
-              trend="+8.2%" 
+              trend={calculateGrowth(stats.faturamentoProdutos, previousStats.faturamentoProdutos)} 
               color="amber"
             />
             <ExecutiveKpi 
