@@ -119,7 +119,7 @@ export default function HistoryPage() {
                       </td>
                     )}
                     <td className="p-3"><Badge variant="outline" className="text-xs">{client?.tipo}</Badge></td>
-                      <td className="p-3 text-right font-mono font-semibold text-primary">{formatCurrency(op.valorBruto)}</td>
+                      <td className="p-3 text-right font-mono font-bold text-white text-base drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{formatCurrency(op.valorBruto)}</td>
                       {hasDinheiro && (
                         <>
                           <td className="p-3 text-right font-mono text-muted-foreground">{op.category === 'itens' ? "—" : formatPercent(op.taxaPercentual)}</td>
