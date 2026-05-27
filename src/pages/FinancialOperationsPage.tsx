@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Check, X, Clock, Trash2, Lock, Pencil, Save, DollarSign, TrendingUp, Users } from "lucide-react";
+import { Plus, Check, X, Clock, Trash2, Lock, Pencil, Save, DollarSign, TrendingUp, Users, Zap } from "lucide-react";
 import type { Operation, OperationStatus } from "@/types";
 
 const statusConfig: Record<OperationStatus, { label: string; color: string; icon: typeof Check }> = {
@@ -29,7 +29,7 @@ function PixInlineEditor({ op }: { op: Operation }) {
 
   if (locked) {
     return (
-      <span className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground">
+      <span className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground whitespace-nowrap">
         <Lock className="h-3 w-3" />
         {op.pix || "—"}
       </span>
@@ -41,7 +41,7 @@ function PixInlineEditor({ op }: { op: Operation }) {
       <button
         type="button"
         onClick={() => { setValue(op.pix ?? ""); setEditing(true); }}
-        className="inline-flex items-center gap-1 font-mono text-xs hover:text-primary transition-colors"
+        className="inline-flex items-center gap-1 font-mono text-xs hover:text-primary transition-colors whitespace-nowrap"
       >
         <Pencil className="h-3 w-3 opacity-60" />
         {op.pix || <span className="text-muted-foreground italic">adicionar</span>}
@@ -77,18 +77,15 @@ function PixInlineEditor({ op }: { op: Operation }) {
 
 export default function FinancialOperationsPage() {
   const { operations, clients, addOperation, updateOperationStatus, deleteOperation, getUserName, config, getClientRate, getStats } = useApp();
-  const { activeCompany } = useCompany();
   const { isDev, canEdit } = useRole();
   const [open, setOpen] = useState(false);
   
-  // Base form state
   const [clientId, setClientId] = useState("");
   const [responsavel, setResponsavel] = useState("");
   const [pix, setPix] = useState("");
   const [operationType, setOperationType] = useState("");
   const [valorBruto, setValorBruto] = useState("");
 
-  // Busca / filtros
   const [search, setSearch] = useState("");
   const [pixFilter, setPixFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | OperationStatus>("all");
@@ -181,11 +178,11 @@ export default function FinancialOperationsPage() {
         {canEdit && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]">
-                <Plus className="mr-2 h-4 w-4" /> Criar Operação Financeira
+              <Button className="bg-primary hover:bg-primary/90 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] w-full sm:w-auto">
+                <Plus className="mr-2 h-4 w-4" /> Criar Operação
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md bg-secondary/95 border-white/10 backdrop-blur-xl">
+            <DialogContent className="max-w-md bg-secondary/95 border-white/10 backdrop-blur-xl w-[95vw]">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-primary" />
@@ -210,7 +207,7 @@ export default function FinancialOperationsPage() {
                   <Input 
                     value={operationType} 
                     onChange={e => setOperationType(e.target.value)} 
-                    placeholder="Ex: Lavagem, Câmbio, Investimento"
+                    placeholder="Ex: Lavagem, Câmbio"
                     className="bg-background/50 border-white/10"
                   />
                 </div>
@@ -227,32 +224,15 @@ export default function FinancialOperationsPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>PIX (opcional)</Label>
-                  <Input
-                    value={pix}
-                    onChange={e => setPix(onlyDigits(e.target.value))}
-                    inputMode="numeric"
-                    placeholder="Chave PIX (apenas números)"
-                    className="bg-background/50 border-white/10 font-mono"
-                  />
-                </div>
-
                 {preview && (
                   <div className="bg-primary/5 rounded-xl p-4 border border-primary/20 space-y-2 text-sm">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-bold text-primary uppercase tracking-wider">Simulação Financeira</span>
-                      <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">Taxa: {formatPercent(preview.taxa)}</Badge>
+                      <span className="text-xs font-bold text-primary uppercase tracking-wider">Simulação</span>
+                      <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">{formatPercent(preview.taxa)}</Badge>
                     </div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Valor Total</span><span className="font-mono text-white">{formatCurrency(preview.totalBruto)}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Custo Máquina</span><span className="font-mono text-destructive/80">{formatCurrency(preview.custoMaquina)}</span></div>
                     <div className="flex justify-between pt-1 border-t border-white/5">
                       <span className="text-white font-medium">Lucro Líquido</span>
                       <span className="font-mono font-bold text-success text-base">{formatCurrency(preview.lucroLiquido)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Valor ao Cliente</span>
-                      <span className="font-mono text-white">{formatCurrency(preview.valorCliente)}</span>
                     </div>
                   </div>
                 )}
@@ -271,13 +251,13 @@ export default function FinancialOperationsPage() {
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-secondary/40 border-white/5 backdrop-blur-sm">
           <CardContent className="pt-6">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Total Movimentado</p>
-                <h3 className="text-2xl font-black text-white">{formatCurrency(stats.totalMovimentado)}</h3>
+                <h3 className="text-xl sm:text-2xl font-black text-white">{formatCurrency(stats.totalMovimentado)}</h3>
               </div>
               <div className="bg-primary/10 p-2 rounded-lg"><DollarSign className="h-5 w-5 text-primary" /></div>
             </div>
@@ -288,7 +268,7 @@ export default function FinancialOperationsPage() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Lucro Líquido</p>
-                <h3 className="text-2xl font-black text-success">{formatCurrency(stats.lucroLiquidoTotal)}</h3>
+                <h3 className="text-xl sm:text-2xl font-black text-success">{formatCurrency(stats.lucroLiquidoTotal)}</h3>
               </div>
               <div className="bg-success/10 p-2 rounded-lg"><TrendingUp className="h-5 w-5 text-success" /></div>
             </div>
@@ -299,7 +279,7 @@ export default function FinancialOperationsPage() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Taxa Média</p>
-                <h3 className="text-2xl font-black text-primary">{formatPercent(stats.taxaMedia)}</h3>
+                <h3 className="text-xl sm:text-2xl font-black text-primary">{formatPercent(stats.taxaMedia)}</h3>
               </div>
               <div className="bg-primary/10 p-2 rounded-lg"><Zap className="h-5 w-5 text-primary" /></div>
             </div>
@@ -310,7 +290,7 @@ export default function FinancialOperationsPage() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Operações</p>
-                <h3 className="text-2xl font-black text-white">{stats.operacoesConcluidas}</h3>
+                <h3 className="text-xl sm:text-2xl font-black text-white">{stats.operacoesConcluidas}</h3>
               </div>
               <div className="bg-secondary/20 p-2 rounded-lg"><Users className="h-5 w-5 text-muted-foreground" /></div>
             </div>
@@ -319,39 +299,41 @@ export default function FinancialOperationsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 p-4 bg-secondary/20 rounded-xl border border-white/5">
+      <div className="flex flex-col md:flex-row gap-3 p-4 bg-secondary/20 rounded-xl border border-white/5">
         <Input
           placeholder="Buscar cliente..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 min-w-[200px] bg-background/50 border-white/10"
+          className="flex-1 bg-background/50 border-white/10"
         />
-        <Input
-          placeholder="Filtrar PIX"
-          value={pixFilter}
-          onChange={e => setPixFilter(onlyDigits(e.target.value))}
-          className="w-full sm:w-40 font-mono bg-background/50 border-white/10"
-        />
-        <Select value={statusFilter} onValueChange={v => setStatusFilter(v as any)}>
-          <SelectTrigger className="w-full sm:w-40 bg-background/50 border-white/10">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos Status</SelectItem>
-            <SelectItem value="pendente">Pendente</SelectItem>
-            <SelectItem value="concluido">Concluído</SelectItem>
-            <SelectItem value="cancelado">Cancelado</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={responsavelFilter} onValueChange={setResponsavelFilter}>
-          <SelectTrigger className="w-full sm:w-44 bg-background/50 border-white/10">
-            <SelectValue placeholder="Responsável" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos Responsáveis</SelectItem>
-            {uniqueResponsaveis.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Select value={statusFilter} onValueChange={v => setStatusFilter(v as any)}>
+            <SelectTrigger className="w-full bg-background/50 border-white/10">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos Status</SelectItem>
+              <SelectItem value="pendente">Pendente</SelectItem>
+              <SelectItem value="concluido">Concluído</SelectItem>
+              <SelectItem value="cancelado">Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={responsavelFilter} onValueChange={setResponsavelFilter}>
+            <SelectTrigger className="w-full bg-background/50 border-white/10">
+              <SelectValue placeholder="Responsável" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Responsáveis</SelectItem>
+              {uniqueResponsaveis.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Input
+            placeholder="PIX"
+            value={pixFilter}
+            onChange={e => setPixFilter(onlyDigits(e.target.value))}
+            className="w-full font-mono bg-background/50 border-white/10"
+          />
+        </div>
       </div>
 
       {/* Table */}
@@ -360,17 +342,13 @@ export default function FinancialOperationsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/10 bg-white/5 text-muted-foreground font-bold uppercase text-[11px] tracking-widest">
-                <th className="text-left p-4">Cliente</th>
-                <th className="text-left p-4">Tipo</th>
-                <th className="text-right p-4">Valor Bruto</th>
-                <th className="text-right p-4">Taxa %</th>
-                <th className="text-right p-4">Lucro Líquido</th>
-                <th className="text-right p-4">Valor Cliente</th>
-                <th className="text-left p-4">PIX</th>
-                <th className="text-center p-4">Status</th>
-                <th className="text-left p-4">Responsável</th>
-                <th className="text-left p-4">Data</th>
-                <th className="text-center p-4">Ações</th>
+                <th className="text-left p-4 whitespace-nowrap">Cliente</th>
+                <th className="text-left p-4 whitespace-nowrap">Tipo</th>
+                <th className="text-right p-4 whitespace-nowrap">Bruto</th>
+                <th className="text-right p-4 whitespace-nowrap">Líquido</th>
+                <th className="text-left p-4 whitespace-nowrap">PIX</th>
+                <th className="text-center p-4 whitespace-nowrap">Status</th>
+                <th className="text-left p-4 whitespace-nowrap text-center">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -380,54 +358,39 @@ export default function FinancialOperationsPage() {
                 const StatusIcon = sc.icon;
                 return (
                   <tr key={op.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                    <td className="p-4">
+                    <td className="p-4 whitespace-nowrap">
                       <div className="font-semibold text-white">{client?.nome ?? "?"}</div>
                       <div className="text-[10px] text-muted-foreground">{client?.tipo}</div>
                     </td>
-                    <td className="p-4">
+                    <td className="p-4 whitespace-nowrap">
                       <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
                         {op.operationType || "Financeiro"}
                       </Badge>
                     </td>
-                    <td className="p-4 text-right font-mono font-bold text-white">{formatCurrency(op.valorBruto)}</td>
-                    <td className="p-4 text-right font-mono text-muted-foreground">{formatPercent(op.taxaPercentual)}</td>
-                    <td className="p-4 text-right font-mono font-bold text-success">{formatCurrency(op.lucroLiquido)}</td>
-                    <td className="p-4 text-right font-mono text-white">{formatCurrency(op.valorCliente)}</td>
-                    <td className="p-4"><PixInlineEditor op={op} /></td>
-                    <td className="p-4 text-center">
+                    <td className="p-4 text-right font-mono font-bold text-white whitespace-nowrap">{formatCurrency(op.valorBruto)}</td>
+                    <td className="p-4 text-right font-mono font-bold text-success whitespace-nowrap">{formatCurrency(op.lucroLiquido)}</td>
+                    <td className="p-4 whitespace-nowrap"><PixInlineEditor op={op} /></td>
+                    <td className="p-4 text-center whitespace-nowrap">
                       <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold ${sc.color}`}>
                         <StatusIcon className="h-3 w-3" /> {sc.label}
                       </span>
                     </td>
-                    <td className="p-4 text-xs text-muted-foreground">{op.responsavel}</td>
-                    <td className="p-4 text-xs text-muted-foreground">{formatDate(op.data)}</td>
-                    <td className="p-4 text-center">
+                    <td className="p-4 text-center whitespace-nowrap">
                       <div className="flex gap-1 justify-center">
-                        {op.status === "pendente" && (
+                        {canEdit && op.status === "pendente" && (
                           <>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:bg-success/10" onClick={() => updateOperationStatus(op.id, "concluido")} title="Concluir">
-                              <Check className="h-4 w-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => updateOperationStatus(op.id, "cancelado")} title="Cancelar">
-                              <X className="h-4 w-4" />
-                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:text-success hover:bg-success/10" onClick={() => updateOperationStatus(op.id, "concluido")}><Check className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => updateOperationStatus(op.id, "cancelado")}><X className="h-4 w-4" /></Button>
                           </>
                         )}
                         {isDev && (
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteOperation(op.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => { if(confirm("Excluir definitivamente?")) deleteOperation(op.id); }}><Trash2 className="h-4 w-4" /></Button>
                         )}
                       </div>
                     </td>
                   </tr>
                 );
               })}
-              {sorted.length === 0 && (
-                <tr>
-                  <td colSpan={11} className="p-8 text-center text-muted-foreground italic">Nenhuma operação financeira encontrada.</td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
@@ -435,5 +398,3 @@ export default function FinancialOperationsPage() {
     </div>
   );
 }
-
-import { Zap } from "lucide-react";
