@@ -112,7 +112,7 @@ export default function Dashboard() {
     
     // Calculate previous period for comparison
     const now = new Date();
-    const days = filtros.periodo === \"ALL\" ? 30 : Number(filtros.periodo.replace(\"d\", \"\"));
+    const days = filtros.periodo === "ALL" ? 30 : Number(filtros.periodo.replace("d", ""));
     const limitDate = new Date();
     limitDate.setDate(now.getDate() - days);
     const startPreviousDate = new Date();
@@ -120,7 +120,7 @@ export default function Dashboard() {
 
     const previousOps = operations.filter(op => {
       const opDate = new Date(op.data);
-      return op.status === \"concluido\" && opDate >= startPreviousDate && opDate < limitDate;
+      return op.status === "concluido" && opDate >= startPreviousDate && opDate < limitDate;
     });
 
     const previous = getStats(previousOps);
@@ -132,7 +132,7 @@ export default function Dashboard() {
     if (!previous) return null;
     const growth = ((current - previous) / previous) * 100;
     return {
-      value: `${growth > 0 ? \"+\" : \"\"}${growth.toFixed(1)}%`,
+      value: `${growth > 0 ? "+" : ""}${growth.toFixed(1)}%`,
       isPositive: growth >= 0
     };
   };
