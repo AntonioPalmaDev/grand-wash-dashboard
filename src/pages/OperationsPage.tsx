@@ -160,6 +160,7 @@ export default function OperationsPage() {
       responsavel: finalResponsavel, 
       pix: pix || null,
       category,
+      operationType: operationType.trim() || null,
       items: finalItems
     });
     
