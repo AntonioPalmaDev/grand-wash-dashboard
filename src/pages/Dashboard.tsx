@@ -566,8 +566,11 @@ function ExecutiveKpi({ title, value, icon: Icon, trend, color, critical }: any)
           <Icon size={20} />
         </div>
         {trend && (
-          <div className="flex items-center gap-1 text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full">
-            <ArrowUpRight size={10} /> {trend}
+          <div className={cn(
+            "flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-full",
+            trend.isPositive ? "text-emerald-500 bg-emerald-500/10" : "text-rose-500 bg-rose-500/10"
+          )}>
+            {trend.isPositive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />} {trend.value}
           </div>
         )}
       </div>
