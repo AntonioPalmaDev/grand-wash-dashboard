@@ -18,7 +18,8 @@ import {
   Zap,
   Bot,
   Package,
-  ShoppingCart
+  ShoppingCart,
+  Calculator
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/context/AuthContext";
