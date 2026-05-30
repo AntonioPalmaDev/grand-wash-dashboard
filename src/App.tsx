@@ -26,7 +26,7 @@ import AuditLogsPage from "@/pages/AuditLogsPage";
 import AuthPage from "@/pages/AuthPage";
 import RestorePage from "@/pages/RestorePage";
 import PainelFinanceiroPage from "@/pages/PainelFinanceiroPage";
-import AdminMasterPage from "@/pages/AdminMasterPage";
+import MechanicCalculator from "@/pages/MechanicCalculator";
 import NotFound from "@/pages/NotFound";
 import InvitePage from "@/pages/InvitePage";
 
@@ -86,6 +86,7 @@ function CompanyWrapper() {
           {!isGlobalMode && (
             <>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/calculator" element={<MechanicCalculator />} />
               <Route path="/painel-financeiro" element={<PainelFinanceiroPage />} />
               
               <Route path="/clientes" element={<ClientsPage />} />
@@ -120,6 +121,7 @@ function CompanyWrapper() {
           )}
 
           <Route path="/selecao-empresa" element={<CompanySelectionPage />} />
+          <Route path="/calculator" element={<MechanicCalculator />} />
 
           <Route path="*" element={<NotFound />} />
 

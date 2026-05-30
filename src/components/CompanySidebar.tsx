@@ -18,7 +18,8 @@ import {
   Zap,
   Bot,
   Package,
-  ShoppingCart
+  ShoppingCart,
+  Calculator
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/context/AuthContext";
@@ -55,6 +56,7 @@ const companyItems = [
   { title: "Relatórios", url: "/painel-financeiro", icon: PieChart },
   { title: "Histórico", url: "/historico", icon: History },
   { title: "Logs da Empresa", url: "/logs", icon: FileText },
+  { title: "Calculadora", url: "/calculator", icon: Calculator },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
 
@@ -119,7 +121,7 @@ export function CompanySidebar() {
               {companyItems
                 .filter(item => {
                   if (role === "visualizador") {
-                    return item.url === "/" || item.url === "/painel-financeiro";
+                    return item.url === "/" || item.url === "/painel-financeiro" || item.url === "/calculator";
                   }
                   
                   const companyItem = item as any;
