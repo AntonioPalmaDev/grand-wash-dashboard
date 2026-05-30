@@ -226,7 +226,7 @@ export default function MechanicCalculator() {
                     Limpar
                   </Button>
                   <Button className="w-full gap-2" disabled={Object.keys(cart).length === 0}>
-                    <DollarSign className="w-4 h-4" /> Copiar Valor
+                    <DollarSign className="w-4 h-4" /> Copiar Valores
                   </Button>
                 </div>
               </div>
