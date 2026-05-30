@@ -56,6 +56,7 @@ const companyItems = [
   { title: "Relatórios", url: "/painel-financeiro", icon: PieChart },
   { title: "Histórico", url: "/historico", icon: History },
   { title: "Logs da Empresa", url: "/logs", icon: FileText },
+  { title: "Calculadora", url: "/calculator", icon: Calculator },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
 
