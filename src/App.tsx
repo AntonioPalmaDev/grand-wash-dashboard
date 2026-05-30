@@ -27,6 +27,7 @@ import AuthPage from "@/pages/AuthPage";
 import RestorePage from "@/pages/RestorePage";
 import PainelFinanceiroPage from "@/pages/PainelFinanceiroPage";
 import MechanicCalculator from "@/pages/MechanicCalculator";
+import PublicCalculatorPage from "@/pages/PublicCalculatorPage";
 import NotFound from "@/pages/NotFound";
 import InvitePage from "@/pages/InvitePage";
 
