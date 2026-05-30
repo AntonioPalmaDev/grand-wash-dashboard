@@ -1,49 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-
 @layer base {
   :root {
-    --background: 260 20% 6%;
-    --foreground: 260 10% 92%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
 
-    --card: 260 18% 10%;
-    --card-foreground: 260 10% 92%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 260 18% 10%;
-    --popover-foreground: 260 10% 92%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 270 70% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 260 15% 16%;
-    --secondary-foreground: 260 10% 85%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 260 12% 14%;
-    --muted-foreground: 260 8% 55%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
 
-    --accent: 270 60% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 72% 50%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 260 12% 18%;
-    --input: 260 12% 18%;
-    --ring: 270 70% 55%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 260 20% 8%;
-    --sidebar-foreground: 260 10% 75%;
-    --sidebar-primary: 270 70% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 260 15% 14%;
-    --sidebar-accent-foreground: 260 10% 92%;
-    --sidebar-border: 260 12% 15%;
-    --sidebar-ring: 270 70% 55%;
+    --sidebar-background: 240 10% 3.9%;
+    --sidebar-foreground: 240 5% 64.9%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 240 4.9% 83.9%;
 
     --success: 145 65% 42%;
     --success-foreground: 0 0% 100%;
@@ -52,10 +52,11 @@
     --info: 210 80% 55%;
     --info-foreground: 0 0% 100%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(270, 70%, 55%), hsl(290, 80%, 50%));
-    --gradient-card: linear-gradient(135deg, hsl(260, 18%, 10%), hsl(260, 20%, 13%));
-    --gradient-glow: linear-gradient(135deg, hsl(270, 70%, 55% / 0.15), hsl(290, 80%, 50% / 0.05));
+    --gradient-primary: linear-gradient(135deg, hsl(199, 89%, 48%), hsl(210, 80%, 55%));
+    --gradient-card: linear-gradient(135deg, hsl(240, 10%, 4%), hsl(240, 10%, 7%));
+    --gradient-glow: linear-gradient(135deg, hsl(199, 89%, 48% / 0.15), hsl(210, 80%, 55% / 0.05));
   }
+
 }
 
 @layer base {
@@ -65,7 +66,10 @@
 
   body {
     @apply bg-background text-foreground font-body antialiased;
+    overflow-x: hidden;
   }
+
+
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display;
@@ -86,3 +90,20 @@
     background-clip: text;
   }
 }
+
+/* Quantum Lovable - watermark removal */
+#lovable-badge {
+  display: none !important;
+}
+a[href*="lovable.dev"],
+iframe[src*="lovable.dev"],
+div[style*="Edit with Lovable"],
+.lovable-badge {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  z-index: -9999 !important;
+}
+

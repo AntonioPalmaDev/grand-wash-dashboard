@@ -20,6 +20,7 @@ interface LogParams {
   userId: string;
   userEmail: string;
   nomePersonagem?: string | null;
+  companyId?: string | null;
   action: string;
   entity: string;
   entityId?: string;
@@ -29,7 +30,7 @@ interface LogParams {
 }
 
 export async function registrarLog(params: LogParams) {
-  await supabase.from("audit_logs").insert({
+  const insertData: any = {
     user_id: params.userId,
     user_email: params.userEmail,
     nome_personagem: params.nomePersonagem ?? null,
@@ -41,7 +42,13 @@ export async function registrarLog(params: LogParams) {
       ...params.afterData,
       descricao: params.description,
     },
-  });
+  };
+
+  if (params.companyId) {
+    insertData.company_id = params.companyId;
+  }
+
+  await supabase.from("audit_logs").insert(insertData);
 }
 
 // ---- Helpers para gerar descrições ----

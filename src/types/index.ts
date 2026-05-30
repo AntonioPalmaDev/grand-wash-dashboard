@@ -1,13 +1,54 @@
 export type ClientType = "PF" | "PJ";
 export type OperationStatus = "pendente" | "concluido" | "cancelado";
+export type ProductCategory = "itens" | "dinheiro";
+
+export interface Company {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  primaryColor: string;
+  secondaryColor: string;
+  active: boolean;
+  description?: string;
+  tags?: string[];
+  createdAt: string;
+}
 
 export interface Client {
   id: string;
   nome: string;
   tipo: ClientType;
   taxa: number;
-  cor?: string; // ✅ Essencial para o addClient e updateClient funcionarem
+  cor?: string;
   createdAt: string;
+  companyId?: string;
+}
+
+export interface Product {
+  id: string;
+  companyId: string;
+  name: string;
+  category: ProductCategory;
+  type?: string;
+  baseValue: number;
+  percentage: number;
+  stockQuantity: number;
+  description?: string;
+  status: "ativo" | "inativo";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OperationItem {
+  id: string;
+  operationId: string;
+  productId: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+  createdAt: string;
+  product?: Product;
 }
 
 export interface Operation {
@@ -23,20 +64,32 @@ export interface Operation {
   responsavel: string;
   data: string;
   createdAt: string;
-  tipo?: string; // campo opcional para compatibilidade de filtros
+  pix?: string | null;
+  operationType?: string;
+  companyId?: string;
+  category: ProductCategory;
+  items?: OperationItem[];
 }
 
 export interface AppConfig {
   taxaPF: number;
   taxaPJ: number;
   taxaMaquina: number;
-  taxaLiquida: number; // ✅ Nova meta de margem em %
+  taxaLiquida: number;
+  companyId?: string;
 }
+
 export interface DashboardStats {
+  // Financeiro
   totalMovimentado: number;
-  lucroBrutoTotal: number;
-  totalMaquina: number;
   lucroLiquidoTotal: number;
-  totalRepassado: number;
-  totalOperacoes: number;
+  taxaMedia: number;
+  operacoesConcluidas: number;
+  
+  // Produtos
+  produtosVendidos: number;
+  faturamentoProdutos: number;
+  quantidadeTotalItens: number;
+  estoqueBaixoCount: number;
+  produtosMaisVendidos: { name: string; quantity: number }[];
 }

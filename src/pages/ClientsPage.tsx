@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useApp } from "@/context/AppContext";
+import { useCompany } from "@/context/CompanyContext";
 import { useRole } from "@/hooks/useRole";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,9 @@ import type { Client, ClientType } from "@/types";
 
 export default function ClientsPage() {
   const { clients, addClient, updateClient, deleteClient, getClientStats, getClientRate, config } = useApp();
-  const { isDev } = useRole();
+  const { activeCompany } = useCompany();
+  const isBlackDragons = activeCompany?.name === "Black Dragons";
+  const { isDev, canEdit } = useRole();
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState<ClientType>("PF");
@@ -59,44 +62,46 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Gestão de Clientes</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Novo Cliente</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Cadastrar Cliente</DialogTitle></DialogHeader>
-            <div className="space-y-4 pt-4">
-              <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-3">
-                  <Label>Nome</Label>
-                  <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Família Silva" />
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold">Gestão de Clientes</h1>
+        {canEdit && (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto"><Plus className="mr-2 h-4 w-4" /> Novo Cliente</Button>
+            </DialogTrigger>
+            <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
+              <DialogHeader><DialogTitle>Cadastrar Cliente</DialogTitle></DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="col-span-3">
+                    <Label>Nome</Label>
+                    <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Família Silva" />
+                  </div>
+                  <div className="col-span-1">
+                    <Label>Cor</Label>
+                    <Input type="color" value={cor} onChange={e => setCor(e.target.value)} className="h-10 p-1 cursor-pointer" />
+                  </div>
                 </div>
-                <div className="col-span-1">
-                  <Label>Cor</Label>
-                  <Input type="color" value={cor} onChange={e => setCor(e.target.value)} className="h-10 p-1 cursor-pointer" />
+                <div>
+                  <Label>Tipo</Label>
+                  <Select value={tipo} onValueChange={v => setTipo(v as ClientType)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PF">Pessoa Física (PF)</SelectItem>
+                      <SelectItem value="PJ">Empresa (PJ)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+                <div>
+                  <Label>Taxa (%)</Label>
+                  <Input type="number" value={taxaCustom} onChange={e => setTaxaCustom(e.target.value)} placeholder={`Padrão: ${tipo === "PF" ? config.taxaPF : config.taxaPJ}%`} />
+                </div>
+                <Button onClick={handleAdd} className="w-full">Salvar</Button>
               </div>
-              <div>
-                <Label>Tipo</Label>
-                <Select value={tipo} onValueChange={v => setTipo(v as ClientType)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PF">Pessoa Física (PF)</SelectItem>
-                    <SelectItem value="PJ">Empresa (PJ)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Taxa (%)</Label>
-                <Input type="number" value={taxaCustom} onChange={e => setTaxaCustom(e.target.value)} placeholder={`Padrão: ${tipo === "PF" ? config.taxaPF : config.taxaPJ}%`} />
-              </div>
-              <Button onClick={handleAdd} className="w-full">Salvar</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="flex gap-2">
@@ -107,7 +112,7 @@ export default function ClientsPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
         {filtered.map(client => {
           const s = getClientStats(client.id);
           const rate = getClientRate(client);
@@ -123,7 +128,7 @@ export default function ClientsPage() {
                   <span className="font-bold text-lg">{client.nome}</span>
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => handleStartEdit(client)} className="h-8 w-8"><Pencil size={14} /></Button>
+                  {canEdit && <Button variant="ghost" size="icon" onClick={() => handleStartEdit(client)} className="h-8 w-8"><Pencil size={14} /></Button>}
                   {isDev && (
                     <Button variant="ghost" size="icon" onClick={() => deleteClient(client.id)} className="h-8 w-8 text-destructive"><Trash2 size={14} /></Button>
                   )}
@@ -136,7 +141,7 @@ export default function ClientsPage() {
                   <div className="font-mono font-bold text-lg">{s.totalOps}</div>
                 </div>
                 <div className="bg-secondary/20 p-2 rounded text-center col-span-2">
-                  <div className="text-[10px] text-muted-foreground uppercase">Total Lavado</div>
+                  <div className="text-[10px] text-muted-foreground uppercase">{isBlackDragons ? "Total Comprado" : "Total Lavado"}</div>
                   <div className="font-mono font-bold text-lg text-emerald-400">{formatCurrency(s.totalLavado)}</div>
                 </div>
               </div>
@@ -158,7 +163,7 @@ export default function ClientsPage() {
 
       {/* MODAL DE EDIÇÃO */}
 <Dialog open={!!editingClient} onOpenChange={(o) => !o && setEditingClient(null)}>
-  <DialogContent>
+  <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
     <DialogHeader>
       <DialogTitle>Editar Cliente</DialogTitle>
     </DialogHeader>
