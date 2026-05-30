@@ -19,7 +19,7 @@ const MECHANIC_DATA = {
     { id: 'elevador', name: 'Elevador hidráulico', price: 700 },
     { id: 'reparo_comum', name: 'Caixa de reparo comum', price: 200 },
     { id: 'reparo_rara', name: 'Caixa de reparo rara', price: 800 },
-    { id: 'pneu', name: 'Pneu', price: 270 },
+   { id: 'pneu', name: 'Pneu', price: 175 },
   ],
   esteticas: [
     { id: 'buzina', name: 'Buzina', price: 2000 },
@@ -92,14 +92,33 @@ export default function MechanicCalculator() {
   const clearAll = () => setCart({});
 
   // Cálculos
-  const totalCost = Object.values(cart).reduce((acc, curr) => acc + curr.item.price * curr.quantity, 0);
-  const totalProfit = totalCost * PROFIT_MARGIN;
-  const clientPrice = totalCost + totalProfit;
+const totalCost = Object.values(cart).reduce(
+  (acc, curr) => acc + curr.item.price * curr.quantity,
+  0
+);
+
+const clientPrice = Object.values(cart).reduce(
+  (acc, curr) => acc + getClientPrice(curr.item) * curr.quantity,
+  0
+);
+
+const totalProfit = clientPrice - totalCost;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
+const getClientPrice = (item: ModItem) => {
+  switch (item.id) {
+    case "pe_cabra":
+      return 1600;
 
+    case "pneu":
+      return 270;
+
+    default:
+      return item.price * 1.5;
+  }
+};
   const renderProductList = (title: string, icon: React.ReactNode, items: ModItem[]) => (
     <Card className="mb-6 shadow-sm">
       <CardHeader className="pb-3 bg-muted/30">
@@ -118,7 +137,7 @@ export default function MechanicCalculator() {
               </Badge>
             </div>
             <div className="mt-auto pt-2 flex justify-between items-center text-xs text-muted-foreground">
-              <span>Ao cliente: <strong className="text-foreground">{formatCurrency(item.price * 1.5)}</strong></span>
+              <span>Ao cliente: <strong className="text-foreground">{formatCurrency(getClientPrice(item))}</strong></span>
               <Button size="sm" variant="secondary" className="h-7 text-xs px-2" onClick={() => addToCart(item)}>
                 <Plus className="w-3 h-3 mr-1" /> Add
               </Button>
@@ -179,8 +198,8 @@ export default function MechanicCalculator() {
                       <div key={item.id} className="flex flex-col bg-muted/40 p-3 rounded-md border text-sm">
                         <div className="flex justify-between font-medium mb-1">
                           <span>{item.name}</span>
-                          <span>{formatCurrency(item.price * quantity * 1.5)}</span>
-                        </div>
+<span>{formatCurrency(getClientPrice(item) * quantity)}</span>              
+          </div>
                         <div className="flex justify-between items-center mt-2">
                           <span className="text-xs text-muted-foreground">Custo base: {formatCurrency(item.price)}</span>
                           <div className="flex items-center gap-2">
