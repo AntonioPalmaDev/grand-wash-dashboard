@@ -30,7 +30,6 @@ import AdminMasterPage from "@/pages/AdminMasterPage";
 import NotFound from "@/pages/NotFound";
 import InvitePage from "@/pages/InvitePage";
 
-
 // Admin Global Pages
 import GlobalDashboard from "@/pages/admin/GlobalDashboard";
 // Global Companies Page was merged into CompanySelectionPage
