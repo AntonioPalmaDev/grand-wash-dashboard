@@ -27,6 +27,7 @@ import AuthPage from "@/pages/AuthPage";
 import RestorePage from "@/pages/RestorePage";
 import PainelFinanceiroPage from "@/pages/PainelFinanceiroPage";
 import MechanicCalculator from "@/pages/MechanicCalculator";
+import PublicCalculatorPage from "@/pages/PublicCalculatorPage";
 import NotFound from "@/pages/NotFound";
 import InvitePage from "@/pages/InvitePage";
 
@@ -147,6 +148,7 @@ const App = () => {
           <BrowserRouter>
             <CompanyProvider>
               <Routes>
+                <Route path="/calculadora" element={<PublicCalculatorPage />} />
                 <Route path="/invite/:token" element={<InvitePage />} />
                 <Route path="*" element={<ProtectedApp />} />
               </Routes>
