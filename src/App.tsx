@@ -86,6 +86,7 @@ function CompanyWrapper() {
           {!isGlobalMode && (
             <>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/calculator" element={<MechanicCalculator />} />
               <Route path="/painel-financeiro" element={<PainelFinanceiroPage />} />
               
               <Route path="/clientes" element={<ClientsPage />} />
