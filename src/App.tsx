@@ -121,6 +121,7 @@ function CompanyWrapper() {
           )}
 
           <Route path="/selecao-empresa" element={<CompanySelectionPage />} />
+          <Route path="/calculator" element={<MechanicCalculator />} />
 
           <Route path="*" element={<NotFound />} />
 
