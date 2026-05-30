@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { CompanySidebar } from "@/components/CompanySidebar";
 import { GlobalSidebar } from "@/components/GlobalSidebar";
@@ -16,9 +17,10 @@ import {
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { isGlobalMode, activeCompany, switchCompany } = useCompany();
   const { isMasterAdmin } = useAuth();
+  const navigate = useNavigate();
 
   const handleOpenCalculator = () => {
-    window.open("/calculator", "_blank");
+    navigate("/calculator");
   };
 
   return (
