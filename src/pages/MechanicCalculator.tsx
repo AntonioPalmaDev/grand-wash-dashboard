@@ -14,12 +14,12 @@ type ModItem = {
 
 const MECHANIC_DATA = {
   comuns: [
-    { id: 'pe_cabra', name: 'Pé de cabra', price: 1075 },
+    { id: 'pe_cabra', name: 'Pé de cabra', price: 1600 },
     { id: 'chave_inglesa', name: 'Chave inglesa', price: 600 },
     { id: 'elevador', name: 'Elevador hidráulico', price: 700 },
     { id: 'reparo_comum', name: 'Caixa de reparo comum', price: 200 },
     { id: 'reparo_rara', name: 'Caixa de reparo rara', price: 800 },
-    { id: 'pneu', name: 'Pneu', price: 175 },
+    { id: 'pneu', name: 'Pneu', price: 270 },
   ],
   esteticas: [
     { id: 'buzina', name: 'Buzina', price: 2000 },
