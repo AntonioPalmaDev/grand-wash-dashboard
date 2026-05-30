@@ -21,7 +21,7 @@ import CompletePersonagemPage from "@/pages/CompletePersonagemPage";
 import RestorePage from "@/pages/RestorePage";
 import ReportsPage from "@/pages/ReportsPage";
 import NotFound from "@/pages/NotFound";
-
+import MechanicCalculator from "./pages/MechanicCalculator";
 const queryClient = new QueryClient();
 
 function ProtectedApp() {
@@ -61,6 +61,7 @@ function ProtectedApp() {
           <Route path="/restauracoes" element={<RestorePage />} />
           <Route path="/laudos" element={<ReportsPage />} />
           <Route path="*" element={<NotFound />} />
+          <Route path="calculator" element={<MechanicCalculator />} />
         </Routes>
       </AppLayout>
     </AppProvider>
