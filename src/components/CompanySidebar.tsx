@@ -121,7 +121,7 @@ export function CompanySidebar() {
               {companyItems
                 .filter(item => {
                   if (role === "visualizador") {
-                    return item.url === "/" || item.url === "/painel-financeiro";
+                    return item.url === "/" || item.url === "/painel-financeiro" || item.url === "/calculator";
                   }
                   
                   const companyItem = item as any;
