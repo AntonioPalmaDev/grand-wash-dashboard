@@ -148,6 +148,7 @@ const App = () => {
           <BrowserRouter>
             <CompanyProvider>
               <Routes>
+                <Route path="/calculadora" element={<PublicCalculatorPage />} />
                 <Route path="/invite/:token" element={<InvitePage />} />
                 <Route path="*" element={<ProtectedApp />} />
               </Routes>
