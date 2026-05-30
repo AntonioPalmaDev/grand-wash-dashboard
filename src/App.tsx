@@ -26,7 +26,7 @@ import AuditLogsPage from "@/pages/AuditLogsPage";
 import AuthPage from "@/pages/AuthPage";
 import RestorePage from "@/pages/RestorePage";
 import PainelFinanceiroPage from "@/pages/PainelFinanceiroPage";
-import AdminMasterPage from "@/pages/AdminMasterPage";
+import MechanicCalculator from "@/pages/MechanicCalculator";
 import NotFound from "@/pages/NotFound";
 import InvitePage from "@/pages/InvitePage";
 
