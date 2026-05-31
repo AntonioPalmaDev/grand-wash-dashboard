@@ -1,149 +1,159 @@
-import React, { useState } from 'react';
-import { Calculator, ShoppingCart, Trash2, Plus, Minus, Wrench, Car, Gauge, DollarSign } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useMemo } from 'react';
+import { Calculator, ShoppingCart, Trash2, Plus, Minus, Wrench, Gauge, DollarSign, Hammer } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
-type ModItem = {
+type FixedItem = {
   id: string;
   name: string;
   price: number;
 };
 
-const MECHANIC_DATA = {
-  comuns: [
-    { id: 'pe_cabra', name: 'Pé de cabra', price: 1600 },
-    { id: 'chave_inglesa', name: 'Chave inglesa', price: 600 },
-    { id: 'elevador', name: 'Elevador hidráulico', price: 700 },
-    { id: 'reparo_comum', name: 'Caixa de reparo comum', price: 200 },
-    { id: 'reparo_rara', name: 'Caixa de reparo rara', price: 800 },
-   { id: 'pneu', name: 'Pneu', price: 175 },
-  ],
-  esteticas: [
-    { id: 'buzina', name: 'Buzina', price: 2000 },
-    { id: 'pinturas', name: 'Pinturas', price: 5000 },
-    { id: 'ativar_xenon', name: 'Ativar xenon', price: 2000 },
-    { id: 'cor_xenon', name: 'Cor xenon', price: 2000 },
-    { id: 'rodas', name: 'Rodas', price: 2000 },
-    { id: 'placa', name: 'Placa personalizada', price: 1000 },
-  ],
-  performance: [
-    { id: 'motor_1', name: 'Motor Nível 1', price: 16250 },
-    { id: 'motor_2', name: 'Motor Nível 2', price: 26000 },
-    { id: 'motor_3', name: 'Motor Nível 3', price: 39000 },
-    { id: 'motor_4', name: 'Motor Nível 4', price: 55250 },
-    { id: 'freio_1', name: 'Freio Nível 1', price: 16250 },
-    { id: 'freio_2', name: 'Freio Nível 2', price: 26000 },
-    { id: 'freio_3', name: 'Freio Nível 3', price: 39000 },
-    { id: 'transmissao_1', name: 'Transmissão Nível 1', price: 16250 },
-    { id: 'transmissao_2', name: 'Transmissão Nível 2', price: 26000 },
-    { id: 'transmissao_3', name: 'Transmissão Nível 3', price: 39000 },
-    { id: 'suspensao_1', name: 'Suspensão Nível 1', price: 16250 },
-    { id: 'suspensao_2', name: 'Suspensão Nível 2', price: 26000 },
-    { id: 'suspensao_3', name: 'Suspensão Nível 3', price: 39000 },
-    { id: 'suspensao_4', name: 'Suspensão Nível 4', price: 55250 },
-    { id: 'blindagem_1', name: 'Blindagem Nível 1', price: 16250 },
-    { id: 'blindagem_2', name: 'Blindagem Nível 2', price: 26000 },
-    { id: 'blindagem_3', name: 'Blindagem Nível 3', price: 39000 },
-    { id: 'blindagem_4', name: 'Blindagem Nível 4', price: 55250 },
-    { id: 'blindagem_5', name: 'Blindagem Nível 5', price: 71500 },
-    { id: 'turbo', name: 'Turbo', price: 10000 },
-  ],
-};
+const ITENS_COMUNS: FixedItem[] = [
+  { id: 'chave_inglesa', name: 'Chave Inglesa', price: 700 },
+  { id: 'elevador', name: 'Elevador Hidráulico', price: 900 },
+  { id: 'ferramentas', name: 'Ferramentas', price: 400 },
+  { id: 'ferramentas_premium', name: 'Ferramentas Premium', price: 1100 },
+  { id: 'pe_cabra', name: 'Pé de Cabra', price: 1200 },
+  { id: 'pneu', name: 'Pneu', price: 375 },
+];
 
-// Porcentagem de lucro estipulada (50%)
-const PROFIT_MARGIN = 0.5; 
+const ACOES_SIMPLES: FixedItem[] = [
+  { id: 'reparo_veiculo', name: 'Reparo do Veículo', price: 1000 },
+  { id: 'pneu_instalado', name: 'Pneu Instalado', price: 375 },
+];
+
+// Margem aplicada às tunagens (lógica atual mantida: custo * 1.5)
+const TUNING_MARGIN = 1.5;
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+type Cart = Record<string, number>;
 
 export default function MechanicCalculator() {
-  const [cart, setCart] = useState<Record<string, { item: ModItem; quantity: number }>>({});
+  const [comunsCart, setComunsCart] = useState<Cart>({});
+  const [acoesCart, setAcoesCart] = useState<Cart>({});
+  const [painelInput, setPainelInput] = useState<string>('');
 
-  const addToCart = (item: ModItem) => {
-    setCart((prev) => ({
-      ...prev,
-      [item.id]: {
-        item,
-        quantity: (prev[item.id]?.quantity || 0) + 1,
-      },
-    }));
-  };
+  const painelValue = useMemo(() => {
+    const parsed = parseFloat(painelInput.replace(/\./g, '').replace(',', '.'));
+    return isNaN(parsed) ? 0 : parsed;
+  }, [painelInput]);
 
-  const removeFromCart = (itemId: string) => {
-    setCart((prev) => {
-      const newCart = { ...prev };
-      if (newCart[itemId].quantity > 1) {
-        newCart[itemId].quantity -= 1;
-      } else {
-        delete newCart[itemId];
-      }
-      return newCart;
+  const add = (setter: React.Dispatch<React.SetStateAction<Cart>>, id: string) =>
+    setter((p) => ({ ...p, [id]: (p[id] || 0) + 1 }));
+
+  const remove = (setter: React.Dispatch<React.SetStateAction<Cart>>, id: string) =>
+    setter((p) => {
+      const next = { ...p };
+      if (!next[id]) return next;
+      if (next[id] <= 1) delete next[id];
+      else next[id] -= 1;
+      return next;
     });
-  };
 
-  const clearItem = (itemId: string) => {
-    setCart((prev) => {
-      const newCart = { ...prev };
-      delete newCart[itemId];
-      return newCart;
+  const clearOne = (setter: React.Dispatch<React.SetStateAction<Cart>>, id: string) =>
+    setter((p) => {
+      const next = { ...p };
+      delete next[id];
+      return next;
     });
+
+  const sumCart = (cart: Cart, list: FixedItem[]) =>
+    list.reduce((acc, item) => acc + (cart[item.id] || 0) * item.price, 0);
+
+  const totalComuns = sumCart(comunsCart, ITENS_COMUNS);
+  const totalAcoes = sumCart(acoesCart, ACOES_SIMPLES);
+  const totalTunagens = painelValue * TUNING_MARGIN;
+  const totalGeral = totalComuns + totalAcoes + totalTunagens;
+
+  const clearAll = () => {
+    setComunsCart({});
+    setAcoesCart({});
+    setPainelInput('');
   };
 
-  const clearAll = () => setCart({});
-
-  // Cálculos
-const totalCost = Object.values(cart).reduce(
-  (acc, curr) => acc + curr.item.price * curr.quantity,
-  0
-);
-
-const clientPrice = Object.values(cart).reduce(
-  (acc, curr) => acc + getClientPrice(curr.item) * curr.quantity,
-  0
-);
-
-const totalProfit = clientPrice - totalCost;
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  const copiarValores = () => {
+    const linhas: string[] = [];
+    if (totalTunagens > 0) linhas.push(`Tunagens: ${formatCurrency(totalTunagens)}`);
+    if (totalComuns > 0) linhas.push(`Itens Comuns: ${formatCurrency(totalComuns)}`);
+    if (totalAcoes > 0) linhas.push(`Ações Simples: ${formatCurrency(totalAcoes)}`);
+    linhas.push(`TOTAL GERAL: ${formatCurrency(totalGeral)}`);
+    navigator.clipboard?.writeText(linhas.join('\n'));
   };
-const getClientPrice = (item: ModItem) => {
-  switch (item.id) {
-    case "pe_cabra":
-      return 1600;
 
-    case "pneu":
-      return 270;
-
-    default:
-      return item.price * 1.5;
-  }
-};
-  const renderProductList = (title: string, icon: React.ReactNode, items: ModItem[]) => (
-    <Card className="mb-6 shadow-sm">
+  const renderFixedList = (
+    title: string,
+    icon: React.ReactNode,
+    items: FixedItem[],
+    cart: Cart,
+    setter: React.Dispatch<React.SetStateAction<Cart>>,
+  ) => (
+    <Card className="shadow-sm">
       <CardHeader className="pb-3 bg-muted/30">
         <CardTitle className="flex items-center gap-2 text-lg">
           {icon}
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {items.map((item) => (
-          <div key={item.id} className="flex flex-col p-3 border rounded-lg hover:border-primary/50 transition-colors bg-card">
-            <div className="flex justify-between items-start mb-2">
-              <span className="font-medium text-sm">{item.name}</span>
-              <Badge variant="outline" className="font-semibold text-xs">
-                {formatCurrency(item.price)}
-              </Badge>
+      <CardContent className="pt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {items.map((item) => {
+          const qty = cart[item.id] || 0;
+          return (
+            <div
+              key={item.id}
+              className="flex flex-col p-3 border rounded-lg hover:border-primary/50 transition-colors bg-card"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <span className="font-medium text-sm">{item.name}</span>
+                <Badge variant="outline" className="font-semibold text-xs">
+                  {formatCurrency(item.price)}
+                </Badge>
+              </div>
+              <div className="mt-auto pt-2 flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="h-7 w-7"
+                    onClick={() => remove(setter, item.id)}
+                    disabled={qty === 0}
+                  >
+                    <Minus className="w-3 h-3" />
+                  </Button>
+                  <span className="w-5 text-center font-semibold text-sm">{qty}</span>
+                  <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => add(setter, item.id)}>
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
+                {qty > 0 ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-foreground">
+                      {formatCurrency(item.price * qty)}
+                    </span>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6 text-destructive hover:text-destructive"
+                      onClick={() => clearOne(setter, item.id)}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button size="sm" variant="secondary" className="h-7 text-xs px-2" onClick={() => add(setter, item.id)}>
+                    <Plus className="w-3 h-3 mr-1" /> Add
+                  </Button>
+                )}
+              </div>
             </div>
-            <div className="mt-auto pt-2 flex justify-between items-center text-xs text-muted-foreground">
-              <span>Ao cliente: <strong className="text-foreground">{formatCurrency(getClientPrice(item))}</strong></span>
-              <Button size="sm" variant="secondary" className="h-7 text-xs px-2" onClick={() => addToCart(item)}>
-                <Plus className="w-3 h-3 mr-1" /> Add
-              </Button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
     </Card>
   );
@@ -156,98 +166,107 @@ const getClientPrice = (item: ModItem) => {
         </div>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Calculadora Black Dragons</h1>
-          <p className="text-muted-foreground">Orçamentos de customização e reparos automotivos (Margem de 50%)</p>
+          <p className="text-muted-foreground">Orçamentos de customização e reparos automotivos</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Lado Esquerdo: Produtos */}
+        {/* Lado Esquerdo: Categorias */}
         <div className="xl:col-span-2 space-y-6">
-          <ScrollArea className="h-[calc(100vh-220px)] pr-4">
-            {renderProductList("Itens Comuns", <Wrench className="w-5 h-5 text-zinc-500" />, MECHANIC_DATA.comuns)}
-            {renderProductList("Modificações Estéticas", <Car className="w-5 h-5 text-blue-500" />, MECHANIC_DATA.esteticas)}
-            {renderProductList("Performance & Blindagem", <Gauge className="w-5 h-5 text-red-500" />, MECHANIC_DATA.performance)}
-          </ScrollArea>
+          {renderFixedList(
+            'Itens Comuns',
+            <Wrench className="w-5 h-5 text-zinc-500" />,
+            ITENS_COMUNS,
+            comunsCart,
+            setComunsCart,
+          )}
+
+          {renderFixedList(
+            'Ações Simples',
+            <Hammer className="w-5 h-5 text-amber-500" />,
+            ACOES_SIMPLES,
+            acoesCart,
+            setAcoesCart,
+          )}
+
+          {/* Tunagens */}
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3 bg-muted/30">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Gauge className="w-5 h-5 text-red-500" />
+                Tunagens
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="painel">Valor do Painel</Label>
+                <Input
+                  id="painel"
+                  inputMode="decimal"
+                  placeholder="Ex: 50000"
+                  value={painelInput}
+                  onChange={(e) => setPainelInput(e.target.value)}
+                  className="text-lg font-semibold"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Informe o valor exibido no painel do jogo. O valor cobrado ao cliente aplica a margem padrão.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="p-3 rounded-lg border bg-muted/30">
+                  <div className="text-xs text-muted-foreground">Custo (Painel)</div>
+                  <div className="font-semibold">{formatCurrency(painelValue)}</div>
+                </div>
+                <div className="p-3 rounded-lg border bg-primary/5 border-primary/30">
+                  <div className="text-xs text-muted-foreground">Cobrar do Cliente</div>
+                  <div className="font-bold text-primary">{formatCurrency(totalTunagens)}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Lado Direito: Carrinho e Resumo */}
+        {/* Lado Direito: Resumo */}
         <div className="xl:col-span-1">
           <Card className="sticky top-6 shadow-md border-primary/20">
             <CardHeader className="bg-primary/5 border-b pb-4">
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <ShoppingCart className="w-5 h-5" />
-                  Orçamento
-                </CardTitle>
-                <Badge variant={Object.keys(cart).length > 0 ? "default" : "secondary"}>
-                  {Object.values(cart).reduce((acc, curr) => acc + curr.quantity, 0)} itens
-                </Badge>
-              </div>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <ShoppingCart className="w-5 h-5" />
+                Resumo do Orçamento
+              </CardTitle>
             </CardHeader>
-            
-            <CardContent className="p-0">
-              <ScrollArea className="h-[300px] p-4">
-                {Object.keys(cart).length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-2 opacity-60">
-                    <ShoppingCart className="w-10 h-10 mb-2" />
-                    <p>Nenhum item adicionado</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {Object.values(cart).map(({ item, quantity }) => (
-                      <div key={item.id} className="flex flex-col bg-muted/40 p-3 rounded-md border text-sm">
-                        <div className="flex justify-between font-medium mb-1">
-                          <span>{item.name}</span>
-<span>{formatCurrency(getClientPrice(item) * quantity)}</span>              
-          </div>
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="text-xs text-muted-foreground">Custo base: {formatCurrency(item.price)}</span>
-                          <div className="flex items-center gap-2">
-                            <Button size="icon" variant="outline" className="h-6 w-6" onClick={() => removeFromCart(item.id)}>
-                              <Minus className="w-3 h-3" />
-                            </Button>
-                            <span className="w-4 text-center font-semibold">{quantity}</span>
-                            <Button size="icon" variant="outline" className="h-6 w-6" onClick={() => addToCart(item)}>
-                              <Plus className="w-3 h-3" />
-                            </Button>
-                            <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:text-destructive ml-1" onClick={() => clearItem(item.id)}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-              
-              <Separator />
-              
-              <div className="p-5 space-y-4 bg-muted/10 rounded-b-xl">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Custo das Peças:</span>
-                    <span>{formatCurrency(totalCost)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                    <span>Lucro da Oficina (50%):</span>
-                    <span>+ {formatCurrency(totalProfit)}</span>
-                  </div>
-                  <Separator className="my-2" />
-                  <div className="flex justify-between items-center pt-1">
-                    <span className="font-bold text-lg">Total a Cobrar:</span>
-                    <span className="font-bold text-2xl text-primary">{formatCurrency(clientPrice)}</span>
-                  </div>
+
+            <CardContent className="p-5 space-y-4">
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Tunagens</span>
+                  <span className="font-semibold">{formatCurrency(totalTunagens)}</span>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <Button variant="outline" className="w-full" onClick={clearAll} disabled={Object.keys(cart).length === 0}>
-                    Limpar
-                  </Button>
-                  <Button className="w-full gap-2" disabled={Object.keys(cart).length === 0}>
-                    <DollarSign className="w-4 h-4" /> Copiar Valores
-                  </Button>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Itens Comuns</span>
+                  <span className="font-semibold">{formatCurrency(totalComuns)}</span>
                 </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Ações Simples</span>
+                  <span className="font-semibold">{formatCurrency(totalAcoes)}</span>
+                </div>
+
+                <Separator className="my-2" />
+
+                <div className="flex justify-between items-center pt-1">
+                  <span className="font-bold text-lg">TOTAL GERAL</span>
+                  <span className="font-bold text-2xl text-primary">{formatCurrency(totalGeral)}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <Button variant="outline" className="w-full" onClick={clearAll} disabled={totalGeral === 0}>
+                  Limpar
+                </Button>
+                <Button className="w-full gap-2" onClick={copiarValores} disabled={totalGeral === 0}>
+                  <DollarSign className="w-4 h-4" /> Copiar
+                </Button>
               </div>
             </CardContent>
           </Card>
