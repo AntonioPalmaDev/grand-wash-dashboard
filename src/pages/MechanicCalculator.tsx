@@ -19,7 +19,7 @@ const ITENS_COMUNS: FixedItem[] = [
   { id: 'ferramentas', name: 'Ferramentas', price: 400 },
   { id: 'ferramentas_premium', name: 'Ferramentas Premium', price: 1100 },
   { id: 'pe_cabra', name: 'Pé de Cabra', price: 1200 },
-  { id: 'pneu', name: 'Pneu', price: 375 },
+  { id: 'pneu', name: 'Pneu', price: 200 },
 ];
 
 const ACOES_SIMPLES: FixedItem[] = [
