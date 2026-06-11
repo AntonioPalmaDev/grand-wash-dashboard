@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 export type AppRole = "admin_master" | "desenvolvedor" | "gestao" | "visualizador";
 
 export function useRole() {
-  const { user, isMasterAdmin } = useAuth();
+  const { user } = useAuth();
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -23,15 +23,9 @@ export function useRole() {
           .select("role")
           .eq("user_id", user!.id)
           .single();
-        
+
         if (error) throw error;
-        
-        // Se for Master Admin, forçamos a role admin_master para consistência na UI
-        if (isMasterAdmin) {
-          setRole("admin_master");
-        } else {
-          setRole((data?.role as AppRole) ?? "visualizador");
-        }
+        setRole((data?.role as AppRole) ?? "visualizador");
       } catch (err) {
         console.error("Erro ao buscar role:", err);
         setRole("visualizador");
@@ -41,27 +35,26 @@ export function useRole() {
     }
 
     fetchRole();
-  }, [user, isMasterAdmin]);
+  }, [user]);
 
-  const isAdmin = role === "admin_master" || isMasterAdmin;
+  const isAdmin = role === "admin_master";
   const isDev = role === "desenvolvedor" || isAdmin;
   const isGestao = role === "gestao" || isDev;
   const isVisualizador = role === "visualizador" || isGestao;
 
-  // Permissões específicas
   const canEdit = isGestao && role !== "visualizador";
   const canManageUsers = isGestao && role !== "visualizador";
   const canAccessAdmin = isAdmin || role === "desenvolvedor";
 
-  return { 
-    role, 
-    isAdmin, 
-    isDev, 
-    isGestao, 
-    isVisualizador, 
+  return {
+    role,
+    isAdmin,
+    isDev,
+    isGestao,
+    isVisualizador,
     canEdit,
     canManageUsers,
     canAccessAdmin,
-    loading 
+    loading,
   };
 }

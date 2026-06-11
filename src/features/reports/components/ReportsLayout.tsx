@@ -16,7 +16,7 @@ export function ReportsLayout() {
           Relatórios <span className="text-primary text-xl not-italic">&</span> BI
         </h1>
         <p className="text-muted-foreground text-sm max-w-2xl">
-          Análise profunda de movimentação, performance financeira e fluxos de estoque da Black Dragons.
+          Análise profunda de movimentação, performance financeira e fluxos de estoque da Zero Foco.
         </p>
       </div>
 

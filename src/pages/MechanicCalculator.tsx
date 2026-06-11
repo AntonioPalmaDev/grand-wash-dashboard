@@ -165,7 +165,7 @@ export default function MechanicCalculator() {
           <Calculator className="w-6 h-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Calculadora Black Dragons</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Calculadora Zero Foco</h1>
           <p className="text-muted-foreground">Orçamentos de customização e reparos automotivos</p>
         </div>
       </div>

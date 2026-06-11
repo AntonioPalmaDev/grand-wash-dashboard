@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { useCompany } from "@/context/CompanyContext";
 import { useRole } from "@/hooks/useRole";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -13,8 +12,6 @@ import type { Client, ClientType } from "@/types";
 
 export default function ClientsPage() {
   const { clients, addClient, updateClient, deleteClient, getClientStats, getClientRate, config } = useApp();
-  const { activeCompany } = useCompany();
-  const isBlackDragons = activeCompany?.name === "Black Dragons";
   const { isDev, canEdit } = useRole();
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState("");
