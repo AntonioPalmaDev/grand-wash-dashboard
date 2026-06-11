@@ -111,9 +111,8 @@ export default function ProductsPage() {
     setStatus("ativo");
   }
 
-  if (activeCompany?.name !== "Black Dragons") {
-    return <div className="p-8 text-center text-muted-foreground">Esta página é exclusiva para a Black Dragons.</div>;
-  }
+
+
 
   return (
     <div className="space-y-6">
