@@ -42,8 +42,8 @@ export function useRole() {
   const isGestao = role === "gestao" || isDev;
   const isVisualizador = role === "visualizador" || isGestao;
 
-  const canEdit = isGestao && role !== "visualizador";
-  const canManageUsers = isGestao && role !== "visualizador";
+  const canEdit = isGestao;
+  const canManageUsers = isGestao;
   const canAccessAdmin = isAdmin || role === "desenvolvedor";
 
   return {

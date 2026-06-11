@@ -138,7 +138,7 @@ export default function ClientsPage() {
                   <div className="font-mono font-bold text-lg">{s.totalOps}</div>
                 </div>
                 <div className="bg-secondary/20 p-2 rounded text-center col-span-2">
-                  <div className="text-[10px] text-muted-foreground uppercase">{isBlackDragons ? "Total Comprado" : "Total Lavado"}</div>
+                  <div className="text-[10px] text-muted-foreground uppercase">Total Lavado</div>
                   <div className="font-mono font-bold text-lg text-emerald-400">{formatCurrency(s.totalLavado)}</div>
                 </div>
               </div>

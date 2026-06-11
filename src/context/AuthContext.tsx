@@ -11,7 +11,7 @@ interface AuthContextType {
   loading: boolean;
   userStatus: UserStatus;
   nomePersonagem: string | null;
-  isMasterAdmin: false;
+  isMasterAdmin: boolean;
   companyId: string | null;
   signUp: (
     email: string,
