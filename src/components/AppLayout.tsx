@@ -2,21 +2,13 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { CompanySidebar } from "@/components/CompanySidebar";
-import { GlobalSidebar } from "@/components/GlobalSidebar";
 import { useCompany } from "@/context/CompanyContext";
-import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Building2,
-  Globe,
-  ArrowLeft,
-  Calculator,
-} from "lucide-react";
+import { Building2, Calculator } from "lucide-react";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isGlobalMode, activeCompany, switchCompany } = useCompany();
-  const { isMasterAdmin } = useAuth();
+  const { activeCompany } = useCompany();
   const navigate = useNavigate();
 
   const handleOpenCalculator = () => {
@@ -26,11 +18,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
-        {isGlobalMode && isMasterAdmin ? (
-          <GlobalSidebar />
-        ) : (
-          <CompanySidebar />
-        )}
+        <CompanySidebar />
 
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-14 flex items-center justify-between border-b border-border/50 px-4 glass-card sticky top-0 z-10">
@@ -40,43 +28,23 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <div className="h-4 w-[1px] bg-border mx-2" />
 
               <div className="flex items-center gap-2">
-                {isGlobalMode ? (
-                  <>
-                    <Globe className="size-4 text-primary" />
-                    <span className="text-sm font-bold tracking-tight">
-                      CENTRAL GLOBAL
-                    </span>
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] bg-primary/5 text-primary border-primary/20"
-                    >
-                      ADMIN
-                    </Badge>
-                  </>
+                {activeCompany?.logo_url ? (
+                  <img
+                    src={activeCompany.logo_url}
+                    alt={activeCompany.name}
+                    className="size-6 object-contain"
+                  />
                 ) : (
-                  <>
-                    {activeCompany?.logo_url ? (
-                      <img
-                        src={activeCompany.logo_url}
-                        alt={activeCompany.name}
-                        className="size-6 object-contain"
-                      />
-                    ) : (
-                      <Building2 className="size-4 text-primary" />
-                    )}
-
-                    <span className="text-sm font-bold tracking-tight uppercase">
-                      {activeCompany?.name}
-                    </span>
-
-                    <Badge
-                      variant="secondary"
-                      className="text-[10px]"
-                    >
-                      INTERNAL AREA
-                    </Badge>
-                  </>
+                  <Building2 className="size-4 text-primary" />
                 )}
+
+                <span className="text-sm font-bold tracking-tight uppercase">
+                  {activeCompany?.name || "Zero Foco"}
+                </span>
+
+                <Badge variant="secondary" className="text-[10px]">
+                  INTERNAL AREA
+                </Badge>
               </div>
             </div>
 
@@ -90,25 +58,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <Calculator className="size-4" />
                 Calculadora
               </Button>
-
-              {!isGlobalMode && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => switchCompany(null)}
-                  className="text-xs text-muted-foreground hover:text-primary gap-2"
-                >
-                  <ArrowLeft className="size-3" />
-                  Trocar Empresa / Gestão
-                </Button>
-              )}
             </div>
           </header>
 
           <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 overflow-auto">
-            <div className="max-w-[1600px] mx-auto w-full">
-              {children}
-            </div>
+            <div className="max-w-[1600px] mx-auto w-full">{children}</div>
           </main>
         </div>
       </div>

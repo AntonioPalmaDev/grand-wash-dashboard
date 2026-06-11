@@ -1,18 +1,18 @@
 import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { AppProvider } from "@/context/AppContext";
-import { CompanyProvider, useCompany } from "@/context/CompanyContext";
+import { CompanyProvider } from "@/context/CompanyContext";
 import { useRole } from "@/hooks/useRole";
+
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
-import CompanySelectionPage from "@/pages/CompanySelectionPage";
 import ClientsPage from "@/pages/ClientsPage";
 import ProductsPage from "@/pages/ProductsPage";
 import FinancialOperationsPage from "@/pages/FinancialOperationsPage";
@@ -31,10 +31,6 @@ import PublicCalculatorPage from "@/pages/PublicCalculatorPage";
 import NotFound from "@/pages/NotFound";
 import InvitePage from "@/pages/InvitePage";
 
-// Admin Global Pages
-import GlobalDashboard from "@/pages/admin/GlobalDashboard";
-// Global Companies Page was merged into CompanySelectionPage
-
 const queryClient = new QueryClient();
 
 function ProtectedApp() {
@@ -45,7 +41,9 @@ function ProtectedApp() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-3">
           <div className="text-3xl animate-bounce">💰</div>
-          <p className="text-muted-foreground text-sm animate-pulse">Autenticando...</p>
+          <p className="text-muted-foreground text-sm animate-pulse">
+            Autenticando...
+          </p>
         </div>
       </div>
     );
@@ -56,76 +54,38 @@ function ProtectedApp() {
   return <CompanyWrapper />;
 }
 
-
 function CompanyWrapper() {
-  const { activeCompany, loading, isGlobalMode } = useCompany();
-  const { isMasterAdmin } = useAuth();
-  const { role, canAccessAdmin } = useRole();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground text-sm animate-pulse">Carregando ecossistema...</p>
-      </div>
-    );
-  }
-
-  // A Central de Empresas é o ponto de entrada para seleção/gestão
-  if (!activeCompany || window.location.pathname === "/selecao-empresa") {
-    return <CompanySelectionPage />;
-  }
-
-
+  const { role } = useRole();
 
   return (
     <AppProvider>
-
       <AppLayout>
         <Routes>
-          {/* Rotas de Empresa */}
-          {!isGlobalMode && (
-            <>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/calculator" element={<MechanicCalculator />} />
-              <Route path="/painel-financeiro" element={<PainelFinanceiroPage />} />
-              
-              <Route path="/clientes" element={<ClientsPage />} />
-              <Route path="/produtos" element={<ProductsPage />} />
-              <Route path="/operacoes-financeiras" element={<FinancialOperationsPage />} />
-              <Route path="/operacoes-produtos" element={<ProductOperationsPage />} />
-              
-              {role !== "visualizador" && (
-                <>
-                  <Route path="/historico" element={<HistoryPage />} />
-                  <Route path="/financeiro" element={<FinancePage />} />
-                  <Route path="/ranking" element={<RankingPage />} />
-                  <Route path="/configuracoes" element={<SettingsPage />} />
-                  <Route path="/usuarios" element={<UsersPage />} />
-                  <Route path="/logs" element={<AuditLogsPage />} />
-                  <Route path="/restauracoes" element={<RestorePage />} />
-                </>
-              )}
-              <Route path="/selecao-empresa" element={<CompanySelectionPage />} />
-            </>
-          )}
-
-          {/* Rotas Administrativas Globais */}
-          {canAccessAdmin && (
-            <>
-              <Route path="/admin" element={<GlobalDashboard />} />
-              <Route path="/admin/companies" element={<CompanySelectionPage />} />
-              <Route path="/admin/users" element={<UsersPage />} />
-              <Route path="/admin/logs" element={<AuditLogsPage />} />
-              <Route path="/admin-master" element={<Navigate to="/admin" replace />} />
-            </>
-          )}
-
-          <Route path="/selecao-empresa" element={<CompanySelectionPage />} />
+          <Route path="/" element={<Dashboard />} />
           <Route path="/calculator" element={<MechanicCalculator />} />
+          <Route path="/painel-financeiro" element={<PainelFinanceiroPage />} />
+
+          <Route path="/clientes" element={<ClientsPage />} />
+          <Route path="/produtos" element={<ProductsPage />} />
+          <Route
+            path="/operacoes-financeiras"
+            element={<FinancialOperationsPage />}
+          />
+          <Route path="/operacoes-produtos" element={<ProductOperationsPage />} />
+
+          {true && (
+            <>
+              <Route path="/historico" element={<HistoryPage />} />
+              <Route path="/financeiro" element={<FinancePage />} />
+              <Route path="/ranking" element={<RankingPage />} />
+              <Route path="/configuracoes" element={<SettingsPage />} />
+              <Route path="/usuarios" element={<UsersPage />} />
+              <Route path="/logs" element={<AuditLogsPage />} />
+              <Route path="/restauracoes" element={<RestorePage />} />
+            </>
+          )}
 
           <Route path="*" element={<NotFound />} />
-
-
         </Routes>
       </AppLayout>
     </AppProvider>
@@ -134,9 +94,8 @@ function CompanyWrapper() {
 
 const App = () => {
   useEffect(() => {
-    // Standard initialization if needed
+    // Inicialização padrão, se necessário
   }, []);
-
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -154,8 +113,6 @@ const App = () => {
             </CompanyProvider>
           </BrowserRouter>
         </AuthProvider>
-
-
       </TooltipProvider>
     </QueryClientProvider>
   );
