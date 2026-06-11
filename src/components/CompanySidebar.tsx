@@ -52,6 +52,8 @@ const companyItems = [
   { title: "Logs da Empresa", url: "/logs", icon: FileText },
   { title: "Calculadora", url: "/calculator", icon: Calculator },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
+  {title: "Usuários", url: "/usuarios", icon: Users},
+  
 ];
 
 export function CompanySidebar() {
