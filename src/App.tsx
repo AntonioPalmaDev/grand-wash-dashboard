@@ -34,7 +34,7 @@ import InvitePage from "@/pages/InvitePage";
 const queryClient = new QueryClient();
 
 function ProtectedApp() {
-  const { user, loading } = useAuth();
+  const { user, loading, userStatus } = useAuth();
 
   if (loading) {
     return (
@@ -51,9 +51,37 @@ function ProtectedApp() {
 
   if (!user) return <AuthPage />;
 
+  if (userStatus === "pendente") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-md w-full glass-card border border-white/10 rounded-xl p-6 text-center space-y-4">
+          <div className="text-4xl">⏳</div>
+          <h1 className="text-2xl font-bold">Aguardando Aprovação</h1>
+          <p className="text-sm text-muted-foreground">
+            Seu cadastro foi realizado com sucesso.
+            Aguarde um administrador aprovar seu acesso.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (userStatus === "rejeitado") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-md w-full glass-card border border-red-500/20 rounded-xl p-6 text-center space-y-4">
+          <div className="text-4xl">🚫</div>
+          <h1 className="text-2xl font-bold">Acesso Rejeitado</h1>
+          <p className="text-sm text-muted-foreground">
+            Seu cadastro foi rejeitado por um administrador.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return <CompanyWrapper />;
 }
-
 function CompanyWrapper() {
   const { role } = useRole();
 
