@@ -9,7 +9,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { AppProvider } from "@/context/AppContext";
 import { CompanyProvider } from "@/context/CompanyContext";
-import { useRole } from "@/hooks/useRole";
+
 
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
@@ -35,7 +35,8 @@ const queryClient = new QueryClient();
 
 function ProtectedApp() {
   const { user, loading, userStatus } = useAuth();
-
+console.log("STATUS DO USUÁRIO:", userStatus);
+  console.log("USUÁRIO:", user?.email);
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -51,39 +52,37 @@ function ProtectedApp() {
 
   if (!user) return <AuthPage />;
 
-  if (userStatus === "pendente") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6">
-        <div className="max-w-md w-full glass-card border border-white/10 rounded-xl p-6 text-center space-y-4">
-          <div className="text-4xl">⏳</div>
-          <h1 className="text-2xl font-bold">Aguardando Aprovação</h1>
-          <p className="text-sm text-muted-foreground">
-            Seu cadastro foi realizado com sucesso.
-            Aguarde um administrador aprovar seu acesso.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (userStatus !== "aprovado") {
+  const isRejected = userStatus === "rejeitado";
 
-  if (userStatus === "rejeitado") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6">
-        <div className="max-w-md w-full glass-card border border-red-500/20 rounded-xl p-6 text-center space-y-4">
-          <div className="text-4xl">🚫</div>
-          <h1 className="text-2xl font-bold">Acesso Rejeitado</h1>
-          <p className="text-sm text-muted-foreground">
-            Seu cadastro foi rejeitado por um administrador.
-          </p>
-        </div>
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div
+        className={`max-w-md w-full glass-card rounded-xl p-6 text-center space-y-4 border ${
+          isRejected ? "border-red-500/20" : "border-white/10"
+        }`}
+      >
+        <div className="text-4xl">{isRejected ? "🚫" : "⏳"}</div>
+
+        <h1 className="text-2xl font-bold">
+          {isRejected ? "Acesso Rejeitado" : "Aguardando Aprovação"}
+        </h1>
+
+        <p className="text-sm text-muted-foreground">
+          {isRejected
+            ? "Seu cadastro foi rejeitado por um administrador."
+            : "Seu cadastro foi realizado com sucesso. Aguarde um administrador aprovar seu acesso."}
+        </p>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   return <CompanyWrapper />;
 }
 function CompanyWrapper() {
-  const { role } = useRole();
+  
 
   return (
     <AppProvider>
