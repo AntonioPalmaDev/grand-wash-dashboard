@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { useModules } from "@/context/ModuleContext";
 
 type ModuleSetting = {
   id: string;
@@ -13,6 +14,7 @@ type ModuleSetting = {
 export function ModuleSettingsPanel() {
   const [modules, setModules] = useState<ModuleSetting[]>([]);
   const [loading, setLoading] = useState(true);
+  const { refreshModules } = useModules();
 
   async function loadModules() {
     setLoading(true);
@@ -49,6 +51,7 @@ export function ModuleSettingsPanel() {
     }
 
     toast.success(enabled ? "Página ativada." : "Página ocultada.");
+    await refreshModules();
   }
 
   useEffect(() => {

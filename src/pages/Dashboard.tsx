@@ -40,7 +40,15 @@ import { DashboardFilters } from "@/features/dashboard/components/DashboardFilte
 import { ExecutiveKpi } from "@/features/dashboard/components/ExecutiveKpi";
 import { CustomTooltip } from "@/features/dashboard/components/CustomTooltip";
 
+import { useModules } from "@/context/ModuleContext";
+
 export default function Dashboard() {
+  const { isModuleEnabled } = useModules();
+  const showOperacoesFinanceiras = isModuleEnabled("operacoes_financeiras");
+  const showOperacoesProdutos = isModuleEnabled("operacoes_produtos");
+  const showProdutos = isModuleEnabled("produtos");
+  const showFinanceiro = showOperacoesFinanceiras || isModuleEnabled("financeiro");
+
   const {
     chartType,
     setChartType,
@@ -99,6 +107,8 @@ export default function Dashboard() {
       </header>
 
       {/* MAIN CHART */}
+      {/* MAIN CHART */}
+      {showFinanceiro && (
       <section className="relative">
         <Card className="border-white/10 bg-gradient-to-br from-white/10 via-white/[0.02] to-transparent overflow-hidden rounded-[2rem] shadow-2xl backdrop-blur-sm">
           <CardContent className="p-4 sm:p-8">
@@ -197,9 +207,11 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </section>
+      )}
 
       {/* KPI SUMMARIZED */}
       <div className="space-y-8">
+        {showOperacoesFinanceiras && (
         <div className="space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-primary flex items-center gap-2 px-1">
             <DollarSign className="h-4 w-4" /> Performance Financeira
@@ -233,7 +245,9 @@ export default function Dashboard() {
             />
           </div>
         </div>
+        )}
 
+        {(showProdutos || showOperacoesProdutos) && (
         <div className="space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-primary flex items-center gap-2 px-1">
             <Package className="h-4 w-4" /> Gestão de Produtos
@@ -267,6 +281,13 @@ export default function Dashboard() {
             />
           </div>
         </div>
+        )}
+
+        {!showOperacoesFinanceiras && !showProdutos && !showOperacoesProdutos && (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            Nenhum módulo ativo para exibir nesta seção.
+          </p>
+        )}
       </div>
 
       {/* SEÇÃO SECUNDÁRIA (CARDS E INSIGHTS) */}
