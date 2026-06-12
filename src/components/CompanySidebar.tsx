@@ -53,6 +53,7 @@ export function CompanySidebar() {
   const { signOut, user } = useAuth();
   const { activeCompany } = useCompany();
   const { role } = useRole();
+  const { isModuleEnabled } = useModules();
   const collapsed = state === "collapsed";
 
   return (
