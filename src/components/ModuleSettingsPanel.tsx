@@ -51,6 +51,7 @@ export function ModuleSettingsPanel() {
     }
 
     toast.success(enabled ? "Página ativada." : "Página ocultada.");
+    await refreshModules();
   }
 
   useEffect(() => {
