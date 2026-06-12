@@ -89,29 +89,25 @@ function CompanyWrapper() {
     <AppProvider>
       <AppLayout>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/calculator" element={<MechanicCalculator />} />
-          <Route path="/painel-financeiro" element={<PainelFinanceiroPage />} />
+          <Route path="/" element={<ModuleRoute moduleKey="dashboard"><Dashboard /></ModuleRoute>} />
+          <Route path="/calculator" element={<ModuleRoute moduleKey="calculadora"><MechanicCalculator /></ModuleRoute>} />
+          <Route path="/painel-financeiro" element={<ModuleRoute moduleKey="relatorios"><PainelFinanceiroPage /></ModuleRoute>} />
 
-          <Route path="/clientes" element={<ClientsPage />} />
-          <Route path="/produtos" element={<ProductsPage />} />
+          <Route path="/clientes" element={<ModuleRoute moduleKey="clientes"><ClientsPage /></ModuleRoute>} />
+          <Route path="/produtos" element={<ModuleRoute moduleKey="produtos"><ProductsPage /></ModuleRoute>} />
           <Route
             path="/operacoes-financeiras"
-            element={<FinancialOperationsPage />}
+            element={<ModuleRoute moduleKey="operacoes_financeiras"><FinancialOperationsPage /></ModuleRoute>}
           />
-          <Route path="/operacoes-produtos" element={<ProductOperationsPage />} />
+          <Route path="/operacoes-produtos" element={<ModuleRoute moduleKey="operacoes_produtos"><ProductOperationsPage /></ModuleRoute>} />
 
-          {true && (
-            <>
-              <Route path="/historico" element={<HistoryPage />} />
-              <Route path="/financeiro" element={<FinancePage />} />
-              <Route path="/ranking" element={<RankingPage />} />
-              <Route path="/configuracoes" element={<SettingsPage />} />
-              <Route path="/usuarios" element={<UsersPage />} />
-              <Route path="/logs" element={<AuditLogsPage />} />
-              <Route path="/restauracoes" element={<RestorePage />} />
-            </>
-          )}
+          <Route path="/historico" element={<ModuleRoute moduleKey="historico"><HistoryPage /></ModuleRoute>} />
+          <Route path="/financeiro" element={<ModuleRoute moduleKey="financeiro"><FinancePage /></ModuleRoute>} />
+          <Route path="/ranking" element={<ModuleRoute moduleKey="ranking"><RankingPage /></ModuleRoute>} />
+          <Route path="/configuracoes" element={<SettingsPage />} />
+          <Route path="/usuarios" element={<ModuleRoute moduleKey="usuarios"><UsersPage /></ModuleRoute>} />
+          <Route path="/logs" element={<ModuleRoute moduleKey="logs"><AuditLogsPage /></ModuleRoute>} />
+          <Route path="/restauracoes" element={<RestorePage />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
