@@ -14,6 +14,7 @@ type ModuleSetting = {
 export function ModuleSettingsPanel() {
   const [modules, setModules] = useState<ModuleSetting[]>([]);
   const [loading, setLoading] = useState(true);
+  const { refreshModules } = useModules();
 
   async function loadModules() {
     setLoading(true);
