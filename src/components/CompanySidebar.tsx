@@ -98,11 +98,13 @@ export function CompanySidebar() {
             <SidebarMenu>
               {companyItems
                 .filter((item) => {
+                  if (!isModuleEnabled(item.moduleKey)) return false;
                   if (role === "visualizador") {
                     return (
                       item.url === "/" ||
                       item.url === "/painel-financeiro" ||
-                      item.url === "/calculator"
+                      item.url === "/calculator" ||
+                      item.url === "/configuracoes"
                     );
                   }
 
