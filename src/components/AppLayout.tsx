@@ -4,16 +4,14 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { CompanySidebar } from "@/components/CompanySidebar";
 import { useCompany } from "@/context/CompanyContext";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+
 import { Building2, Calculator } from "lucide-react";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { activeCompany } = useCompany();
   const navigate = useNavigate();
 
-  const handleOpenCalculator = () => {
-    navigate("/calculator");
-  };
+  
 
   return (
     <SidebarProvider>
@@ -39,7 +37,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 )}
 
                 <span className="text-sm font-bold tracking-tight uppercase">
-                  {activeCompany?.name || "Zero Foco"}
+                  {activeCompany?.name || "Puro Veneno"}
                 </span>
 
                 <Badge variant="secondary" className="text-[10px]">
@@ -48,17 +46,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleOpenCalculator}
-                className="gap-2"
-              >
-                <Calculator className="size-4" />
-                Calculadora
-              </Button>
-            </div>
+            
           </header>
 
           <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 overflow-auto">

@@ -79,7 +79,7 @@ export function CompanySidebar() {
             {!collapsed && (
               <div className="flex flex-col gap-0.5 leading-none ml-2 overflow-hidden">
                 <span className="font-semibold truncate text-sm">
-                  {activeCompany?.name || "Zero Foco"}
+                  {activeCompany?.name || "Puro Veneno"}
                 </span>
                 <span className="text-[10px] text-muted-foreground uppercase tracking-tight">
                   Ambiente Interno
@@ -152,7 +152,7 @@ export function CompanySidebar() {
               </div>
 
               <p className="text-[10px] text-muted-foreground truncate">
-                {activeCompany?.name || "Zero Foco"}
+                {activeCompany?.name || "Puro Veneno"}
               </p>
             </div>
           )}
