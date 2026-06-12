@@ -17,6 +17,7 @@ import {
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/context/AuthContext";
 import { useCompany } from "@/context/CompanyContext";
+import { useModules } from "@/context/ModuleContext";
 import { useRole } from "@/hooks/useRole";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,27 +34,18 @@ import {
 } from "@/components/ui/sidebar";
 
 const companyItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Clientes", url: "/clientes", icon: Users },
-  { title: "Gestão de Produtos", url: "/produtos", icon: Package },
-  {
-    title: "Operações Financeiras",
-    url: "/operacoes-financeiras",
-    icon: DollarSign,
-  },
-  {
-    title: "Operações de Produtos",
-    url: "/operacoes-produtos",
-    icon: ShoppingCart,
-  },
-  { title: "Financeiro", url: "/financeiro", icon: Briefcase },
-  { title: "Relatórios", url: "/painel-financeiro", icon: PieChart },
-  { title: "Histórico", url: "/historico", icon: History },
-  { title: "Logs da Empresa", url: "/logs", icon: FileText },
-  { title: "Calculadora", url: "/calculator", icon: Calculator },
-  { title: "Configurações", url: "/configuracoes", icon: Settings },
-  {title: "Usuários", url: "/usuarios", icon: Users},
-  
+  { title: "Dashboard", url: "/", icon: LayoutDashboard, moduleKey: "dashboard" },
+  { title: "Clientes", url: "/clientes", icon: Users, moduleKey: "clientes" },
+  { title: "Gestão de Produtos", url: "/produtos", icon: Package, moduleKey: "produtos" },
+  { title: "Operações Financeiras", url: "/operacoes-financeiras", icon: DollarSign, moduleKey: "operacoes_financeiras" },
+  { title: "Operações de Produtos", url: "/operacoes-produtos", icon: ShoppingCart, moduleKey: "operacoes_produtos" },
+  { title: "Financeiro", url: "/financeiro", icon: Briefcase, moduleKey: "financeiro" },
+  { title: "Relatórios", url: "/painel-financeiro", icon: PieChart, moduleKey: "relatorios" },
+  { title: "Histórico", url: "/historico", icon: History, moduleKey: "historico" },
+  { title: "Logs da Empresa", url: "/logs", icon: FileText, moduleKey: "logs" },
+  { title: "Calculadora", url: "/calculator", icon: Calculator, moduleKey: "calculadora" },
+  { title: "Configurações", url: "/configuracoes", icon: Settings, moduleKey: "configuracoes" },
+  { title: "Usuários", url: "/usuarios", icon: Users, moduleKey: "usuarios" },
 ];
 
 export function CompanySidebar() {
