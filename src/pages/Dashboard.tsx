@@ -207,9 +207,11 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </section>
+      )}
 
       {/* KPI SUMMARIZED */}
       <div className="space-y-8">
+        {showOperacoesFinanceiras && (
         <div className="space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-primary flex items-center gap-2 px-1">
             <DollarSign className="h-4 w-4" /> Performance Financeira
