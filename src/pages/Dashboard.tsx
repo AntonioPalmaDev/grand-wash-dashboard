@@ -245,7 +245,9 @@ export default function Dashboard() {
             />
           </div>
         </div>
+        )}
 
+        {(showProdutos || showOperacoesProdutos) && (
         <div className="space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-primary flex items-center gap-2 px-1">
             <Package className="h-4 w-4" /> Gestão de Produtos
@@ -279,6 +281,13 @@ export default function Dashboard() {
             />
           </div>
         </div>
+        )}
+
+        {!showOperacoesFinanceiras && !showProdutos && !showOperacoesProdutos && (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            Nenhum módulo ativo para exibir nesta seção.
+          </p>
+        )}
       </div>
 
       {/* SEÇÃO SECUNDÁRIA (CARDS E INSIGHTS) */}
