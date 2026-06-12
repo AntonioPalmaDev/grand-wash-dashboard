@@ -40,7 +40,15 @@ import { DashboardFilters } from "@/features/dashboard/components/DashboardFilte
 import { ExecutiveKpi } from "@/features/dashboard/components/ExecutiveKpi";
 import { CustomTooltip } from "@/features/dashboard/components/CustomTooltip";
 
+import { useModules } from "@/context/ModuleContext";
+
 export default function Dashboard() {
+  const { isModuleEnabled } = useModules();
+  const showOperacoesFinanceiras = isModuleEnabled("operacoes_financeiras");
+  const showOperacoesProdutos = isModuleEnabled("operacoes_produtos");
+  const showProdutos = isModuleEnabled("produtos");
+  const showFinanceiro = showOperacoesFinanceiras || isModuleEnabled("financeiro");
+
   const {
     chartType,
     setChartType,
