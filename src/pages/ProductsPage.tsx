@@ -20,6 +20,8 @@ export default function ProductsPage() {
   const { products, addProduct, updateProduct, deleteProduct } = useApp();
   const { activeCompany } = useCompany();
   const { canEdit, isDev } = useRole();
+  const { isModuleEnabled } = useModules();
+  const [activeTab, setActiveTab] = useState("produtos");
   
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
