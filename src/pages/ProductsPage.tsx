@@ -308,6 +308,30 @@ export default function ProductsPage() {
           </table>
         </div>
       </div>
+        </TabsContent>
+
+        <TabsContent value="armas" className="mt-0">
+          <div className="glass-card rounded-xl p-12 border border-white/10 text-center text-muted-foreground">
+            <Swords className="h-10 w-10 mx-auto mb-3 opacity-30" />
+            <p className="font-bold text-white">Catálogo de Armas</p>
+            <p className="text-sm">Em breve: cadastro de armas com preço de venda e custo base.</p>
+          </div>
+        </TabsContent>
+
+        {isModuleEnabled("pecas_armas") && (
+          <TabsContent value="pecas" className="mt-0">
+            <WeaponPartsTab />
+          </TabsContent>
+        )}
+
+        <TabsContent value="composicao" className="mt-0">
+          <div className="glass-card rounded-xl p-12 border border-white/10 text-center text-muted-foreground">
+            <Layers className="h-10 w-10 mx-auto mb-3 opacity-30" />
+            <p className="font-bold text-white">Composição de Armas</p>
+            <p className="text-sm">Em breve: vincular peças às armas para calcular lucro real.</p>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
