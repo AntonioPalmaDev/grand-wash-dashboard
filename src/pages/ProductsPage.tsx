@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
 import { useRole } from "@/hooks/useRole";
 import { useCompany } from "@/context/CompanyContext";
+import { useModules } from "@/context/ModuleContext";
 import { formatCurrency } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Search, Package, Tag, Info, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Plus, Pencil, Trash2, Search, Package, Tag, Info, Loader2, AlertTriangle, CheckCircle2, Cog, Swords, Layers } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/types";
+import WeaponPartsTab from "@/features/products/WeaponPartsTab";
 
 export default function ProductsPage() {
   const { products, addProduct, updateProduct, deleteProduct } = useApp();
