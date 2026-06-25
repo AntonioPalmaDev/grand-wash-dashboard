@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
 import { useRole } from "@/hooks/useRole";
 import { useCompany } from "@/context/CompanyContext";
+import { useModules } from "@/context/ModuleContext";
 import { formatCurrency } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,14 +10,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Search, Package, Tag, Info, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Plus, Pencil, Trash2, Search, Package, Tag, Info, Loader2, AlertTriangle, CheckCircle2, Cog, Swords, Layers } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/types";
+import WeaponPartsTab from "@/features/products/WeaponPartsTab";
 
 export default function ProductsPage() {
   const { products, addProduct, updateProduct, deleteProduct } = useApp();
   const { activeCompany } = useCompany();
   const { canEdit, isDev } = useRole();
+  const { isModuleEnabled } = useModules();
+  const [activeTab, setActiveTab] = useState("produtos");
   
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -125,7 +130,7 @@ export default function ProductsPage() {
           <p className="text-muted-foreground text-sm">Controle de estoque e catálogo de itens físicos.</p>
         </div>
         
-        {canEdit && (
+        {activeTab === "produtos" && canEdit && (
           <Dialog open={open || !!editingProduct} onOpenChange={(v) => {
             if (!v) {
               setOpen(false);
@@ -186,6 +191,25 @@ export default function ProductsPage() {
         )}
       </div>
 
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="bg-secondary/40 border border-white/10 p-1 h-auto flex-wrap">
+          <TabsTrigger value="produtos" className="data-[state=active]:bg-primary data-[state=active]:text-white gap-2">
+            <Package className="h-4 w-4" /> Produtos
+          </TabsTrigger>
+          <TabsTrigger value="armas" className="data-[state=active]:bg-primary data-[state=active]:text-white gap-2">
+            <Swords className="h-4 w-4" /> Armas
+          </TabsTrigger>
+          {isModuleEnabled("pecas_armas") && (
+            <TabsTrigger value="pecas" className="data-[state=active]:bg-primary data-[state=active]:text-white gap-2">
+              <Cog className="h-4 w-4" /> Peças de Armas
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="composicao" className="data-[state=active]:bg-primary data-[state=active]:text-white gap-2">
+            <Layers className="h-4 w-4" /> Composição
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="produtos" className="space-y-6 mt-0">
       {/* Filtros e Busca */}
       <div className="flex flex-col md:flex-row gap-4 items-center bg-secondary/20 p-4 rounded-xl border border-white/5">
         <div className="relative flex-1 w-full">
@@ -284,6 +308,30 @@ export default function ProductsPage() {
           </table>
         </div>
       </div>
+        </TabsContent>
+
+        <TabsContent value="armas" className="mt-0">
+          <div className="glass-card rounded-xl p-12 border border-white/10 text-center text-muted-foreground">
+            <Swords className="h-10 w-10 mx-auto mb-3 opacity-30" />
+            <p className="font-bold text-white">Catálogo de Armas</p>
+            <p className="text-sm">Em breve: cadastro de armas com preço de venda e custo base.</p>
+          </div>
+        </TabsContent>
+
+        {isModuleEnabled("pecas_armas") && (
+          <TabsContent value="pecas" className="mt-0">
+            <WeaponPartsTab />
+          </TabsContent>
+        )}
+
+        <TabsContent value="composicao" className="mt-0">
+          <div className="glass-card rounded-xl p-12 border border-white/10 text-center text-muted-foreground">
+            <Layers className="h-10 w-10 mx-auto mb-3 opacity-30" />
+            <p className="font-bold text-white">Composição de Armas</p>
+            <p className="text-sm">Em breve: vincular peças às armas para calcular lucro real.</p>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
