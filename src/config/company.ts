@@ -1,7 +1,7 @@
 export const ZERO_FOCO_COMPANY = {
   id: "6f50b17a-07a7-4e0b-a335-eb1f73b210ab",
-  name: "Puro Veneno",
-  slug: "zero-foco",
+  name: "Black Dragons",
+  slug: "black-dragons",
   logo_url: null,
   primaryColor: "#7c3aed",
   secondaryColor: "#111827",

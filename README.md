@@ -1,3 +1,3 @@
-# Welcome to your Lovable project
+# Black Dragons
 
-TODO: Document your project here
+Sistema interno Black Dragons — gestão operacional, financeira, de clientes e estoque.
