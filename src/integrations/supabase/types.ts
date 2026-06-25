@@ -588,6 +588,114 @@ export type Database = {
           },
         ]
       }
+      weapon_components: {
+        Row: {
+          created_at: string
+          id: string
+          part_id: string
+          quantity: number
+          weapon_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          part_id: string
+          quantity?: number
+          weapon_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          part_id?: string
+          quantity?: number
+          weapon_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weapon_components_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "weapon_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weapon_components_weapon_id_fkey"
+            columns: ["weapon_id"]
+            isOneToOne: false
+            referencedRelation: "weapons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weapon_parts: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          sku: string | null
+          status: string
+          stock_quantity: number
+          unit_cost: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          sku?: string | null
+          status?: string
+          stock_quantity?: number
+          unit_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          sku?: string | null
+          status?: string
+          stock_quantity?: number
+          unit_cost?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      weapons: {
+        Row: {
+          base_cost: number
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          sale_price: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          base_cost?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          sale_price?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          base_cost?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          sale_price?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

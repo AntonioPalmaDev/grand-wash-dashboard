@@ -1,15 +1,14 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { CompanySidebar } from "@/components/CompanySidebar";
 import { useCompany } from "@/context/CompanyContext";
 import { Badge } from "@/components/ui/badge";
 
-import { Building2, Calculator } from "lucide-react";
+import { Building2 } from "lucide-react";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { activeCompany } = useCompany();
-  const navigate = useNavigate();
+
 
   
 
@@ -37,7 +36,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 )}
 
                 <span className="text-sm font-bold tracking-tight uppercase">
-                  {activeCompany?.name || "Puro Veneno"}
+                  {activeCompany?.name || "Black Dragons"}
                 </span>
 
                 <Badge variant="secondary" className="text-[10px]">
