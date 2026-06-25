@@ -130,7 +130,7 @@ export default function ProductsPage() {
           <p className="text-muted-foreground text-sm">Controle de estoque e catálogo de itens físicos.</p>
         </div>
         
-        {canEdit && (
+        {activeTab === "produtos" && canEdit && (
           <Dialog open={open || !!editingProduct} onOpenChange={(v) => {
             if (!v) {
               setOpen(false);
