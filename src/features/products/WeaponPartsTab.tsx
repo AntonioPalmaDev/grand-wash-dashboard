@@ -48,7 +48,7 @@ export interface WeaponPart {
 }
 
 export default function WeaponPartsTab() {
-  const { user, profile } = useAuth();
+  const { user, nomePersonagem } = useAuth();
   const { activeCompany } = useCompany();
   const { canEdit } = useRole();
 
