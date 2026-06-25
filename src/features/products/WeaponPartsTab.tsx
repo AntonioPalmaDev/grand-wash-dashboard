@@ -139,7 +139,7 @@ export default function WeaponPartsTab() {
       await registrarLog({
         userId: user.id,
         userEmail: user.email || "",
-        nomePersonagem: profile?.nome_personagem ?? null,
+        nomePersonagem: nomePersonagem ?? null,
         companyId: activeCompany?.id ?? null,
         action,
         entity: "weapon_parts",
@@ -183,7 +183,7 @@ export default function WeaponPartsTab() {
         await logAction(
           "editar",
           editing.id,
-          `Peça '${payload.name}' editada por ${profile?.nome || user?.email}`,
+          `Peça '${payload.name}' editada por ${nomePersonagem || user?.email}`,
         );
       } else {
         const { data, error } = await supabase
@@ -196,7 +196,7 @@ export default function WeaponPartsTab() {
         await logAction(
           "criar",
           data!.id,
-          `Peça '${payload.name}' cadastrada por ${profile?.nome || user?.email}`,
+          `Peça '${payload.name}' cadastrada por ${nomePersonagem || user?.email}`,
         );
       }
       setOpen(false);
@@ -220,7 +220,7 @@ export default function WeaponPartsTab() {
     await logAction(
       next === "ativo" ? "reativar" : "inativar",
       p.id,
-      `Peça '${p.name}' ${next === "ativo" ? "reativada" : "inativada"} por ${profile?.nome || user?.email}`,
+      `Peça '${p.name}' ${next === "ativo" ? "reativada" : "inativada"} por ${nomePersonagem || user?.email}`,
     );
     fetchParts();
   }
