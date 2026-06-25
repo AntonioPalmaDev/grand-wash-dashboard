@@ -191,6 +191,25 @@ export default function ProductsPage() {
         )}
       </div>
 
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="bg-secondary/40 border border-white/10 p-1 h-auto flex-wrap">
+          <TabsTrigger value="produtos" className="data-[state=active]:bg-primary data-[state=active]:text-white gap-2">
+            <Package className="h-4 w-4" /> Produtos
+          </TabsTrigger>
+          <TabsTrigger value="armas" className="data-[state=active]:bg-primary data-[state=active]:text-white gap-2">
+            <Swords className="h-4 w-4" /> Armas
+          </TabsTrigger>
+          {isModuleEnabled("pecas_armas") && (
+            <TabsTrigger value="pecas" className="data-[state=active]:bg-primary data-[state=active]:text-white gap-2">
+              <Cog className="h-4 w-4" /> Peças de Armas
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="composicao" className="data-[state=active]:bg-primary data-[state=active]:text-white gap-2">
+            <Layers className="h-4 w-4" /> Composição
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="produtos" className="space-y-6 mt-0">
       {/* Filtros e Busca */}
       <div className="flex flex-col md:flex-row gap-4 items-center bg-secondary/20 p-4 rounded-xl border border-white/5">
         <div className="relative flex-1 w-full">
