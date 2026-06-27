@@ -333,16 +333,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }));
         
         await supabase.from("operation_items").insert(itemsToInsert);
-        
-        // Atualizar estoque
-        for (const item of o.items) {
-          const product = products.find(p => p.id === item.productId);
-          if (product) {
-            await supabase.from("products").update({
-              stock_quantity: Math.max(0, product.stockQuantity - item.quantity)
-            }).eq("id", item.productId);
-          }
-        }
       }
 
       const desc = logCriarOperacao({ responsavel, nomeCliente: client.nome, valorBruto: o.valorBruto });
