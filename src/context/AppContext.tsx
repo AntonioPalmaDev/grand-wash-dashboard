@@ -62,7 +62,6 @@ function mapProduct(r: any): Product {
     type: r.type,
     baseValue: Number(r.base_value),
     percentage: Number(r.percentage),
-    stockQuantity: Number(r.stock_quantity),
     description: r.description,
     status: r.status as "ativo" | "inativo",
     createdAt: r.created_at,
