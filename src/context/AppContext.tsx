@@ -382,7 +382,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (p.status !== undefined) updatePayload.status = p.status;
     if (p.percentage !== undefined) updatePayload.percentage = p.percentage;
     if (p.baseValue !== undefined) updatePayload.base_value = p.baseValue;
-    if (p.stockQuantity !== undefined) updatePayload.stock_quantity = p.stockQuantity;
     
     const { error } = await supabase.from("products").update(updatePayload).eq("id", id);
     if (error) { 
