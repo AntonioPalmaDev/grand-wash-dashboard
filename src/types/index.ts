@@ -122,6 +122,5 @@ export interface DashboardStats {
   produtosVendidos: number;
   faturamentoProdutos: number;
   quantidadeTotalItens: number;
-  estoqueBaixoCount: number;
   produtosMaisVendidos: { name: string; quantity: number }[];
 }
