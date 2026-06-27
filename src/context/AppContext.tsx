@@ -490,8 +490,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       .sort((a, b) => b.quantity - a.quantity)
       .slice(0, 5);
 
-    const estoqueBaixoCount = products.filter(p => p.status === "ativo" && p.stockQuantity <= 5).length;
-
     return {
       totalMovimentado,
       lucroLiquidoTotal,
@@ -500,10 +498,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       produtosVendidos,
       faturamentoProdutos,
       quantidadeTotalItens,
-      estoqueBaixoCount,
       produtosMaisVendidos
     };
-  }, [operations, products]);
+  }, [operations]);
 
   const getClientStats = useCallback((id: string) => {
     const ops = operations.filter(op => op.clientId === id && op.status === "concluido");
