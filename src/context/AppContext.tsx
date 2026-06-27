@@ -356,7 +356,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       status: p.status,
       percentage: p.percentage,
       base_value: p.baseValue,
-      stock_quantity: p.stockQuantity,
       company_id: activeCompany.id
     };
 
