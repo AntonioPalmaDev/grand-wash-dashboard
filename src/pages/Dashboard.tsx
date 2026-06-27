@@ -267,13 +267,6 @@ export default function Dashboard() {
               color="cyan"
             />
             <ExecutiveKpi 
-              title="Estoque Baixo" 
-              value={String(stats.estoqueBaixoCount)} 
-              icon={AlertTriangle} 
-              color="rose"
-              critical={stats.estoqueBaixoCount > 0}
-            />
-            <ExecutiveKpi 
               title="Vendas Concluídas" 
               value={String(stats.produtosVendidos)} 
               icon={Check} 

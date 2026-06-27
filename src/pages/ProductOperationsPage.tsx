@@ -169,7 +169,6 @@ export default function ProductOperationsPage() {
                   <div className="grid grid-cols-1 gap-2">
                     {products.filter(p => p.category === "itens" && p.status === "ativo").map(product => {
                       const selected = selectedItems.find(i => i.productId === product.id);
-                      const isLowStock = product.stockQuantity <= 5;
                       return (
                         <div key={product.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${selected ? 'border-primary bg-primary/10' : 'border-white/5 bg-white/5'}`}>
                           <div className="flex items-center gap-3">
@@ -178,14 +177,14 @@ export default function ProductOperationsPage() {
                             </Button>
                             <div>
                               <p className="text-sm font-bold text-white">{product.name}</p>
-                              <p className="text-[10px] text-muted-foreground">{formatCurrency(product.baseValue)} | Est: {product.stockQuantity}</p>
+                              <p className="text-[10px] text-muted-foreground">{formatCurrency(product.baseValue)}</p>
                             </div>
                           </div>
                           {selected && (
                             <div className="flex items-center gap-2 bg-background/50 rounded-lg p-1">
                               <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, -1)}><Minus className="h-3 w-3" /></Button>
                               <span className="text-xs font-bold w-4 text-center text-white">{selected.quantity}</span>
-                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, 1)} disabled={selected.quantity >= product.stockQuantity}><Plus className="h-3 w-3" /></Button>
+                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => updateQuantity(product.id, 1)}><Plus className="h-3 w-3" /></Button>
                             </div>
                           )}
                         </div>
@@ -224,17 +223,6 @@ export default function ProductOperationsPage() {
                 <h3 className="text-xl sm:text-2xl font-black text-white">{stats.quantidadeTotalItens}</h3>
               </div>
               <div className="bg-white/5 p-2 rounded-lg"><Package className="h-5 w-5 text-white" /></div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-secondary/40 border-white/5 backdrop-blur-sm">
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Estoque Baixo</p>
-                <h3 className="text-xl sm:text-2xl font-black text-destructive">{stats.estoqueBaixoCount}</h3>
-              </div>
-              <div className="bg-destructive/10 p-2 rounded-lg"><AlertTriangle className="h-5 w-5 text-destructive" /></div>
             </div>
           </CardContent>
         </Card>
