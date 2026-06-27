@@ -33,11 +33,43 @@ export interface Product {
   type?: string;
   baseValue: number;
   percentage: number;
-  stockQuantity: number;
   description?: string;
   status: "ativo" | "inativo";
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Weapon {
+  id: string;
+  name: string;
+  salePrice: number;
+  baseCost: number;
+  status: "ativo" | "inativo";
+  description?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WeaponComponent {
+  id: string;
+  weaponId: string;
+  partId: string;
+  quantity: number;
+  unitCostSnapshot: number;
+  partName?: string;
+}
+
+export interface WeaponSale {
+  id: string;
+  weaponId: string;
+  weaponName?: string;
+  saleValue: number;
+  baseCostSnapshot: number;
+  partsCostSnapshot: number;
+  realProfit: number;
+  realMargin: number;
+  soldAt: string;
+  responsavel: string | null;
 }
 
 export interface OperationItem {
@@ -90,6 +122,5 @@ export interface DashboardStats {
   produtosVendidos: number;
   faturamentoProdutos: number;
   quantidadeTotalItens: number;
-  estoqueBaixoCount: number;
   produtosMaisVendidos: { name: string; quantity: number }[];
 }

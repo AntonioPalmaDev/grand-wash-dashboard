@@ -62,7 +62,6 @@ function mapProduct(r: any): Product {
     type: r.type,
     baseValue: Number(r.base_value),
     percentage: Number(r.percentage),
-    stockQuantity: Number(r.stock_quantity),
     description: r.description,
     status: r.status as "ativo" | "inativo",
     createdAt: r.created_at,
@@ -334,16 +333,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }));
         
         await supabase.from("operation_items").insert(itemsToInsert);
-        
-        // Atualizar estoque
-        for (const item of o.items) {
-          const product = products.find(p => p.id === item.productId);
-          if (product) {
-            await supabase.from("products").update({
-              stock_quantity: Math.max(0, product.stockQuantity - item.quantity)
-            }).eq("id", item.productId);
-          }
-        }
       }
 
       const desc = logCriarOperacao({ responsavel, nomeCliente: client.nome, valorBruto: o.valorBruto });
@@ -367,7 +356,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       status: p.status,
       percentage: p.percentage,
       base_value: p.baseValue,
-      stock_quantity: p.stockQuantity,
       company_id: activeCompany.id
     };
 
@@ -394,7 +382,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (p.status !== undefined) updatePayload.status = p.status;
     if (p.percentage !== undefined) updatePayload.percentage = p.percentage;
     if (p.baseValue !== undefined) updatePayload.base_value = p.baseValue;
-    if (p.stockQuantity !== undefined) updatePayload.stock_quantity = p.stockQuantity;
     
     const { error } = await supabase.from("products").update(updatePayload).eq("id", id);
     if (error) { 
@@ -503,8 +490,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       .sort((a, b) => b.quantity - a.quantity)
       .slice(0, 5);
 
-    const estoqueBaixoCount = products.filter(p => p.status === "ativo" && p.stockQuantity <= 5).length;
-
     return {
       totalMovimentado,
       lucroLiquidoTotal,
@@ -513,10 +498,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       produtosVendidos,
       faturamentoProdutos,
       quantidadeTotalItens,
-      estoqueBaixoCount,
       produtosMaisVendidos
     };
-  }, [operations, products]);
+  }, [operations]);
 
   const getClientStats = useCallback((id: string) => {
     const ops = operations.filter(op => op.clientId === id && op.status === "concluido");

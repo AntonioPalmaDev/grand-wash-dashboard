@@ -430,7 +430,6 @@ export type Database = {
           name: string
           percentage: number
           status: string
-          stock_quantity: number
           type: string | null
           updated_at: string
         }
@@ -445,7 +444,6 @@ export type Database = {
           name: string
           percentage?: number
           status?: string
-          stock_quantity?: number
           type?: string | null
           updated_at?: string
         }
@@ -460,7 +458,6 @@ export type Database = {
           name?: string
           percentage?: number
           status?: string
-          stock_quantity?: number
           type?: string | null
           updated_at?: string
         }
@@ -530,6 +527,54 @@ export type Database = {
           },
         ]
       }
+      sale_component_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          part_id: string | null
+          part_name_snapshot: string
+          quantity_used: number
+          sale_id: string
+          total_cost_snapshot: number
+          unit_cost_snapshot: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          part_id?: string | null
+          part_name_snapshot: string
+          quantity_used?: number
+          sale_id: string
+          total_cost_snapshot?: number
+          unit_cost_snapshot?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          part_id?: string | null
+          part_name_snapshot?: string
+          quantity_used?: number
+          sale_id?: string
+          total_cost_snapshot?: number
+          unit_cost_snapshot?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_component_snapshots_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "weapon_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_component_snapshots_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "weapon_sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_companies: {
         Row: {
           company_id: string
@@ -594,6 +639,7 @@ export type Database = {
           id: string
           part_id: string
           quantity: number
+          unit_cost_snapshot: number
           weapon_id: string
         }
         Insert: {
@@ -601,6 +647,7 @@ export type Database = {
           id?: string
           part_id: string
           quantity?: number
+          unit_cost_snapshot?: number
           weapon_id: string
         }
         Update: {
@@ -608,6 +655,7 @@ export type Database = {
           id?: string
           part_id?: string
           quantity?: number
+          unit_cost_snapshot?: number
           weapon_id?: string
         }
         Relationships: [
@@ -636,7 +684,6 @@ export type Database = {
           name: string
           sku: string | null
           status: string
-          stock_quantity: number
           unit_cost: number
           updated_at: string
         }
@@ -648,7 +695,6 @@ export type Database = {
           name: string
           sku?: string | null
           status?: string
-          stock_quantity?: number
           unit_cost?: number
           updated_at?: string
         }
@@ -660,11 +706,70 @@ export type Database = {
           name?: string
           sku?: string | null
           status?: string
-          stock_quantity?: number
           unit_cost?: number
           updated_at?: string
         }
         Relationships: []
+      }
+      weapon_sales: {
+        Row: {
+          base_cost_snapshot: number
+          company_id: string | null
+          created_at: string
+          id: string
+          parts_cost_snapshot: number
+          real_margin: number
+          real_profit: number
+          responsavel: string | null
+          sale_value: number
+          sold_at: string
+          user_id: string | null
+          weapon_id: string
+        }
+        Insert: {
+          base_cost_snapshot?: number
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          parts_cost_snapshot?: number
+          real_margin?: number
+          real_profit?: number
+          responsavel?: string | null
+          sale_value?: number
+          sold_at?: string
+          user_id?: string | null
+          weapon_id: string
+        }
+        Update: {
+          base_cost_snapshot?: number
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          parts_cost_snapshot?: number
+          real_margin?: number
+          real_profit?: number
+          responsavel?: string | null
+          sale_value?: number
+          sold_at?: string
+          user_id?: string | null
+          weapon_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weapon_sales_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weapon_sales_weapon_id_fkey"
+            columns: ["weapon_id"]
+            isOneToOne: false
+            referencedRelation: "weapons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       weapons: {
         Row: {
