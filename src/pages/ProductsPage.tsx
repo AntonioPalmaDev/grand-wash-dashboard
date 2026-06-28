@@ -246,7 +246,7 @@ export default function ProductsPage() {
           <TabsContent value="pecas" className="mt-0"><WeaponPartsTab /></TabsContent>
         )}
         <TabsContent value="composicao" className="mt-0"><WeaponCompositionTab /></TabsContent>
-        <TabsContent value="vendas" className="mt-0"><WeaponSalesTab /></TabsContent>
+        <TabsContent value="vendas" className="mt-0"><SalesTab /></TabsContent>
       </Tabs>
     </div>
   );
