@@ -61,6 +61,7 @@ export default function Dashboard() {
     previousStats,
     chartData
   } = useDashboardData();
+  const { stats: salesStats } = useSales();
 
   const calculateGrowth = (current: number, previous: number) => {
     if (!previous) return null;
