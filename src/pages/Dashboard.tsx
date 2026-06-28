@@ -39,6 +39,7 @@ import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
 import { DashboardFilters } from "@/features/dashboard/components/DashboardFilters";
 import { ExecutiveKpi } from "@/features/dashboard/components/ExecutiveKpi";
 import { CustomTooltip } from "@/features/dashboard/components/CustomTooltip";
+import { useSales } from "@/features/products/useSales";
 
 import { useModules } from "@/context/ModuleContext";
 
