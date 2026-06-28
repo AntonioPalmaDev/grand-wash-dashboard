@@ -16,7 +16,7 @@ import type { Product } from "@/types";
 import WeaponPartsTab from "@/features/products/WeaponPartsTab";
 import WeaponsTab from "@/features/products/WeaponsTab";
 import WeaponCompositionTab from "@/features/products/WeaponCompositionTab";
-import WeaponSalesTab from "@/features/products/WeaponSalesTab";
+import SalesTab from "@/features/products/SalesTab";
 
 export default function ProductsPage() {
   const { products, addProduct, updateProduct, deleteProduct } = useApp();
