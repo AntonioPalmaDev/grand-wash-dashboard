@@ -39,6 +39,7 @@ import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
 import { DashboardFilters } from "@/features/dashboard/components/DashboardFilters";
 import { ExecutiveKpi } from "@/features/dashboard/components/ExecutiveKpi";
 import { CustomTooltip } from "@/features/dashboard/components/CustomTooltip";
+import { useSales } from "@/features/products/useSales";
 
 import { useModules } from "@/context/ModuleContext";
 
@@ -60,6 +61,7 @@ export default function Dashboard() {
     previousStats,
     chartData
   } = useDashboardData();
+  const { stats: salesStats } = useSales();
 
   const calculateGrowth = (current: number, previous: number) => {
     if (!previous) return null;
@@ -272,6 +274,24 @@ export default function Dashboard() {
               icon={Check} 
               color="teal"
             />
+          </div>
+        </div>
+        )}
+
+        {(showProdutos || showOperacoesProdutos) && (
+        <div className="space-y-4">
+          <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-primary flex items-center gap-2 px-1">
+            <ShoppingBag className="h-4 w-4" /> Vendas (Armas & Produtos)
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <ExecutiveKpi title="Total Vendido" value={formatCurrency(salesStats.totalVendido)} icon={ShoppingBag} color="emerald" />
+            <ExecutiveKpi title="Lucro Real" value={formatCurrency(salesStats.lucroReal)} icon={TrendingUp} color="teal" />
+            <ExecutiveKpi title="Ticket Médio" value={formatCurrency(salesStats.ticketMedio)} icon={Wallet} color="blue" />
+            <ExecutiveKpi title="Margem Média" value={formatPercent(salesStats.margemMedia)} icon={Zap} color="purple" />
+            <ExecutiveKpi title="Vendas Concluídas" value={String(salesStats.concluidas)} icon={Check} color="emerald" />
+            <ExecutiveKpi title="Vendas Pendentes" value={String(salesStats.pendentes)} icon={AlertTriangle} color="amber" />
+            <ExecutiveKpi title="Vendas Canceladas" value={String(salesStats.canceladas)} icon={AlertTriangle} color="indigo" />
+            <ExecutiveKpi title="Total de Vendas" value={String(salesStats.total)} icon={Layers} color="cyan" />
           </div>
         </div>
         )}

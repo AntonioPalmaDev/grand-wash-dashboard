@@ -575,6 +575,163 @@ export type Database = {
           },
         ]
       }
+      sale_item_components: {
+        Row: {
+          created_at: string
+          id: string
+          part_id: string | null
+          part_name_snapshot: string
+          quantity_used: number
+          sale_item_id: string
+          total_cost_snapshot: number
+          unit_cost_snapshot: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          part_id?: string | null
+          part_name_snapshot: string
+          quantity_used?: number
+          sale_item_id: string
+          total_cost_snapshot?: number
+          unit_cost_snapshot?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          part_id?: string | null
+          part_name_snapshot?: string
+          quantity_used?: number
+          sale_item_id?: string
+          total_cost_snapshot?: number
+          unit_cost_snapshot?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_item_components_sale_item_id_fkey"
+            columns: ["sale_item_id"]
+            isOneToOne: false
+            referencedRelation: "sale_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sale_items: {
+        Row: {
+          base_cost_snapshot: number
+          created_at: string
+          id: string
+          parts_cost_snapshot: number
+          product_id: string
+          product_name_snapshot: string
+          quantity: number
+          real_margin: number
+          real_profit: number
+          sale_id: string
+          total_sale_price: number
+          unit_sale_price: number
+        }
+        Insert: {
+          base_cost_snapshot?: number
+          created_at?: string
+          id?: string
+          parts_cost_snapshot?: number
+          product_id: string
+          product_name_snapshot: string
+          quantity?: number
+          real_margin?: number
+          real_profit?: number
+          sale_id: string
+          total_sale_price?: number
+          unit_sale_price?: number
+        }
+        Update: {
+          base_cost_snapshot?: number
+          created_at?: string
+          id?: string
+          parts_cost_snapshot?: number
+          product_id?: string
+          product_name_snapshot?: string
+          quantity?: number
+          real_margin?: number
+          real_profit?: number
+          sale_id?: string
+          total_sale_price?: number
+          unit_sale_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          client_id: string | null
+          client_name_snapshot: string | null
+          company_id: string | null
+          created_at: string
+          created_by: string
+          created_by_email: string | null
+          created_by_name: string | null
+          deleted_at: string | null
+          id: string
+          notes: string | null
+          real_margin: number
+          real_profit: number
+          sale_date: string
+          status: string
+          total_base_cost: number
+          total_parts_cost: number
+          total_sale_value: number
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_name_snapshot?: string | null
+          company_id?: string | null
+          created_at?: string
+          created_by: string
+          created_by_email?: string | null
+          created_by_name?: string | null
+          deleted_at?: string | null
+          id?: string
+          notes?: string | null
+          real_margin?: number
+          real_profit?: number
+          sale_date?: string
+          status?: string
+          total_base_cost?: number
+          total_parts_cost?: number
+          total_sale_value?: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          client_name_snapshot?: string | null
+          company_id?: string | null
+          created_at?: string
+          created_by?: string
+          created_by_email?: string | null
+          created_by_name?: string | null
+          deleted_at?: string | null
+          id?: string
+          notes?: string | null
+          real_margin?: number
+          real_profit?: number
+          sale_date?: string
+          status?: string
+          total_base_cost?: number
+          total_parts_cost?: number
+          total_sale_value?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_companies: {
         Row: {
           company_id: string
