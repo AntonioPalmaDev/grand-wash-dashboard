@@ -109,9 +109,8 @@ export default function Dashboard() {
       </header>
 
       {/* MAIN CHART */}
-      {/* MAIN CHART */}
-      {showFinanceiro && (
       <section className="relative">
+
         <Card className="border-white/10 bg-gradient-to-br from-white/10 via-white/[0.02] to-transparent overflow-hidden rounded-[2rem] shadow-2xl backdrop-blur-sm">
           <CardContent className="p-4 sm:p-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -209,7 +208,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </section>
-      )}
+
 
       {/* KPI SUMMARIZED */}
       <div className="space-y-8">
