@@ -208,7 +208,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </section>
-      )}
+
 
       {/* KPI SUMMARIZED */}
       <div className="space-y-8">
