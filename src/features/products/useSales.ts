@@ -66,11 +66,12 @@ export function useSales() {
   useEffect(() => {
     fetchSales();
     const ch = supabase
-      .channel("sales-rt")
+      .channel(`sales-rt-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "sales" }, fetchSales)
       .on("postgres_changes", { event: "*", schema: "public", table: "sale_items" }, fetchSales)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
+
   }, [fetchSales]);
 
   const stats = useMemo(() => {
