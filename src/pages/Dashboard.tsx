@@ -62,6 +62,25 @@ export default function Dashboard() {
     chartData
   } = useDashboardData();
   const { stats: salesStats } = useSales();
+  const {
+    weaponSalesStats,
+    weaponSalesChartData,
+    topWeapons,
+    topClients,
+  } = useWeaponSalesDashboardData(filtros.periodo);
+
+  // Merge weapon sales into main chart (by date)
+  const mergedChartData = (() => {
+    const map = new Map<string, { label: string; fullDate: string; value: number }>();
+    chartData.forEach(p => map.set(p.fullDate, { ...p }));
+    weaponSalesChartData.forEach(p => {
+      const prev = map.get(p.fullDate);
+      if (prev) prev.value += p.value;
+      else map.set(p.fullDate, { ...p });
+    });
+    return Array.from(map.values()).sort((a, b) => a.fullDate.localeCompare(b.fullDate));
+  })();
+
 
   const calculateGrowth = (current: number, previous: number) => {
     if (!previous) return null;
