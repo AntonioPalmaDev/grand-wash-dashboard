@@ -146,14 +146,14 @@ export default function Dashboard() {
                 <div className="text-center flex-1 md:flex-none">
                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Total Período</p>
                   <p className="text-lg sm:text-xl font-mono font-bold text-emerald-500 tracking-tighter">
-                    {formatCurrency(chartData.reduce((acc, curr) => acc + curr.value, 0))}
+                    {formatCurrency(mergedChartData.reduce((acc, curr) => acc + curr.value, 0))}
                   </p>
                 </div>
                 <div className="w-[1px] h-8 bg-white/10 hidden sm:block" />
                 <div className="text-center flex-1 md:flex-none">
                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Média Diária</p>
                   <p className="text-lg sm:text-xl font-mono font-bold text-emerald-500 tracking-tighter">
-                    {formatCurrency(chartData.length ? chartData.reduce((acc, curr) => acc + curr.value, 0) / chartData.length : 0)}
+                    {formatCurrency(mergedChartData.length ? mergedChartData.reduce((acc, curr) => acc + curr.value, 0) / mergedChartData.length : 0)}
                   </p>
                 </div>
               </div>
@@ -162,7 +162,7 @@ export default function Dashboard() {
             <div className="h-[300px] sm:h-[450px] w-full mt-4">
               <ResponsiveContainer width="100%" height="100%">
                 {chartType === "area" ? (
-                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                  <AreaChart data={mergedChartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(199,89%,48%)" stopOpacity={0.3}/>
@@ -200,7 +200,7 @@ export default function Dashboard() {
                     />
                   </AreaChart>
                 ) : chartType === "line" ? (
-                  <LineChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                  <LineChart data={mergedChartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                     <XAxis dataKey="label" stroke="#444" fontSize={11} tickLine={false} axisLine={false} dy={15} tick={{ fill: 'rgba(255,255,255,0.4)', fontWeight: 600 }} />
                     <YAxis tickFormatter={formatCompact} stroke="#444" fontSize={11} tickLine={false} axisLine={false} width={45} tick={{ fill: 'rgba(255,255,255,0.4)', fontWeight: 600 }} />
@@ -216,7 +216,7 @@ export default function Dashboard() {
                     />
                   </LineChart>
                 ) : (
-                  <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                  <BarChart data={mergedChartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                     <XAxis dataKey="label" stroke="#444" fontSize={11} tickLine={false} axisLine={false} dy={15} tick={{ fill: 'rgba(255,255,255,0.4)', fontWeight: 600 }} />
                     <YAxis tickFormatter={formatCompact} stroke="#444" fontSize={11} tickLine={false} axisLine={false} width={45} tick={{ fill: 'rgba(255,255,255,0.4)', fontWeight: 600 }} />
