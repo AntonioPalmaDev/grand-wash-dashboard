@@ -301,20 +301,73 @@ export default function Dashboard() {
         {(showProdutos || showOperacoesProdutos) && (
         <div className="space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-primary flex items-center gap-2 px-1">
-            <ShoppingBag className="h-4 w-4" /> Vendas (Armas & Produtos)
+            <ShoppingBag className="h-4 w-4" /> Vendas de Armas & Produtos
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <ExecutiveKpi title="Total Vendido" value={formatCurrency(salesStats.totalVendido)} icon={ShoppingBag} color="emerald" />
-            <ExecutiveKpi title="Lucro Real" value={formatCurrency(salesStats.lucroReal)} icon={TrendingUp} color="teal" />
-            <ExecutiveKpi title="Ticket Médio" value={formatCurrency(salesStats.ticketMedio)} icon={Wallet} color="blue" />
-            <ExecutiveKpi title="Margem Média" value={formatPercent(salesStats.margemMedia)} icon={Zap} color="purple" />
-            <ExecutiveKpi title="Vendas Concluídas" value={String(salesStats.concluidas)} icon={Check} color="emerald" />
+            <ExecutiveKpi title="Total Vendido (Armas)" value={formatCurrency(weaponSalesStats.totalVendasArmas)} icon={ShoppingBag} color="emerald" />
+            <ExecutiveKpi title="Lucro Real (Armas)" value={formatCurrency(weaponSalesStats.lucroRealArmas)} icon={TrendingUp} color="teal" />
+            <ExecutiveKpi title="Custo Peças Abatidas" value={formatCurrency(weaponSalesStats.custoPecasArmas)} icon={Package} color="amber" />
+            <ExecutiveKpi title="Vendas Concluídas" value={String(weaponSalesStats.quantidadeVendasArmas)} icon={Check} color="cyan" />
+            <ExecutiveKpi title="Ticket Médio" value={formatCurrency(weaponSalesStats.ticketMedioArmas)} icon={Wallet} color="blue" />
+            <ExecutiveKpi title="Margem Real Média" value={formatPercent(weaponSalesStats.margemMediaArmas)} icon={Zap} color="purple" />
             <ExecutiveKpi title="Vendas Pendentes" value={String(salesStats.pendentes)} icon={AlertTriangle} color="amber" />
             <ExecutiveKpi title="Vendas Canceladas" value={String(salesStats.canceladas)} icon={AlertTriangle} color="indigo" />
-            <ExecutiveKpi title="Total de Vendas" value={String(salesStats.total)} icon={Layers} color="cyan" />
           </div>
         </div>
         )}
+
+        {(showProdutos || showOperacoesProdutos) && (topWeapons.length > 0 || topClients.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card className="border-white/5 bg-secondary/10 rounded-[1.5rem]">
+            <CardContent className="p-6">
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-white">
+                <ShoppingBag className="text-primary h-5 w-5" /> Top Armas Vendidas
+              </h3>
+              <div className="space-y-2">
+                {topWeapons.length > 0 ? topWeapons.map((w, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center font-black text-primary text-xs shrink-0">{i + 1}</div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-white text-sm truncate">{w.name}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{w.quantity} un · Lucro {formatCurrency(w.totalProfit)}</p>
+                      </div>
+                    </div>
+                    <p className="text-emerald-500 font-mono font-bold text-sm shrink-0 ml-2">{formatCurrency(w.totalValue)}</p>
+                  </div>
+                )) : (
+                  <p className="text-xs text-muted-foreground text-center py-8">Sem vendas registradas.</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-white/5 bg-secondary/10 rounded-[1.5rem]">
+            <CardContent className="p-6">
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-white">
+                <User className="text-primary h-5 w-5" /> Top Clientes Compradores
+              </h3>
+              <div className="space-y-2">
+                {topClients.length > 0 ? topClients.map((c, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center font-black text-primary text-xs shrink-0">{i + 1}</div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-white text-sm truncate">{c.name}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{c.salesCount} vendas · Lucro {formatCurrency(c.profitGenerated)}</p>
+                      </div>
+                    </div>
+                    <p className="text-emerald-500 font-mono font-bold text-sm shrink-0 ml-2">{formatCurrency(c.totalSpent)}</p>
+                  </div>
+                )) : (
+                  <p className="text-xs text-muted-foreground text-center py-8">Sem clientes ainda.</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        )}
+
 
         {!showOperacoesFinanceiras && !showProdutos && !showOperacoesProdutos && (
           <p className="text-sm text-muted-foreground text-center py-8">
