@@ -226,43 +226,48 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [config]);
 
   const addClient = useCallback(async (c: Omit<Client, "id" | "createdAt">) => {
-    if (!user || !activeCompany) return;
+    if (!user || !activeCompany) throw new Error("Usuário ou empresa não identificados");
+    if (!c.nome?.trim()) throw new Error("Nome é obrigatório");
     const { data, error } = await supabase.from("clients").insert({
-      user_id: user.id, company_id: activeCompany.id, nome: c.nome, tipo: c.tipo, taxa: Number(c.taxa), cor: c.cor || "#a855f7"
+      user_id: user.id, company_id: activeCompany.id, nome: c.nome.trim(), tipo: c.tipo, taxa: Number(c.taxa) || 0, cor: c.cor || "#a855f7"
     }).select().single();
-    if (error) { console.error("Erro ao inserir cliente:", error.message); return; }
+    if (error) { console.error("Erro ao inserir cliente:", error.message); throw error; }
     if (data) {
+      setClients(prev => prev.some(cl => cl.id === data.id) ? prev : [mapClient(data), ...prev]);
       const desc = logCriarCliente({ responsavel: getUserName(), nomeCliente: c.nome, tipo: c.tipo });
       await registrarLog({ ...logBase(), action: "criar", entity: "cliente", entityId: data.id, description: desc, afterData: { nome: c.nome, tipo: c.tipo } });
       supabase.functions.invoke("discord-notify", {
         body: { type: "novo_cliente", nome: c.nome, responsavel: getUserName() },
       }).catch(console.error);
     }
-  }, [user, getUserName, logBase]);
+  }, [user, activeCompany, getUserName, logBase]);
 
   const updateClient = useCallback(async (id: string, c: Partial<Client>) => {
-    if (!user) return;
+    if (!user) throw new Error("Usuário não autenticado");
     const old = clients.find(cl => cl.id === id);
     const updatePayload: any = {};
     const campos: string[] = [];
-    if (c.nome !== undefined) { updatePayload.nome = c.nome; campos.push("nome"); }
+    if (c.nome !== undefined) { updatePayload.nome = c.nome.trim(); campos.push("nome"); }
     if (c.tipo !== undefined) { updatePayload.tipo = c.tipo; campos.push("tipo"); }
-    if (c.taxa !== undefined) { updatePayload.taxa = Number(c.taxa); campos.push("taxa"); }
+    if (c.taxa !== undefined) { updatePayload.taxa = Number(c.taxa) || 0; campos.push("taxa"); }
     if (c.cor !== undefined) { updatePayload.cor = c.cor; campos.push("cor"); }
-    const { error } = await supabase.from("clients").update(updatePayload).eq("id", id);
-    if (error) { console.error("Erro ao atualizar cliente:", error.message); return; }
+    const { data, error } = await supabase.from("clients").update(updatePayload).eq("id", id).select().single();
+    if (error) { console.error("Erro ao atualizar cliente:", error.message); throw error; }
+    if (data) setClients(prev => prev.map(cl => cl.id === id ? mapClient(data) : cl));
     const desc = logEditarCliente({ responsavel: getUserName(), nomeCliente: old?.nome || c.nome || "---", campos });
     await registrarLog({ ...logBase(), action: "editar", entity: "cliente", entityId: id, description: desc, beforeData: old, afterData: updatePayload });
   }, [user, clients, getUserName, logBase]);
 
   // SOFT DELETE — marca deleted_at; também faz soft-delete em cascata nas operações do cliente
   const deleteClient = useCallback(async (id: string) => {
-    if (!user) return;
+    if (!user) throw new Error("Usuário não autenticado");
     const old = clients.find(cl => cl.id === id);
     const now = new Date().toISOString();
     await supabase.from("operations").update({ deleted_at: now }).eq("client_id", id).is("deleted_at", null);
     const { error } = await supabase.from("clients").update({ deleted_at: now }).eq("id", id);
-    if (error) { console.error("Erro ao excluir cliente:", error.message); return; }
+    if (error) { console.error("Erro ao excluir cliente:", error.message); throw error; }
+    setClients(prev => prev.filter(cl => cl.id !== id));
+    setOperations(prev => prev.filter(o => o.clientId !== id));
     const desc = logExcluirCliente({ responsavel: getUserName(), nomeCliente: old?.nome || "---" });
     await registrarLog({ ...logBase(), action: "excluir", entity: "cliente", entityId: id, description: desc, beforeData: old });
   }, [user, clients, getUserName, logBase]);
