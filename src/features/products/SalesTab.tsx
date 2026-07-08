@@ -161,8 +161,13 @@ export default function SalesTab() {
 
       let saleId: string;
       if (editing) {
-        const { error } = await supabase.from("sales").update(payload).eq("id", editing.id);
+        const { data: upd, error } = await supabase
+          .from("sales")
+          .update(payload)
+          .eq("id", editing.id)
+          .select("id");
         if (error) throw error;
+        if (!upd || upd.length === 0) throw new Error("Sem permissão para editar esta venda.");
         saleId = editing.id;
         // Wipe old items (cascade removes components)
         await supabase.from("sale_items").delete().eq("sale_id", saleId);
