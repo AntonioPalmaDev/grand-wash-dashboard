@@ -7,25 +7,7 @@ import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, Mail, User, Building2, Check, Loader2, Key } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Lock, Mail, User, Loader2 } from "lucide-react";
 
 export default function AuthPage() {
   const { signIn, signUp, user } = useAuth();
@@ -96,68 +78,6 @@ export default function AuthPage() {
     }
     setLoading(false);
   }
-
-  const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
-  const [tokenInput, setTokenInput] = useState("");
-
-  const handleAnonLogin = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      // Validar token no banco
-      const { data, error: tokenError } = await supabase
-        .from("anonymous_tokens")
-        .select("*")
-        .eq("token", tokenInput.toUpperCase())
-        .eq("is_active", true)
-        .gt("expires_at", new Date().toISOString())
-        .maybeSingle();
-
-      if (tokenError) throw tokenError;
-
-      if (!data) {
-        setError("Token inválido ou expirado.");
-        setLoading(false);
-        return;
-      }
-
-      // Se token válido, logar com a conta anônima
-      const anonEmail = "anonimo@anonimo.com";
-      const anonPass = "anonimo";
-      
-      const { error: signInError } = await signIn(anonEmail, anonPass);
-      
-      if (signInError) {
-        if (signInError.includes("Invalid login credentials")) {
-          const { error: signUpError } = await supabase.auth.signUp({
-            email: anonEmail,
-            password: anonPass,
-            options: {
-              data: {
-                nome_personagem: "Anonimo",
-                nome: "Anonimo",
-                role: "visualizador"
-              }
-            }
-          });
-          if (signUpError) {
-            setError(signUpError.message);
-          } else {
-            const { error: retryError } = await signIn(anonEmail, anonPass);
-            if (retryError) setError(retryError);
-          }
-        } else {
-          setError(signInError);
-        }
-      } else {
-        setTokenDialogOpen(false);
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -231,18 +151,6 @@ export default function AuthPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : isLogin ? "Entrar" : "Criar Conta"}
             </Button>
-            
-            {isLogin && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="w-full border-white/10 hover:bg-white/5 gap-2" 
-                onClick={() => setTokenDialogOpen(true)}
-                disabled={loading}
-              >
-                <User className="h-4 w-4" /> Entrar como Anônimo
-              </Button>
-            )}
           </div>
         </form>
 
@@ -253,41 +161,6 @@ export default function AuthPage() {
           </button>
         </p>
       </div>
-
-      <Dialog open={tokenDialogOpen} onOpenChange={setTokenDialogOpen}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <Key className="w-5 h-5 text-primary" /> Token de Acesso
-            </DialogTitle>
-            <DialogDescription className="text-slate-400">
-              Insira o token de 24 horas fornecido por um administrador.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-6 space-y-4">
-            <div className="space-y-2">
-              <Label>Token</Label>
-              <Input 
-                placeholder="EX: A1B2C3D4" 
-                value={tokenInput} 
-                onChange={(e) => setTokenInput(e.target.value.toUpperCase())}
-                className="bg-white/5 border-white/10 text-center text-xl font-mono tracking-widest uppercase h-14 focus-visible:ring-primary"
-              />
-            </div>
-            {error && <p className="text-sm text-red-400 bg-red-500/10 p-2 rounded text-center">{error}</p>}
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setTokenDialogOpen(false)} className="text-slate-400">Cancelar</Button>
-            <Button 
-              className="bg-primary hover:bg-primary/90 text-white font-bold" 
-              onClick={handleAnonLogin}
-              disabled={loading || !tokenInput}
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Validar e Entrar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
