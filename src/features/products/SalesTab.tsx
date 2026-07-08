@@ -161,8 +161,13 @@ export default function SalesTab() {
 
       let saleId: string;
       if (editing) {
-        const { error } = await supabase.from("sales").update(payload).eq("id", editing.id);
+        const { data: upd, error } = await supabase
+          .from("sales")
+          .update(payload)
+          .eq("id", editing.id)
+          .select("id");
         if (error) throw error;
+        if (!upd || upd.length === 0) throw new Error("Sem permissão para editar esta venda.");
         saleId = editing.id;
         // Wipe old items (cascade removes components)
         await supabase.from("sale_items").delete().eq("sale_id", saleId);
@@ -225,8 +230,15 @@ export default function SalesTab() {
   }
 
   async function changeStatus(sale: Sale, newStatus: "pendente" | "concluido" | "cancelado") {
-    const { error } = await supabase.from("sales").update({ status: newStatus }).eq("id", sale.id);
+    const { data, error } = await supabase
+      .from("sales")
+      .update({ status: newStatus })
+      .eq("id", sale.id)
+      .select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) {
+      return toast.error("Sem permissão para alterar esta venda.");
+    }
     try {
       await registrarLog({
         userId: user!.id, userEmail: user?.email || "",
@@ -236,7 +248,8 @@ export default function SalesTab() {
         description: `Status da venda alterado de '${sale.status}' para '${newStatus}'`,
       });
     } catch {}
-    toast.success("Status atualizado"); refetch();
+    toast.success("Status atualizado");
+    await refetch();
   }
 
   async function deleteSale(sale: Sale) {
