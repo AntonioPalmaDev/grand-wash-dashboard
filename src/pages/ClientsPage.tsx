@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { useRole } from "@/hooks/useRole";
+import { useSales } from "@/features/products/useSales";
 import { toast } from "@/hooks/use-toast";
-import { formatCurrency, formatPercent } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,14 +17,14 @@ import { Plus, Trash2, User, Building2, Pencil, Search, Loader2 } from "lucide-r
 import type { Client, ClientType } from "@/types";
 
 export default function ClientsPage() {
-  const { clients, addClient, updateClient, deleteClient, getClientStats, getClientRate, config } = useApp();
+  const { clients, addClient, updateClient, deleteClient } = useApp();
   const { isDev, canEdit } = useRole();
+  const { sales } = useSales();
 
   // create
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState<ClientType>("PF");
-  const [taxaCustom, setTaxaCustom] = useState("");
   const [cor, setCor] = useState("#a855f7");
   const [saving, setSaving] = useState(false);
 
@@ -31,7 +32,6 @@ export default function ClientsPage() {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [editNome, setEditNome] = useState("");
   const [editTipo, setEditTipo] = useState<ClientType>("PF");
-  const [editTaxa, setEditTaxa] = useState("");
   const [editCor, setEditCor] = useState("");
   const [updating, setUpdating] = useState(false);
 
@@ -52,8 +52,41 @@ export default function ClientsPage() {
     });
   }, [clients, filter, search]);
 
+  // Sales stats per client (matches by id or by snapshot name, only concluded)
+  const salesStatsByClient = useMemo(() => {
+    const map = new Map<string, {
+      totalVendido: number;
+      lucroReal: number;
+      custoPecas: number;
+      qtdVendas: number;
+      qtdArmas: number;
+      ultimaVenda: string | null;
+    }>();
+    const concluded = sales.filter(s => s.status === "concluido");
+    for (const c of clients) {
+      const nameLower = c.nome.trim().toLowerCase();
+      const related = concluded.filter(s =>
+        (s.client_id && s.client_id === c.id) ||
+        (!s.client_id && (s.client_name_snapshot || "").trim().toLowerCase() === nameLower)
+      );
+      const totalVendido = related.reduce((a, s) => a + Number(s.total_sale_value || 0), 0);
+      const lucroReal = related.reduce((a, s) => a + Number(s.real_profit || 0), 0);
+      const custoPecas = related.reduce((a, s) => a + Number(s.total_parts_cost || 0), 0);
+      const qtdArmas = related.reduce(
+        (a, s) => a + (s.sale_items || []).reduce((n, it) => n + Number(it.quantity || 0), 0),
+        0,
+      );
+      const ultimaVenda = related
+        .map(s => s.sale_date)
+        .sort()
+        .reverse()[0] || null;
+      map.set(c.id, { totalVendido, lucroReal, custoPecas, qtdVendas: related.length, qtdArmas, ultimaVenda });
+    }
+    return map;
+  }, [sales, clients]);
+
   function resetCreate() {
-    setNome(""); setTipo("PF"); setTaxaCustom(""); setCor("#a855f7");
+    setNome(""); setTipo("PF"); setCor("#a855f7");
   }
 
   async function handleAdd() {
@@ -63,7 +96,7 @@ export default function ClientsPage() {
     }
     setSaving(true);
     try {
-      await addClient({ nome: nome.trim(), tipo, taxa: taxaCustom ? Number(taxaCustom) : 0, cor } as any);
+      await addClient({ nome: nome.trim(), tipo, taxa: 0, cor } as any);
       toast({ title: "Cliente criado", description: nome.trim() });
       resetCreate();
       setOpen(false);
@@ -78,7 +111,6 @@ export default function ClientsPage() {
     setEditingClient(client);
     setEditNome(client.nome);
     setEditTipo(client.tipo);
-    setEditTaxa(client.taxa > 0 ? String(client.taxa) : "");
     setEditCor(client.cor || "#a855f7");
   }
 
@@ -93,7 +125,6 @@ export default function ClientsPage() {
       await updateClient(editingClient.id, {
         nome: editNome.trim(),
         tipo: editTipo,
-        taxa: editTaxa ? Number(editTaxa) : 0,
         cor: editCor,
       } as any);
       toast({ title: "Cliente atualizado", description: editNome.trim() });
@@ -134,7 +165,7 @@ export default function ClientsPage() {
                 <div className="grid grid-cols-4 gap-4">
                   <div className="col-span-3">
                     <Label>Nome *</Label>
-                    <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Família Silva" />
+                    <Input value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: João da Silva" />
                   </div>
                   <div className="col-span-1">
                     <Label>Cor</Label>
@@ -150,10 +181,6 @@ export default function ClientsPage() {
                       <SelectItem value="PJ">Empresa (PJ)</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <div>
-                  <Label>Taxa (%)</Label>
-                  <Input type="number" value={taxaCustom} onChange={e => setTaxaCustom(e.target.value)} placeholder={`Padrão: ${tipo === "PF" ? config.taxaPF : config.taxaPJ}%`} />
                 </div>
                 <Button onClick={handleAdd} className="w-full" disabled={saving}>
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -192,8 +219,9 @@ export default function ClientsPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
         {filtered.map(client => {
-          const s = getClientStats(client.id);
-          const rate = getClientRate(client);
+          const s = salesStatsByClient.get(client.id) ?? {
+            totalVendido: 0, lucroReal: 0, custoPecas: 0, qtdVendas: 0, qtdArmas: 0, ultimaVenda: null,
+          };
           const clientColor = client.cor || "#a855f7";
 
           return (
@@ -203,7 +231,10 @@ export default function ClientsPage() {
                   <div className="p-2 rounded-full bg-secondary/50" style={{ color: clientColor }}>
                     {client.tipo === "PF" ? <User size={18} /> : <Building2 size={18} />}
                   </div>
-                  <span className="font-bold text-lg">{client.nome}</span>
+                  <div>
+                    <div className="font-bold text-lg leading-tight">{client.nome}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">{client.tipo}</div>
+                  </div>
                 </div>
                 <div className="flex gap-1">
                   {canEdit && <Button variant="ghost" size="icon" onClick={() => handleStartEdit(client)} className="h-8 w-8"><Pencil size={14} /></Button>}
@@ -213,25 +244,35 @@ export default function ClientsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="bg-secondary/20 p-2 rounded text-center">
-                  <div className="text-[10px] text-muted-foreground uppercase">Ops</div>
-                  <div className="font-mono font-bold text-lg">{s.totalOps}</div>
+                  <div className="text-[10px] text-muted-foreground uppercase">Vendas</div>
+                  <div className="font-mono font-bold text-lg">{s.qtdVendas}</div>
+                </div>
+                <div className="bg-secondary/20 p-2 rounded text-center">
+                  <div className="text-[10px] text-muted-foreground uppercase">Armas</div>
+                  <div className="font-mono font-bold text-lg">{s.qtdArmas}</div>
                 </div>
                 <div className="bg-secondary/20 p-2 rounded text-center col-span-2">
-                  <div className="text-[10px] text-muted-foreground uppercase">Total Lavado</div>
-                  <div className="font-mono font-bold text-lg text-emerald-400">{formatCurrency(s.totalLavado)}</div>
+                  <div className="text-[10px] text-muted-foreground uppercase">Total Vendido</div>
+                  <div className="font-mono font-bold text-lg text-emerald-400">{formatCurrency(s.totalVendido)}</div>
                 </div>
               </div>
 
               <div className="space-y-1 text-xs pt-2 border-t border-white/5">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Lucro Gerado:</span>
-                  <span className="font-semibold">{formatCurrency(s.lucroGerado)}</span>
+                  <span className="text-muted-foreground">Lucro Real:</span>
+                  <span className="font-semibold text-emerald-300">{formatCurrency(s.lucroReal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Taxa:</span>
-                  <span className="font-semibold">{formatPercent(rate)}</span>
+                  <span className="text-muted-foreground">Custo Peças:</span>
+                  <span className="font-semibold">{formatCurrency(s.custoPecas)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Última venda:</span>
+                  <span className="font-semibold">
+                    {s.ultimaVenda ? new Date(s.ultimaVenda).toLocaleDateString("pt-BR") : "—"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -268,12 +309,6 @@ export default function ClientsPage() {
               </Select>
             </div>
 
-            <div>
-              <Label>Taxa (%)</Label>
-              <Input type="number" value={editTaxa} onChange={e => setEditTaxa(e.target.value)}
-                placeholder={`Padrão: ${editTipo === "PF" ? config.taxaPF : config.taxaPJ}%`} />
-            </div>
-
             <div className="flex gap-3 pt-2">
               <Button variant="outline" onClick={() => setEditingClient(null)} className="flex-1" disabled={updating}>
                 Cancelar
@@ -293,8 +328,8 @@ export default function ClientsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir cliente?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação irá arquivar o cliente <b>{confirmDelete?.nome}</b> e todas as operações vinculadas a ele.
-              O histórico permanece disponível na área de restauração.
+              Esta ação irá arquivar o cliente <b>{confirmDelete?.nome}</b>.
+              As vendas já registradas permanecem no histórico com o nome do cliente preservado.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
