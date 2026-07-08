@@ -272,40 +272,11 @@ export default function Dashboard() {
         {(showProdutos || showOperacoesProdutos) && (
         <div className="space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-primary flex items-center gap-2 px-1">
-            <Package className="h-4 w-4" /> Gestão de Produtos
+            <ShoppingBag className="h-4 w-4" /> Vendas de Armas
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <ExecutiveKpi 
-              title="Faturamento Vendas" 
-              value={formatCurrency(stats.faturamentoProdutos)} 
-              icon={ShoppingBag} 
-              trend={calculateGrowth(stats.faturamentoProdutos, previousStats.faturamentoProdutos)} 
-              color="amber"
-            />
-            <ExecutiveKpi 
-              title="Itens Vendidos" 
-              value={String(stats.quantidadeTotalItens)} 
-              icon={Package} 
-              color="cyan"
-            />
-            <ExecutiveKpi 
-              title="Vendas Concluídas" 
-              value={String(stats.produtosVendidos)} 
-              icon={Check} 
-              color="teal"
-            />
-          </div>
-        </div>
-        )}
-
-        {(showProdutos || showOperacoesProdutos) && (
-        <div className="space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-primary flex items-center gap-2 px-1">
-            <ShoppingBag className="h-4 w-4" /> Vendas de Armas & Produtos
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <ExecutiveKpi title="Total Vendido (Armas)" value={formatCurrency(weaponSalesStats.totalVendasArmas)} icon={ShoppingBag} color="emerald" />
-            <ExecutiveKpi title="Lucro Real (Armas)" value={formatCurrency(weaponSalesStats.lucroRealArmas)} icon={TrendingUp} color="teal" />
+            <ExecutiveKpi title="Total Vendido" value={formatCurrency(weaponSalesStats.totalVendasArmas)} icon={ShoppingBag} color="emerald" />
+            <ExecutiveKpi title="Lucro Real" value={formatCurrency(weaponSalesStats.lucroRealArmas)} icon={TrendingUp} color="teal" />
             <ExecutiveKpi title="Custo Peças Abatidas" value={formatCurrency(weaponSalesStats.custoPecasArmas)} icon={Package} color="amber" />
             <ExecutiveKpi title="Vendas Concluídas" value={String(weaponSalesStats.quantidadeVendasArmas)} icon={Check} color="cyan" />
             <ExecutiveKpi title="Ticket Médio" value={formatCurrency(weaponSalesStats.ticketMedioArmas)} icon={Wallet} color="blue" />
