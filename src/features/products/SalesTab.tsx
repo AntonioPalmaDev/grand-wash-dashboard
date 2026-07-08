@@ -473,7 +473,8 @@ export default function SalesTab() {
                 </td></tr>
               ) : filtered.map((s) => {
                 const isOwner = s.created_by === user?.id;
-                const canEditSale = isOwner || isAdmin;
+                const canEditSale = isOwner || isDev;
+                const canDeleteSale = isOwner || isDev;
                 return (
                   <tr key={s.id} className="hover:bg-white/5">
                     <td className="p-4 text-muted-foreground text-xs whitespace-nowrap">{formatDate(s.sale_date)}</td>
