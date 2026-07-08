@@ -511,7 +511,7 @@ export default function SalesTab() {
                             <CheckCircle2 className="h-4 w-4" />
                           </Button>
                         )}
-                        {isDev && (
+                        {canDeleteSale && (
                           <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteSale(s)} title="Excluir">
                             <Trash2 className="h-4 w-4" />
                           </Button>
